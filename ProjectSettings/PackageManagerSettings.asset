@@ -38,19 +38,7 @@ MonoBehaviour:
     m_Modified: 0
     m_ErrorMessage: 
     m_UserModificationsEntityId:
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-      m_rawData: 568105589213756492
-    m_OriginalEntityId:
-      m_rawData: 568105589213756490
-=======
-      m_rawData: 568105589213756494
-    m_OriginalEntityId:
-      m_rawData: 568105589213756492
->>>>>>> b631ba685884461d00758c9591905b23f5a0d411
-=======
       m_rawData: 568105589213756512
     m_OriginalEntityId:
       m_rawData: 568105589213756510
->>>>>>> Stashed changes
   m_LoadAssets: 0
