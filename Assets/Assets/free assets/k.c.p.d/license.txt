@@ -1,0 +1,11 @@
+Model Information:
+* title:	K.C.P.D
+* source:	https://sketchfab.com/3d-models/kcpd-a402c843558c44a0abf4b8187741372a
+* author:	Veterock (https://sketchfab.com/windofglass)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "K.C.P.D" (https://sketchfab.com/3d-models/kcpd-a402c843558c44a0abf4b8187741372a) by Veterock (https://sketchfab.com/windofglass) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
