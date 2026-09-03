@@ -1,0 +1,11 @@
+Model Information:
+* title:	Detective board
+* source:	https://sketchfab.com/3d-models/detective-board-fec0ab3b7cc04c30b3f18ae2020eaeb5
+* author:	patrakeevasveta (https://sketchfab.com/patrakeevasveta)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Detective board" (https://sketchfab.com/3d-models/detective-board-fec0ab3b7cc04c30b3f18ae2020eaeb5) by patrakeevasveta (https://sketchfab.com/patrakeevasveta) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
