@@ -224,8 +224,8 @@ Canvas:
   m_GameObject: {fileID: 19598832}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_RenderMode: 1
+  m_Camera: {fileID: 330585545}
   m_PlaneDistance: 100
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
@@ -367,7 +367,7 @@ MonoBehaviour:
       - m_Target: {fileID: 1387706212}
         m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
         m_MethodName: SetBrightness
-        m_Mode: 4
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -821,7 +821,7 @@ RectTransform:
   m_GameObject: {fileID: 316006451}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 19598836}
@@ -999,7 +999,7 @@ MonoBehaviour:
   m_RendererIndex: -1
   m_VolumeLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 4294967295
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
@@ -1694,7 +1694,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
@@ -1754,7 +1754,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 10fc4df2da32a41aaa32d77bc913491c, type: 2}
+  sharedProfile: {fileID: 11400000, guid: ab09877e2e707104187f6f83e2f62510, type: 2}
 --- !u!4 &832575519
 Transform:
   m_ObjectHideFlags: 0
@@ -2402,12 +2402,13 @@ MonoBehaviour:
   gameSceneName: GameScene
   mainButtonsPanel: {fileID: 1653417697}
   settingsPanel: {fileID: 438062820}
-  mainAudioMixer: {fileID: 0}
+  mainAudioMixer: {fileID: 24100000, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   musicSlider: {fileID: 2095515925}
   sfxSlider: {fileID: 1737548947}
-  sensitivitySlider: {fileID: 0}
+  globalVolume: {fileID: 832575518}
   brightnessSlider: {fileID: 52893704}
-  sceneDirectionalLight: {fileID: 0}
+  gameTitleObject: {fileID: 316006451}
+  settingsTitleHeader: {fileID: 0}
 --- !u!224 &1387706213
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2897,7 +2898,7 @@ MonoBehaviour:
       - m_Target: {fileID: 1387706212}
         m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
         m_MethodName: SetSFXVolume
-        m_Mode: 4
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -3489,7 +3490,7 @@ MonoBehaviour:
       - m_Target: {fileID: 1387706212}
         m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
         m_MethodName: SetMusicVolume
-        m_Mode: 4
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -3524,7 +3525,7 @@ AudioSource:
   m_GameObject: {fileID: 2100699767}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: ee32cb802c151144ebaa02bcc3790374, type: 3}
   m_PlayOnAwake: 1
