@@ -3,7 +3,12 @@ guid: 32fee83b72f07474d9908ba9e78ce5e9
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cracked_concrete_02
+    second: {fileID: 2100000, guid: 6374e2340ea4acc488a1e2b85d90ff9d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

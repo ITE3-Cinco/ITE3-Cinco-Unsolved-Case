@@ -3,7 +3,12 @@ guid: 2e402957c80a54640ad5a7d93332cafa
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: decrepit_wallpaper
+    second: {fileID: 2100000, guid: 6c6026d63452bc449a19d6b5190be5a4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
