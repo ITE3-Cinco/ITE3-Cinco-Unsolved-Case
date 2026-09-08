@@ -11,7 +11,7 @@ public class MainMenuController : MonoBehaviour
 
     [Header("Scene Management")]                    // Groups all scene-related settings together in the Inspector.
     [Tooltip("Exact name of the gameplay scene.")]  // Shows what this field is for when hovered.
-    [SerializeField] private string gameSceneName = "GameScene"; // Name of the scene to load when the player starts the game.
+    [SerializeField] private string gameSceneName = "OpeningCutscene"; // Name of the scene to load when the player starts the game.
 
     [Header("UI Panels")]                                   // Groups menu panel references together.
     [Tooltip("Panel containing the main menu buttons.")]    // Helps explain what this panel is.
@@ -121,18 +121,30 @@ public class MainMenuController : MonoBehaviour
             mainButtonsPanel.SetActive(true);
     }
 
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Find the new scene's volume and restore brightness.
-        // Find the current scene's volume object.
+        // Force a quick background delay invocation to ensure the new scene 
+        // components are fully awake and registered in memory before adjusting values.
+        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.1f);
+    }
+
+    private void ApplyLoadedSettingsToNewScene()
+    {
+        // Find the Global Volume in the freshly loaded scene
         Volume newVolume = FindAnyObjectByType<Volume>();
 
-        // Get the brightness settings from the current scene.
         FetchVolumeProfile(newVolume);
 
-        // Restore the saved brightness value.
-        SetBrightness(PlayerPrefs.GetFloat("Brightness", 0.5f));
+        // Re-apply brightness values cleanly to the new volume component
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
+        SetBrightness(savedBrightness);
+
+        // Re-apply volumes to ensure the Mixer forces sync onto the new audio instances
+        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
     }
+
 
     private void FetchVolumeProfile(Volume targetVolume)
     {
@@ -145,10 +157,10 @@ public class MainMenuController : MonoBehaviour
 
     public void PlayGame()
     {
-        // Load the gameplay scene.
-        SceneManager.LoadScene("OpeningCutscene");
-
+        // Load the gameplay scene when the player clicks the "Play" button.
+        SceneManager.LoadScene(gameSceneName);
     }
+
 
     public void OpenSettings()
     {
