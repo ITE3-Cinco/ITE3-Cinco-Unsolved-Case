@@ -2541,7 +2541,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36ad1bce580246b40bef2565e1cb8417, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuController
-  gameSceneName: GameScene
+  gameSceneName: OpeningCutscene
   mainButtonsPanel: {fileID: 1653417697}
   settingsPanel: {fileID: 438062820}
   mainAudioMixer: {fileID: 24100000, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
@@ -3693,9 +3693,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1387706211}
+      - m_Target: {fileID: 1387706212}
         m_TargetAssemblyTypeName: MainMenuController, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: PlayGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

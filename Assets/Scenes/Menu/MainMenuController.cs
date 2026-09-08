@@ -146,7 +146,8 @@ public class MainMenuController : MonoBehaviour
     public void PlayGame()
     {
         // Load the gameplay scene.
-        SceneManager.LoadScene(gameSceneName);
+        SceneManager.LoadScene("OpeningCutscene");
+
     }
 
     public void OpenSettings()
