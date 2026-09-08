@@ -87,25 +87,38 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
-        // Load saved settings, or use these defaults on first launch.
-        // Get saved values or use defaults on first launch.
-        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
-        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
-        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
+        // Load saved preferences from disk (or use default values on first startup)
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);      // Default 75% volume
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);          // Default 75% volume
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);   // Default 50% middle ground
 
-        // Apply saved values to the sliders.
-        if (musicSlider != null) musicSlider.value = savedMusic;
-        if (sfxSlider != null) sfxSlider.value = savedSFX;
-        if (brightnessSlider != null) brightnessSlider.value = savedBrightness;
+        // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
+        if (musicSlider != null) 
+        {
+            musicSlider.value = savedMusic;
+        }
 
-        // Apply saved values to the game settings.
+        if (sfxSlider != null) 
+        {
+            sfxSlider.value = savedSFX;
+        }
+
+        if (brightnessSlider != null) 
+        {
+            brightnessSlider.value = savedBrightness;
+        }
+
+        // Loaded values to the Mixer and global lighting engine
         SetMusicVolume(savedMusic);
         SetSFXVolume(savedSFX);
         SetBrightness(savedBrightness);
 
-        // Show the main menu and hide the settings menu at startup.
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (mainButtonsPanel != null) mainButtonsPanel.SetActive(true);
+        // Ensure Settings Panel is hidden and Main Menu buttons are visible when starting
+        if (settingsPanel != null) 
+            settingsPanel.SetActive(false);
+
+        if (mainButtonsPanel != null) 
+            mainButtonsPanel.SetActive(true);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
