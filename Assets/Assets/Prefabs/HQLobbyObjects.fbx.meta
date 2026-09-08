@@ -3,7 +3,67 @@ guid: 988de70ee7d6bf74e9996d2e114bf6fc
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Black
+    second: {fileID: 2100000, guid: ce201e941090614418ad51c6c1b991d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_ChairGreen
+    second: {fileID: 2100000, guid: 81a971775d52b6446a003d8e4571a800, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Cork
+    second: {fileID: 2100000, guid: e6e26667791b4e94d8c6192d0a34eebc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_DarkWood
+    second: {fileID: 2100000, guid: d4c974b86d047a94bb5f20f41e33a448, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Glass
+    second: {fileID: 2100000, guid: 2a14ef78f49fb98498c5fc15784f3e5f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Paper
+    second: {fileID: 2100000, guid: 9604bc241e1c35146ba71d14a1837391, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_PoliceBlue
+    second: {fileID: 2100000, guid: e3df8732d5dd228408fc513e38f58842, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Red
+    second: {fileID: 2100000, guid: a5ef6fab46b07da448a2165d2d6ecb8e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Steel
+    second: {fileID: 2100000, guid: 01c6095289b1fb64bb096070342e64a0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_White
+    second: {fileID: 2100000, guid: d680e12031f967f42b6cf2813486df16, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_WoodTrim
+    second: {fileID: 2100000, guid: c379a674c017222448b3aa9691988475, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lobby_Yellow
+    second: {fileID: 2100000, guid: 9935f594d684ec34f836a59976b03924, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
