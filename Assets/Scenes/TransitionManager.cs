@@ -4,19 +4,38 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 using UnityEngine.InputSystem;
 
+/***
+ * TransitionManager.cs
+ * This script manages the transition from the splash screen to the main menu in a Unity project.
+ * It handles video playback, fade transitions, and user input for skipping the splash screen.
+    * Usage:
+    * 1. Attach this script to a GameObject in your scene (e.g., an empty GameObject named "TransitionManager").
+    * 2. Assign the required references in the Inspector:
+    *    - Splash Video Player: The VideoPlayer component that plays the splash video.
+    *    - Splash Canvas Group: The CanvasGroup component attached to the splash screen canvas.
+    *    - Menu Video Player: The VideoPlayer component that plays the menu background video.
+    *    - Menu Canvas Group: The CanvasGroup component attached to the main menu canvas.
+    *    - Menu Raw Image: The RawImage component that displays the menu video.
+    *    - Black Screen Canvas Group: The CanvasGroup component attached to the black overlay panel.
+    * 3. Configure the transition timings and settings as needed in the Inspector.
+**/
+
 public class TransitionManager : MonoBehaviour
 {
     [Header("Splash Screen References")]
     [Tooltip("The Video Player playing the splash video.")]
     [SerializeField] private VideoPlayer splashVideoPlayer;
+
     [Tooltip("The Canvas Group attached to your Splash Screen Canvas.")]
     [SerializeField] private CanvasGroup splashCanvasGroup;
 
     [Header("Main Menu References")]
     [Tooltip("The Video Player playing the menu background video.")]
     [SerializeField] private VideoPlayer menuVideoPlayer;
+
     [Tooltip("The Canvas Group attached to your Main Menu Canvas.")]
     [SerializeField] private CanvasGroup menuCanvasGroup;
+
     [Tooltip("The Raw Image component displaying the menu video.")]
     [SerializeField] private RawImage menuRawImage;
 
@@ -27,6 +46,7 @@ public class TransitionManager : MonoBehaviour
     [Header("Transition Timings")]
     [Tooltip("How fast the splash screen fades out to black (in seconds).")]
     [SerializeField] private float fadeOutSplashTime = 0.8f;
+
     [Tooltip("How fast the black overlay dissolves to reveal the menu (in seconds).")]
     [SerializeField] private float fadeOutBlackTime = 0.8f;
 
@@ -38,27 +58,33 @@ public class TransitionManager : MonoBehaviour
 
     private void Awake()
     {
-        // Keep the Main Menu Canvas fully visible (Alpha = 1) so it sits ready behind the black screen
-        if (menuCanvasGroup != null) menuCanvasGroup.alpha = 1f;
-        if (menuRawImage != null) menuRawImage.enabled = false;
+        // Keep the menu ready behind the black overlay.
+        if (menuCanvasGroup != null)
+            menuCanvasGroup.alpha = 1f; // Menu is fully visible behind the black fade layer.
 
-        // Start the Splash Screen visible (Alpha = 1)
-        if (splashCanvasGroup != null) splashCanvasGroup.alpha = 1f;
+        // Hide the menu video until the transition begins.
+        if (menuRawImage != null)
+            menuRawImage.enabled = false;
 
-        // Keep the Black Overlay fully opaque (Alpha = 1) to block premature video frames
-        if (blackScreenCanvasGroup != null) blackScreenCanvasGroup.alpha = 1f;
+        // Start with the splash visible.
+        if (splashCanvasGroup != null)
+            splashCanvasGroup.alpha = 1f; // Splash screen starts fully opaque.
+
+        // Block the scene until the transition starts.
+        if (blackScreenCanvasGroup != null)
+            blackScreenCanvasGroup.alpha = 1f; // Black overlay starts fully opaque so the scene is hidden.
     }
 
     private void Start()
     {
-        // Set up the Splash Video Player
+        // Set up the splash video player.
         if (splashVideoPlayer != null)
         {
             splashVideoPlayer.loopPointReached += OnSplashVideoEnded;
             splashVideoPlayer.Prepare();
         }
 
-        // Pre-load the Menu Video Player into memory
+        // Pre-load the menu video player into memory.
         if (menuVideoPlayer != null)
         {
             menuVideoPlayer.Prepare();
@@ -67,81 +93,111 @@ public class TransitionManager : MonoBehaviour
 
     private void Update()
     {
-        // Skip check for new Input System
+        // Skip check for the input system.
         if (allowSkip && !isTransitioning)
         {
+            // Check for spacebar press or mouse click using the new Input System.
             bool spacePressed = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+            // Check for mouse click using the new Input System.
             bool mouseClicked = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
 
+            // If either input is detected, trigger the transition.
             if (spacePressed || mouseClicked)
             {
+                // Stop the splash video if it's still playing.
                 TriggerTransition();
             }
         }
     }
 
+    // Callback for when the splash video ends naturally.
     private void OnSplashVideoEnded(VideoPlayer vp)
     {
+        // Trigger the transition when the splash video finishes playing.
         TriggerTransition();
     }
 
+    // Initiates the transition from the splash screen to the main menu.
     private void TriggerTransition()
     {
-        if (isTransitioning) return;
-        isTransitioning = true;
+        // Prevent multiple transitions from being triggered simultaneously.
+        if (isTransitioning)
+            return; // Already transitioning, ignore further triggers.
 
-        StartCoroutine(PerformCrossfade());
+        // Stop the splash video if it's still playing.
+        isTransitioning = true;
+        StartCoroutine(PerformCrossfade()); // Start the crossfade coroutine to handle the transition.
     }
 
+    // Coroutine to handle the crossfade transition between the splash screen and the main menu.
     private IEnumerator PerformCrossfade()
     {
-        // STEP 1: Enable and play menu background video under the black overlay
+        // Enable and play the menu background video under the black overlay.
         if (menuVideoPlayer != null)
         {
-            if (menuRawImage != null) menuRawImage.enabled = true;
+            // Ensure the menu video is visible before starting playback.
+            if (menuRawImage != null)
+                menuRawImage.enabled = true; // Show the menu video.
+
+            // Start playing the menu video.
             menuVideoPlayer.Play();
         }
 
-        // STEP 2: Fade OUT Splash Screen (Alpha 1 -> 0) to reveal Black Overlay
+        // Fade out the splash screen to reveal the black overlay.
         float timer = 0f;
         while (timer < fadeOutSplashTime)
         {
-            timer += Time.deltaTime;
+            timer += Time.deltaTime; // Increment the timer based on the time elapsed since the last frame.
+
+            // Gradually reduce the alpha of the splash canvas group to create a fade-out effect.
             if (splashCanvasGroup != null)
             {
-                splashCanvasGroup.alpha = 1f - Mathf.Clamp01(timer / fadeOutSplashTime);
+                // Calculate the new alpha value based on the elapsed time and fade duration.
+                splashCanvasGroup.alpha = 1f - Mathf.Clamp01(timer / fadeOutSplashTime); // Fade splash from 1 to 0 over time.
             }
-            yield return null;
+
+            yield return null; // Wait for the next frame before continuing the loop, allowing the fade effect to be smooth over time.
         }
 
-        // Turn off splash screen object completely
-        if (splashCanvasGroup != null) splashCanvasGroup.alpha = 0f;
-        if (splashVideoPlayer != null) splashVideoPlayer.gameObject.SetActive(false);
+        // Turn off the splash screen completely.
+        if (splashCanvasGroup != null)
+            splashCanvasGroup.alpha = 0f; // Splash is now fully transparent/invisible.
 
-        // STEP 3: Fade OUT Black Overlay (Alpha 1 -> 0) to reveal the playing Menu Video
+        // Turn off the splash video player to free up resources.
+        if (splashVideoPlayer != null)
+            splashVideoPlayer.gameObject.SetActive(false); // Deactivate the splash video player GameObject.
+
+        // Fade out the black overlay to reveal the menu video.
         timer = 0f;
         while (timer < fadeOutBlackTime)
         {
-            timer += Time.deltaTime;
+            timer += Time.deltaTime; // Increment the timer based on the time elapsed since the last frame.
+
+            // Gradually reduce the alpha of the black screen canvas group to create a fade-out effect.
             if (blackScreenCanvasGroup != null)
             {
-                blackScreenCanvasGroup.alpha = 1f - Mathf.Clamp01(timer / fadeOutBlackTime);
+                // Calculate the new alpha value based on the elapsed time and fade duration.
+                blackScreenCanvasGroup.alpha = 1f - Mathf.Clamp01(timer / fadeOutBlackTime); // Fade black overlay from 1 to 0 so menu becomes visible.
             }
-            yield return null;
+
+            yield return null; // Wait for the next frame before continuing the loop, allowing the fade effect to be smooth over time.
         }
 
-        // Turn off Black Overlay so buttons can receive clicks cleanly
+        // Turn off the black overlay so buttons can receive clicks.
         if (blackScreenCanvasGroup != null)
         {
-            blackScreenCanvasGroup.alpha = 0f;
-            blackScreenCanvasGroup.gameObject.SetActive(false);
+            blackScreenCanvasGroup.alpha = 0f; // Black overlay is fully transparent and no longer blocks interaction.
+            blackScreenCanvasGroup.gameObject.SetActive(false); // Deactivate the black screen canvas group GameObject to allow interaction with the menu.
         }
     }
 
+    // Clean up event subscriptions when the object is destroyed to prevent memory leaks.
     private void OnDestroy()
     {
+        // Unsubscribe from the splash video player's loop point reached event to avoid potential null reference exceptions.
         if (splashVideoPlayer != null)
         {
+            // Remove the event handler to prevent it from being called after the object is destroyed.
             splashVideoPlayer.loopPointReached -= OnSplashVideoEnded;
         }
     }
