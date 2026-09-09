@@ -145,20 +145,9 @@ public class MainMenuController : MonoBehaviour
         SetBrightness(savedBrightness);
         SetMusicVolume(savedMusic);
         SetSFXVolume(savedSFX);
-
-        // 3. THE TIMELINE BUG WORKAROUND:
-        // Find the physical AudioSource object assigned to the cutscene track
-        AudioSource cutsceneAudio = FindAnyObjectByType<AudioSource>();
-        if (cutsceneAudio != null && cutsceneAudio.gameObject.name == "BGM")
-        {
-            // Force the source's basic volume setting to match the slider float (0.0 to 1.0)
-            // This stops Timeline from overriding the Mixer volume channel!
-            cutsceneAudio.volume = savedMusic;
-        }
         
-        Debug.Log($"[Settings Manager] Cutscene Audio Synchronized. Level: {savedMusic}");
+        Debug.Log($"[Settings Manager] Settings successfully synchronized for scene! Brightness: {savedBrightness}");
     }
-
 
 
 
