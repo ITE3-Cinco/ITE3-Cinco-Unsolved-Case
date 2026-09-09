@@ -174,6 +174,10 @@ PlayableDirector:
     value: {fileID: 1152910632}
   - key: {fileID: 3290396262201267671, guid: 2c495530283d9094ba721441ae1ed2fe, type: 2}
     value: {fileID: 1207196260}
+  - key: {fileID: 1319277560734031301, guid: 2c495530283d9094ba721441ae1ed2fe, type: 2}
+    value: {fileID: 81365446}
+  - key: {fileID: -138234100093685353, guid: 2c495530283d9094ba721441ae1ed2fe, type: 2}
+    value: {fileID: 1889495224}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &2793551
@@ -1780,13 +1784,13 @@ AudioSource:
   m_GameObject: {fileID: 81365445}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 544a4227753e5a8438f806c0fa048518, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -1881,7 +1885,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1984682343}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &141322635
 GameObject:
@@ -1940,6 +1944,12 @@ PlayableDirector:
     value: {fileID: 579446550}
   - key: {fileID: 2676232531271669889, guid: 6637d862bb10fdc4e9cef06dccb8e301, type: 2}
     value: {fileID: 1874028004}
+  - key: {fileID: -7763769069506527725, guid: 6637d862bb10fdc4e9cef06dccb8e301, type: 2}
+    value: {fileID: 81365446}
+  - key: {fileID: 6170485590316756053, guid: 6637d862bb10fdc4e9cef06dccb8e301, type: 2}
+    value: {fileID: 1889495224}
+  - key: {fileID: -7446839025047377988, guid: 6637d862bb10fdc4e9cef06dccb8e301, type: 2}
+    value: {fileID: 1889495224}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &141322638
@@ -5803,6 +5813,10 @@ PlayableDirector:
     value: {fileID: 470368832}
   - key: {fileID: 1028535685537892840, guid: 4b2a1c5c0cebf9d4c8de22ff3adadb35, type: 2}
     value: {fileID: 727897303}
+  - key: {fileID: -6955722245156282175, guid: 4b2a1c5c0cebf9d4c8de22ff3adadb35, type: 2}
+    value: {fileID: 1889495224}
+  - key: {fileID: -2008111454955907880, guid: 4b2a1c5c0cebf9d4c8de22ff3adadb35, type: 2}
+    value: {fileID: 81365446}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &823751539
@@ -6071,8 +6085,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 869036124}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0046549193, y: -0.96457607, z: -0.017066225, w: -0.26321128}
-  m_LocalPosition: {x: 934.7781, y: 618.1449, z: -522.869}
+  m_LocalRotation: {x: 0.022534765, y: 0.26449838, z: 0.0040545217, w: 0.9641143}
+  m_LocalPosition: {x: 870.8925, y: 631.8026, z: -505.9354}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6564,9 +6578,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Kinahanglan ka mo pahuway.
+  m_text: 'Kailangan mo ring magpahinga.
 
-    (You need to rest.)'
+    (You also need to rest.)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6853,6 +6867,10 @@ PlayableDirector:
     value: {fileID: 1169576784}
   - key: {fileID: -66785440747178626, guid: f5c0fa1efe25c3841bcc8f50ecbfc714, type: 2}
     value: {fileID: 1153078964}
+  - key: {fileID: -6822852300596405689, guid: f5c0fa1efe25c3841bcc8f50ecbfc714, type: 2}
+    value: {fileID: 1889495224}
+  - key: {fileID: 818744489595312969, guid: f5c0fa1efe25c3841bcc8f50ecbfc714, type: 2}
+    value: {fileID: 81365446}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &1153078964
@@ -7040,6 +7058,10 @@ PlayableDirector:
     value: {fileID: 2105271690}
   - key: {fileID: -872704736515863210, guid: d77c01cee978b704e83ab808371342b5, type: 2}
     value: {fileID: 1120423835}
+  - key: {fileID: 426746609840645546, guid: d77c01cee978b704e83ab808371342b5, type: 2}
+    value: {fileID: 81365446}
+  - key: {fileID: 4140639321099108931, guid: d77c01cee978b704e83ab808371342b5, type: 2}
+    value: {fileID: 1889495224}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &1183840236
@@ -7538,6 +7560,12 @@ PlayableDirector:
     value: {fileID: 987125464}
   - key: {fileID: 1082570324005869937, guid: 0291d39a439c4de48a8455afbcd68e17, type: 2}
     value: {fileID: 1775525887}
+  - key: {fileID: 3212160147615858363, guid: 0291d39a439c4de48a8455afbcd68e17, type: 2}
+    value: {fileID: 1889495224}
+  - key: {fileID: 6500440629546348699, guid: 0291d39a439c4de48a8455afbcd68e17, type: 2}
+    value: {fileID: 1889495224}
+  - key: {fileID: 7692709710170940570, guid: 0291d39a439c4de48a8455afbcd68e17, type: 2}
+    value: {fileID: 81365446}
   m_ExposedReferences:
     m_References: []
 --- !u!1 &1674003769
@@ -7862,9 +7890,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Oi boss... overtime diay ka?
+  m_text: 'O, boss.. mag o-overtime ka pa?
 
-    (Yo boss... doing overtime?)'
+    (Yo boss... still doing overtime?)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -9484,6 +9512,135 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c13321f0eeb70314abc4f2ee0fe814c4, type: 3}
   m_PrefabInstance: {fileID: 189180309}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1889495222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1889495223}
+  - component: {fileID: 1889495224}
+  m_Layer: 0
+  m_Name: SFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1889495223
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889495222}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 999.28467, y: 109, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1984682343}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1889495224
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889495222}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -7607021986747203805, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1920922640
 GameObject:
   m_ObjectHideFlags: 0
@@ -9727,6 +9884,39 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+--- !u!1 &1984682342
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1984682343}
+  m_Layer: 0
+  m_Name: ---AUDIO---
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1984682343
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1984682342}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 81365447}
+  - {fileID: 1889495223}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2050891269
 GameObject:
   m_ObjectHideFlags: 0
@@ -9922,9 +10112,9 @@ SceneRoots:
   - {fileID: 869036127}
   - {fileID: 1298624457}
   - {fileID: 1835152722}
+  - {fileID: 868453136}
   - {fileID: 73249769}
   - {fileID: 1283783315}
   - {fileID: 1754531123}
   - {fileID: 380727965}
-  - {fileID: 868453136}
-  - {fileID: 81365447}
+  - {fileID: 1984682343}

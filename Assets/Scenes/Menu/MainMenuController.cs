@@ -124,26 +124,31 @@ public class MainMenuController : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Force a quick background delay invocation to ensure the new scene 
-        // components are fully awake and registered in memory before adjusting values.
-        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.1f);
+        // Force a robust background delay callback (0.15 seconds). 
+        // This gives Unity 6 ample time to fully build and register the new scene's 
+        // Global Volume into memory before we try to look for it!
+        CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
+        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
     }
 
     private void ApplyLoadedSettingsToNewScene()
     {
-        // Find the Global Volume in the freshly loaded scene
+        // 1. Re-locate the Global Volume in the freshly loaded scene
         Volume newVolume = FindAnyObjectByType<Volume>();
-
         FetchVolumeProfile(newVolume);
 
-        // Re-apply brightness values cleanly to the new volume component
+        // 2. Load and slam your saved settings back into place immediately
         float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
-        SetBrightness(savedBrightness);
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
 
-        // Re-apply volumes to ensure the Mixer forces sync onto the new audio instances
-        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
-        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
+        SetBrightness(savedBrightness);
+        SetMusicVolume(savedMusic);
+        SetSFXVolume(savedSFX);
+        
+        Debug.Log($"[Settings Manager] Settings successfully synchronized for scene! Brightness: {savedBrightness}");
     }
+
 
 
     private void FetchVolumeProfile(Volume targetVolume)
@@ -157,9 +162,17 @@ public class MainMenuController : MonoBehaviour
 
     public void PlayGame()
     {
-        // Load the gameplay scene when the player clicks the "Play" button.
+        // Save current slider positions to disk right before loading the new scene
+        PlayerPrefs.Save();
+        
+        // Explicitly re-enforce the current slider values to lock the Audio Mixer channels
+        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
+
+        // Load your cutscene
         SceneManager.LoadScene(gameSceneName);
     }
+
 
 
     public void OpenSettings()
