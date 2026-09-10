@@ -123,15 +123,21 @@ public class MainMenuController : MonoBehaviour
             mainButtonsPanel.SetActive(true);
     }
 
-
+    //  This method is called whenever a new scene is loaded, allowing the menu controller to reapply settings and configurations.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Force a robust background delay callback (0.15 seconds). 
-        // This gives Unity 6 ample time to fully build and register the new scene's 
-        // Global Volume into memory before we try to look for it!
+        // SAFEGUARD: If we just loaded Level 1 (PoliceHQ), stop applying menu configurations
+        if (scene.name == "PoliceHQ")
+        {
+            Debug.Log("[Settings Manager] Player has entered gameplay! Disengaging Menu UI loops.");
+            return; 
+        }
+
+        // Force a robust background delay callback for cinematic/intro scenes
         CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
         Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
     }
+
 
     private void ApplyLoadedSettingsToNewScene()
     {
@@ -175,6 +181,18 @@ public class MainMenuController : MonoBehaviour
         SceneManager.LoadScene(gameSceneName);
     }
 
+
+    // This method is called when the intro cutscene finishes and the player is ready to enter Level 1.
+    public void LoadPoliceHQ()
+    {
+        Debug.Log("[Scene Transition] Intro Cutscene finished. Loading PoliceHQ Level 1...");
+        
+        // Ensure settings are saved right before moving into the core gameplay level
+        PlayerPrefs.Save();
+
+        // Load your Level 1 scene
+        SceneManager.LoadScene("PoliceHQ");
+    }
 
 
     public void OpenSettings()
