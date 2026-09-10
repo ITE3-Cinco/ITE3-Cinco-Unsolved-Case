@@ -13,18 +13,7 @@ public class Inventory : MonoBehaviour
 
     private void Start()
     {
-        // Clamp the selected index in case the Inspector has a bad value
-        selectedIndex = Mathf.Clamp(selectedIndex, 0, Mathf.Max(0, maxSlots - 1));
-
         UpdateHotbarUI();
-
-        // Sync held item on start (e.g., if the flashlight is already in the hotbar)
-        PlayerMovement player = GetComponent<PlayerMovement>();
-        if (player == null) player = GetComponentInParent<PlayerMovement>();
-        if (player != null)
-        {
-            player.UpdateHeldItem(GetSelectedItem());
-        }
     }
 
     private void Update()
@@ -39,12 +28,6 @@ public class Inventory : MonoBehaviour
             if (kb.digit3Key.wasPressedThisFrame) SelectSlot(2);
             if (kb.digit4Key.wasPressedThisFrame) SelectSlot(3);
             if (kb.digit5Key.wasPressedThisFrame) SelectSlot(4);
-
-            // Press 'F' or Left Click to use/consume the selected item
-            if (kb.fKey.wasPressedThisFrame || UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                UseSelectedItem();
-            }
         }
 #else
         if (Input.GetKeyDown(KeyCode.Alpha1)) SelectSlot(0);
@@ -52,75 +35,33 @@ public class Inventory : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha3)) SelectSlot(2);
         if (Input.GetKeyDown(KeyCode.Alpha4)) SelectSlot(3);
         if (Input.GetKeyDown(KeyCode.Alpha5)) SelectSlot(4);
-
-        // Press 'F' or Left Click to use/consume selected item
-        if (Input.GetKeyDown(KeyCode.F) || Input.GetMouseButtonDown(0))
-        {
-            UseSelectedItem();
-        }
 #endif
     }
 
-    /// <summary>
-    /// Uses or consumes the item currently selected in the active hotbar slot.
-    /// </summary>
-    public void UseSelectedItem()
-    {
-        ItemData currentItem = GetSelectedItem();
-        if (currentItem == null) return;
-
-        // Check if item is the Agimat (Invisibility Consumable)
-        if (currentItem.itemName == "Agimat")
-        {
-            if (InvisibilityConsumable.Instance != null)
-            {
-                InvisibilityConsumable.Instance.UseInvisibility();
-                RemoveSelectedItem(); // Removes Agimat from List<ItemData> & refreshes hotbar UI
-            }
-            else
-            {
-                Debug.LogWarning("[Inventory] InvisibilityConsumable instance not found in scene!");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Adds an item to the first open slot. Returns false if the inventory is full.
-    /// </summary>
     public bool AddItem(ItemData item)
     {
-        if (item == null)
-        {
-            Debug.LogWarning("[Inventory] AddItem called with null item.");
-            return false;
-        }
-
         if (items.Count >= maxSlots)
         {
-            Debug.Log("[Inventory] Inventory Full!");
+            Debug.Log("Inventory Full!");
             return false;
         }
 
         items.Add(item);
         UpdateHotbarUI();
 
-        // Notify PlayerMovement so handheld items refresh
+        // Check held item after adding
         SelectSlot(selectedIndex);
         return true;
     }
 
-    /// <summary>
-    /// Changes the currently selected hotbar slot and refreshes held-item state.
-    /// </summary>
     public void SelectSlot(int index)
     {
         if (index < 0 || index >= maxSlots) return;
-        if (index == selectedIndex && items.Count == 0) return; // no-op on empty start
 
         selectedIndex = index;
         UpdateHotbarUI();
 
-        // Notify PlayerMovement to enable/disable handheld objects (e.g., flashlight)
+        // Notify PlayerMovement to enable/disable handheld objects (e.g. flashlight)
         PlayerMovement player = GetComponent<PlayerMovement>();
         if (player == null) player = GetComponentInParent<PlayerMovement>();
         if (player != null)
@@ -129,34 +70,13 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Returns the item in the currently selected slot, or null if empty.
-    /// </summary>
     public ItemData GetSelectedItem()
     {
         if (selectedIndex >= 0 && selectedIndex < items.Count)
         {
             return items[selectedIndex];
         }
-        return null;
-    }
-
-    /// <summary>
-    /// Removes the item in the currently selected slot (e.g., after consumption).
-    /// </summary>
-    public void RemoveSelectedItem()
-    {
-        if (selectedIndex < 0 || selectedIndex >= items.Count) return;
-
-        items.RemoveAt(selectedIndex);
-        UpdateHotbarUI();
-
-        PlayerMovement player = GetComponent<PlayerMovement>();
-        if (player == null) player = GetComponentInParent<PlayerMovement>();
-        if (player != null)
-        {
-            player.UpdateHeldItem(GetSelectedItem());
-        }
+        return null; // Selected slot is currently empty
     }
 
     public void UpdateHotbarUI()
