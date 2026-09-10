@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // Uses the New Input System
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
@@ -17,23 +19,41 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Simple grounded check using CharacterController's built-in flag
+        if (Keyboard.current == null)
+        {
+            Debug.LogError("No keyboard detected by Input System!");
+            return;
+        }
+
+        // 1. Reset downward velocity when grounded
         if (controller.isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
         }
 
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        // 2. Read input from the NEW Input System
+        float x = 0f;
+        float z = 0f;
 
-        Vector3 move = transform.right * x + transform.forward * z;
+        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) x += 1f;
+        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) x -= 1f;
+        if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) z += 1f;
+        if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) z -= 1f;
+
+        // Prevent moving faster diagonally
+        Vector3 moveInput = new Vector3(x, 0f, z).normalized;
+
+        // 3. Apply Horizontal Movement
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
         controller.Move(move * speed * Time.deltaTime);
 
-        if (Input.GetButtonDown("Jump") && controller.isGrounded)
+        // 4. Jump check using NEW Input System
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
 
+        // 5. Apply Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }
