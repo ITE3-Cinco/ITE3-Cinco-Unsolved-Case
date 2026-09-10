@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class Inventory : MonoBehaviour
 {
@@ -12,41 +11,72 @@ public class Inventory : MonoBehaviour
     [Header("UI Reference")]
     public HotbarUI hotbarUI;
 
-    void Start()
+    private void Start()
     {
         UpdateHotbarUI();
     }
 
-    void Update()
+    private void Update()
     {
-        if (Keyboard.current == null) return;
-
-        // Select slots 1-5 via number keys
-        if (Keyboard.current.digit1Key.wasPressedThisFrame) SelectSlot(0);
-        if (Keyboard.current.digit2Key.wasPressedThisFrame) SelectSlot(1);
-        if (Keyboard.current.digit3Key.wasPressedThisFrame) SelectSlot(2);
-        if (Keyboard.current.digit4Key.wasPressedThisFrame) SelectSlot(3);
-        if (Keyboard.current.digit5Key.wasPressedThisFrame) SelectSlot(4);
+        // Hotbar Slot Selection (1-5)
+#if ENABLE_INPUT_SYSTEM
+        if (UnityEngine.InputSystem.Keyboard.current != null)
+        {
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb.digit1Key.wasPressedThisFrame) SelectSlot(0);
+            if (kb.digit2Key.wasPressedThisFrame) SelectSlot(1);
+            if (kb.digit3Key.wasPressedThisFrame) SelectSlot(2);
+            if (kb.digit4Key.wasPressedThisFrame) SelectSlot(3);
+            if (kb.digit5Key.wasPressedThisFrame) SelectSlot(4);
+        }
+#else
+        if (Input.GetKeyDown(KeyCode.Alpha1)) SelectSlot(0);
+        if (Input.GetKeyDown(KeyCode.Alpha2)) SelectSlot(1);
+        if (Input.GetKeyDown(KeyCode.Alpha3)) SelectSlot(2);
+        if (Input.GetKeyDown(KeyCode.Alpha4)) SelectSlot(3);
+        if (Input.GetKeyDown(KeyCode.Alpha5)) SelectSlot(4);
+#endif
     }
 
     public bool AddItem(ItemData item)
     {
         if (items.Count >= maxSlots)
         {
-            Debug.Log("Inventory full!");
+            Debug.Log("Inventory Full!");
             return false;
         }
 
         items.Add(item);
-        UpdateHotbarUI(); // <--- THIS TURNS THE IMAGE COMPONENT BACK ON!
+        UpdateHotbarUI();
+
+        // Check held item after adding
+        SelectSlot(selectedIndex);
         return true;
     }
 
     public void SelectSlot(int index)
     {
-        if (index < 0 || index >= items.Count) return;
+        if (index < 0 || index >= maxSlots) return;
+
         selectedIndex = index;
         UpdateHotbarUI();
+
+        // Notify PlayerMovement to enable/disable handheld objects (e.g. flashlight)
+        PlayerMovement player = GetComponent<PlayerMovement>();
+        if (player == null) player = GetComponentInParent<PlayerMovement>();
+        if (player != null)
+        {
+            player.UpdateHeldItem(GetSelectedItem());
+        }
+    }
+
+    public ItemData GetSelectedItem()
+    {
+        if (selectedIndex >= 0 && selectedIndex < items.Count)
+        {
+            return items[selectedIndex];
+        }
+        return null; // Selected slot is currently empty
     }
 
     public void UpdateHotbarUI()

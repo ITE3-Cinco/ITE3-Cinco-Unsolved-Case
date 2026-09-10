@@ -26,8 +26,10 @@ public class PlayerMovement : MonoBehaviour
     public Slider staminaSlider;
 
     [Header("Flashlight Settings")]
-    public Light flashlight;
-    public bool hasFlashlight = false; // Player starts without the flashlight
+    public Light flashlight;                 // The Light component on the flashlight
+    public ItemData flashlightItemData;      // The ItemData asset for the flashlight
+    public bool hasFlashlight = false;       // Becomes true when picked up
+    private bool isFlashlightOn = false;     // Remembered toggle state
 
     // Public property so the pickup script can enable it
     public bool HasFlashlight
@@ -37,10 +39,14 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private Vector3 velocity;
+    private Inventory inventory;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        inventory = GetComponent<Inventory>();
+        if (inventory == null) inventory = GetComponentInParent<Inventory>();
+
         currentStamina = maxStamina;
 
         if (staminaSlider != null)
@@ -50,9 +56,16 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Ensure light is off at start
+        isFlashlightOn = false;
         if (flashlight != null)
         {
             flashlight.enabled = false;
+        }
+
+        // Sync held item state on start (in case the flashlight is already in the hotbar)
+        if (inventory != null)
+        {
+            UpdateHeldItem(inventory.GetSelectedItem());
         }
     }
 
@@ -122,14 +135,62 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
 
-        // 6. Flashlight Toggle Check (Only works if player picked up the flashlight)
+        // 6. Flashlight Toggle
+        //    Only works when:
+        //      - Player has picked up the flashlight
+        //      - The flashlight item is the currently selected hotbar slot
         if (Keyboard.current.fKey.wasPressedThisFrame && flashlight != null && hasFlashlight)
         {
-            flashlight.enabled = !flashlight.enabled;
+            bool flashlightSlotSelected = (inventory == null)
+                || (inventory.GetSelectedItem() == flashlightItemData);
+
+            if (flashlightSlotSelected)
+            {
+                isFlashlightOn = !isFlashlightOn;
+                flashlight.enabled = isFlashlightOn;
+            }
         }
 
         // 7. Apply Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Called by Inventory whenever the selected hotbar slot changes.
+    /// Turns the flashlight off when switching away, restores its state when switching back.
+    /// </summary>
+    public void UpdateHeldItem(ItemData currentItem)
+    {
+        if (flashlight == null) return;
+
+        if (!hasFlashlight || currentItem == null || currentItem != flashlightItemData)
+        {
+            // Switched to an empty slot or a different item -> flashlight off
+            flashlight.enabled = false;
+            return;
+        }
+
+        // Switched back to the flashlight slot -> restore previous toggle state
+        flashlight.enabled = isFlashlightOn;
+    }
+
+    /// <summary>
+    /// Call this from your pickup script when the player collects the flashlight.
+    /// Adds it to the inventory and enables the ability to toggle it.
+    /// </summary>
+    public void PickUpFlashlight()
+    {
+        hasFlashlight = true;
+
+        if (inventory != null && flashlightItemData != null)
+        {
+            inventory.AddItem(flashlightItemData); // AddItem internally calls SelectSlot -> UpdateHeldItem
+        }
+        else
+        {
+            // Fallback: no inventory, just allow toggling with F
+            Debug.LogWarning("Flashlight picked up, but Inventory or flashlightItemData is missing!");
+        }
     }
 }
