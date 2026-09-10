@@ -515,7 +515,6 @@ GameObject:
   - component: {fileID: 13884627}
   - component: {fileID: 13884630}
   - component: {fileID: 13884632}
-  - component: {fileID: 13884631}
   - component: {fileID: 13884633}
   m_Layer: 0
   m_Name: Main Camera
@@ -642,20 +641,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &13884631
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 13884626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66e9fe532faec6a4c9b273b556afa20c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MouseLook
-  mouseSensitivity: 100
-  playerBody: {fileID: 1231311386}
 --- !u!114 &13884632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -668,8 +653,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66e9fe532faec6a4c9b273b556afa20c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseLook
-  mouseSensitivity: 100
-  playerBody: {fileID: 0}
+  mouseSensitivity: 10
+  lockSensitivity: 1
+  playerBody: {fileID: 1231311386}
 --- !u!114 &13884633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35355,6 +35341,7 @@ MonoBehaviour:
   currentStamina: 0
   staminaSlider: {fileID: 1102469167}
   flashlight: {fileID: 687620204}
+  flashlightItemData: {fileID: 0}
   hasFlashlight: 0
 --- !u!143 &1231311388
 CharacterController:
@@ -48924,10 +48911,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11ae05607b18b804e8e896648c3e9400, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HotbarUI
-  slotIcons: []
-  slotBackgrounds: []
+  slotBackgrounds:
+  - {fileID: 1483248868}
+  - {fileID: 140411599}
+  - {fileID: 677808114}
+  - {fileID: 1965620030}
+  - {fileID: 304634327}
+  slotIcons:
+  - {fileID: 605761460}
+  - {fileID: 1432033129}
+  - {fileID: 262336306}
+  - {fileID: 296188675}
+  - {fileID: 585792367}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 1, g: 0.9, b: 0.5, a: 1}
+  activeColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1791013325 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1218304206157132299, guid: aecf1b714a7c4184c93e5dc1969fee74, type: 3}
@@ -56840,6 +56837,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Flashlight
   itemData: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
+  isArtifact: 0
+  flashlightObjective: {fileID: 0}
 --- !u!1 &1931896143 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2472632881404513770, guid: aecf1b714a7c4184c93e5dc1969fee74, type: 3}
@@ -60431,6 +60430,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Flashlight
   itemData: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
+  isArtifact: 0
+  flashlightObjective: {fileID: 0}
 --- !u!1 &2074712648 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1413381071820217871, guid: aecf1b714a7c4184c93e5dc1969fee74, type: 3}
