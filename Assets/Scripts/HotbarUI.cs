@@ -1,4 +1,3 @@
-using NUnit.Framework.Interfaces;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,19 +20,22 @@ public class HotbarUI : MonoBehaviour
     {
         for (int i = 0; i < slotIcons.Count; i++)
         {
-            // 1. Update Icon Sprites
+            if (slotIcons[i] == null) continue;
+
+            // 1. Update Icon Sprites and Toggle Image Component
             if (i < items.Count && items[i] != null && items[i].itemIcon != null)
             {
                 slotIcons[i].sprite = items[i].itemIcon;
-                slotIcons[i].enabled = true; // Show icon image
+                slotIcons[i].color = Color.white; // Ensure full opacity
+                slotIcons[i].enabled = true;      // Re-enables the disabled Image checkbox in Inspector
             }
             else
             {
                 slotIcons[i].sprite = null;
-                slotIcons[i].enabled = false; // Hide icon image if empty
+                slotIcons[i].enabled = false;     // Hides the white box when slot is empty
             }
 
-            // 2. Update Slot Highlight Tint
+            // 2. Update Active Slot Highlight Tint
             if (i < slotBackgrounds.Count && slotBackgrounds[i] != null)
             {
                 slotBackgrounds[i].color = (i == selectedIndex) ? selectedColor : normalColor;

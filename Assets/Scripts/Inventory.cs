@@ -38,7 +38,7 @@ public class Inventory : MonoBehaviour
         }
 
         items.Add(item);
-        UpdateHotbarUI();
+        UpdateHotbarUI(); // <--- THIS TURNS THE IMAGE COMPONENT BACK ON!
         return true;
     }
 
