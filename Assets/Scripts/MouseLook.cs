@@ -1,39 +1,66 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Uses the New Input System
+using UnityEngine.InputSystem;
 
 public class MouseLook : MonoBehaviour
 {
-    public float mouseSensitivity = 100f;
-    public Transform playerBody;
+    [Header("Sensitivity Settings")]
+    [Range(0.1f, 10f)]
+    public float mouseSensitivity = 2f;
 
+    [Tooltip("If checked, ignores external scripts trying to change sensitivity at runtime.")]
+    public bool lockSensitivity = true;
+
+    public Transform playerBody;
     private float xRotation = 0f;
+    private float targetSensitivity;
+
+    void Awake()
+    {
+        targetSensitivity = mouseSensitivity;
+    }
 
     void Start()
     {
-        // Locks and hides the cursor in the center of the screen
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
     {
         if (Mouse.current == null) return;
 
-        // Read mouse delta using the NEW Input System
-        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+        // Force sensitivity to stay at Inspector value if locked
+        if (lockSensitivity)
+        {
+            mouseSensitivity = targetSensitivity;
+        }
 
-        float mouseX = mouseDelta.x * mouseSensitivity * Time.deltaTime;
-        float mouseY = mouseDelta.y * mouseSensitivity * Time.deltaTime;
+        Vector2 delta = Mouse.current.delta.ReadValue();
+        if (delta == Vector2.zero) return;
 
-        // Pitch (Looking Up/Down)
+        // Apply controlled scaling
+        float mouseX = delta.x * (mouseSensitivity * 0.1f);
+        float mouseY = delta.y * (mouseSensitivity * 0.1f);
+
+        // Pitch (Up/Down)
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-        // Yaw (Looking Left/Right) - Rotates the entire Player body
+        // Yaw (Left/Right)
         if (playerBody != null)
         {
             playerBody.Rotate(Vector3.up * mouseX);
+        }
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 }
