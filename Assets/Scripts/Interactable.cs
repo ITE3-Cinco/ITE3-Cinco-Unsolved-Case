@@ -76,13 +76,14 @@ public class Interactable : MonoBehaviour
             ObjectiveItem obj = flashlightObjective;
             if (obj == null)
             {
-                obj = FindObjectOfType<ObjectiveItem>();
+                // If the flashlightObjective field is not assigned, try to find it in the scene automatically
+                obj = FindAnyObjectByType<ObjectiveItem>();
             }
 
             if (obj != null)
             {
                 obj.CompleteFlashlightTask();
-                Debug.Log($"[Interactable] Notified ObjectiveItem '{obj.gameObject.name}' — flashlight task complete.");
+                Debug.Log($"[Interactable] Notified ObjectiveItem '{obj.gameObject.name}' -> flashlight task complete.");
             }
             else
             {
