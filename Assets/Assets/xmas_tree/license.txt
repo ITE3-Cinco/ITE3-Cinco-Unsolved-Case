@@ -1,0 +1,11 @@
+Model Information:
+* title:	XMas Tree
+* source:	https://sketchfab.com/3d-models/xmas-tree-97a40736d2e149e5b0af1e856abb00d3
+* author:	anybody (https://sketchfab.com/anybody)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "XMas Tree" (https://sketchfab.com/3d-models/xmas-tree-97a40736d2e149e5b0af1e856abb00d3) by anybody (https://sketchfab.com/anybody) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
