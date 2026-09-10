@@ -2,8 +2,9 @@ using UnityEngine; // Unity core features, such as MonoBehaviour and GameObject.
 using UnityEngine.SceneManagement; // Used to load scenes and detect scene changes.
 using UnityEngine.UI; // Used for UI elements like sliders and buttons.
 using UnityEngine.Audio; // Used to control the audio mixer.
-using UnityEngine.Rendering; // Used for global rendering effects and volume settings.
-using UnityEngine.Rendering.Universal; // Used for URP post-processing effects like brightness.
+using UnityEngine.Rendering; // Used for accessing the Volume component and its profile.
+using UnityEngine.Rendering.Universal; // Use HDRP if your project uses High Def pipeline
+
 
 public class MainMenuController : MonoBehaviour
 {
@@ -45,8 +46,9 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private GameObject settingsTitleHeader;   // Reference to the settings title header object in the menu.
 
 
-    // Stores the brightness adjustment data from the URP volume profile.
-    private ColorAdjustments colorAdjustments;  
+    // Private fields to store the current volume and color adjustments for brightness control.
+    private Volume currentVolume;
+    private ColorAdjustments colorAdjustments;
 
     private void Awake()
     {
@@ -236,19 +238,23 @@ public class MainMenuController : MonoBehaviour
         PlayerPrefs.SetFloat("SFXVolume", value); // Save the SFX volume value.
     }
 
-    public void SetBrightness(float value)
+    // Call this inside your ApplyLoadedSettingsToNewScene() method
+    public void SetBrightness(float sliderValue)
     {
-        if (colorAdjustments != null)
-        {
-            // Original exposure calculation
-            colorAdjustments.postExposure.value = Mathf.Lerp(-1.5f, 1.5f, value);
-        }
+        // Convert a 0.0 to 1.0 UI slider into an exposure modifier (-2.0 to +2.0 eV)
+        // 0.5 on the slider means 0 offset (Perfect, unaltered level design!)
+        float exposureOffset = Mathf.Lerp(-2f, 2f, sliderValue);
 
-        // Slightly tweak the ambient lighting intensity based on the slider.
-        // This forces Unity's Render Graph to dirty its frame cache and redraw 
-        // the Game view window instantly, even if the menu is completely static!
-        RenderSettings.ambientIntensity = Mathf.Max(value, 0.01f);
-        
-        PlayerPrefs.SetFloat("Brightness", value);
+        // Find the volume active in this specific level
+        currentVolume = FindAnyObjectByType<Volume>();
+
+        if (currentVolume != null && currentVolume.profile.TryGet(out colorAdjustments))
+        {
+            // Enable the override parameter safely
+            colorAdjustments.postExposure.overrideState = true;
+            
+            // Set the exposure relative to your player's choice!
+            colorAdjustments.postExposure.value = exposureOffset;
+        }
     }
 }
