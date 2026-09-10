@@ -49,6 +49,7 @@ public class MainMenuController : MonoBehaviour
     // Private fields to store the current volume and color adjustments for brightness control.
     private Volume currentVolume;
     private ColorAdjustments colorAdjustments;
+    private bool isPersistentInstance;
 
     private void Awake()
     {
@@ -57,42 +58,43 @@ public class MainMenuController : MonoBehaviour
         {
             // Set this object as the active menu controller.
             Instance = this;
+            isPersistentInstance = true;
 
             // Keep this object alive between scene loads.
             DontDestroyOnLoad(gameObject);
         }
         else
         {
-            // Remove duplicate menu controllers.
-            Destroy(gameObject);
-
-            // Stop this object from continuing.
-            return;
+            // Keep scene-local instances alive so Timeline signal callbacks remain valid.
+            isPersistentInstance = false;
         }
 
         // Load the initial brightness profile from the assigned volume.
-        FetchVolumeProfile(globalVolume);
+        if (isPersistentInstance)
+            FetchVolumeProfile(globalVolume);
     }
 
     private void OnEnable()
     {
         // Reapply brightness whenever a new scene loads.
         // Listen for scene load events.
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        if (isPersistentInstance)
+            SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         // Stop listening when this object is disabled.
-        SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (isPersistentInstance)
+            SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Start()
     {
         // Load saved preferences from disk (or use default values on first startup)
-        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);      // Default 75% volume
-        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);          // Default 75% volume
-        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);   // Default 50% middle ground
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 8f);         // Slider range: 0–10
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 8f);             // Slider range: 0–10
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 5f);    // Slider range: 0–10
 
         // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
         if (musicSlider != null) 
@@ -126,13 +128,6 @@ public class MainMenuController : MonoBehaviour
     //  This method is called whenever a new scene is loaded, allowing the menu controller to reapply settings and configurations.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // SAFEGUARD: If we just loaded Level 1 (PoliceHQ), stop applying menu configurations
-        if (scene.name == "PoliceHQ")
-        {
-            Debug.Log("[Settings Manager] Player has entered gameplay! Disengaging Menu UI loops.");
-            return; 
-        }
-
         // Force a robust background delay callback for cinematic/intro scenes
         CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
         Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
@@ -142,13 +137,22 @@ public class MainMenuController : MonoBehaviour
     private void ApplyLoadedSettingsToNewScene()
     {
         // 1. Re-locate the Global Volume in the freshly loaded scene
-        Volume newVolume = FindAnyObjectByType<Volume>();
+        Volume newVolume = null;
+        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
+        foreach (Volume volume in sceneVolumes)
+        {
+            if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
+            {
+                newVolume = volume;
+                break;
+            }
+        }
         FetchVolumeProfile(newVolume);
 
         // 2. Load and slam your saved settings back into place immediately
-        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
-        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
-        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 5f);
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 8f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 8f);
 
         SetBrightness(savedBrightness);
         SetMusicVolume(savedMusic);
@@ -161,6 +165,8 @@ public class MainMenuController : MonoBehaviour
 
     private void FetchVolumeProfile(Volume targetVolume)
     {
+        currentVolume = targetVolume;
+
         if (targetVolume != null && targetVolume.profile != null)
         {
             // Read the ColorAdjustments effect from the volume profile.
@@ -174,8 +180,8 @@ public class MainMenuController : MonoBehaviour
         PlayerPrefs.Save();
         
         // Explicitly re-enforce the current slider values to lock the Audio Mixer channels
-        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
-        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
+        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 8f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 8f));
 
         // Load your cutscene
         SceneManager.LoadScene(gameSceneName);
@@ -237,8 +243,9 @@ public class MainMenuController : MonoBehaviour
     {
         if (mainAudioMixer != null)
         {
-            // Mixers use decibels, so convert the slider's 0-1 value.
-            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert a 0–1 slider value to decibels.
+            // Convert the 0–10 slider value to 0–1 before converting to decibels.
+            float normalizedValue = Mathf.Clamp01(value / 10f);
+            float dB = Mathf.Log10(Mathf.Max(normalizedValue, 0.0001f)) * 20;
             mainAudioMixer.SetFloat("MusicVolume", dB); // Apply the converted music volume to the mixer.
         }
 
@@ -249,30 +256,34 @@ public class MainMenuController : MonoBehaviour
     {
         if (mainAudioMixer != null)
         {
-            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert the slider value to decibels for SFX.
+            // Convert the 0–10 slider value to 0–1 before converting to decibels.
+            float normalizedValue = Mathf.Clamp01(value / 10f);
+            float dB = Mathf.Log10(Mathf.Max(normalizedValue, 0.0001f)) * 20;
             mainAudioMixer.SetFloat("SFXVolume", dB);               // Apply the sound effects volume to the mixer.
         }
 
         PlayerPrefs.SetFloat("SFXVolume", value); // Save the SFX volume value.
     }
 
+
     // Call this inside your ApplyLoadedSettingsToNewScene() method
     public void SetBrightness(float sliderValue)
     {
-        // Convert a 0.0 to 1.0 UI slider into an exposure modifier (-2.0 to +2.0 eV)
-        // 0.5 on the slider means 0 offset (Perfect, unaltered level design!)
-        float exposureOffset = Mathf.Lerp(-2f, 2f, sliderValue);
+        // Keep the selected brightness value for the next session.
+        sliderValue = Mathf.Clamp(sliderValue, 0f, 10f);
+        PlayerPrefs.SetFloat("Brightness", sliderValue);
 
-        // Find the volume active in this specific level
-        currentVolume = FindAnyObjectByType<Volume>();
+        // Convert the 0–10 UI slider into an exposure modifier (-2.0 to +2.0 eV).
+        float normalizedValue = Mathf.Clamp01(sliderValue / 10f);
+        float exposureOffset = Mathf.Lerp(-2f, 2f, normalizedValue);
 
-        if (currentVolume != null && currentVolume.profile.TryGet(out colorAdjustments))
+        if (currentVolume != null && currentVolume.profile != null)
         {
-            // Enable the override parameter safely
-            colorAdjustments.postExposure.overrideState = true;
-            
-            // Set the exposure relative to your player's choice!
-            colorAdjustments.postExposure.value = exposureOffset;
+            if (currentVolume.profile.TryGet(out colorAdjustments))
+            {
+                colorAdjustments.postExposure.overrideState = true;
+                colorAdjustments.postExposure.value = exposureOffset;
+            }
         }
     }
 }
