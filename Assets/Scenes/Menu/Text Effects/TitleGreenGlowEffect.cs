@@ -1,6 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/**
+ * TitleGreenGlowEffect.cs
+ * This script creates a dynamic glowing effect for a UI Image component, specifically designed for a title text.
+ * It smoothly oscillates between two shades of green and can optionally add a flickering effect to simulate power fluctuations.
+ *
+ * Usage:
+ * 1. Attach this script to a GameObject that has an Image component (e.g., a UI Text or Image).
+ * 2. Configure the baseColor, glowColor, glowSpeed, and flicker settings in the Inspector.
+ * 3. The effect will automatically run during the Update loop.
+ *
+ * Note: Ensure the Image component is set to use a material that supports color changes (e.g., default UI material).
+ **/
+
 [RequireComponent(typeof(Image))]
 public class TitleGreenGlowEffect : MonoBehaviour
 {

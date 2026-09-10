@@ -1,67 +1,119 @@
-using UnityEngine;
-using UnityEngine.SceneManagement; // Allows switching between Unity scenes
-using UnityEngine.UI;              // Gives access to UI elements like Sliders and Panels
-using UnityEngine.Audio;           // Allows controlling Unity AudioMixer parameters
+using UnityEngine; // Unity core features, such as MonoBehaviour and GameObject.
+using UnityEngine.SceneManagement; // Used to load scenes and detect scene changes.
+using UnityEngine.UI; // Used for UI elements like sliders and buttons.
+using UnityEngine.Audio; // Used to control the audio mixer.
+using UnityEngine.Rendering; // Used for global rendering effects and volume settings.
+using UnityEngine.Rendering.Universal; // Used for URP post-processing effects like brightness.
 
 public class MainMenuController : MonoBehaviour
 {
-    // ==========================================
-    // SCENE & PANEL REFERENCES
-    // ==========================================
-    [Header("Scene Management")]
-    [Tooltip("Type the exact name of your main gameplay scene here.")]
-    [SerializeField] private string gameSceneName = "GameScene";
+    public static MainMenuController Instance; // Stores the single active menu controller instance.
 
-    [Header("UI Panels")]
-    [Tooltip("Drag your ButtonPanel (containing Investigate, Options, Credits, Exit) here.")]
-    [SerializeField] private GameObject mainButtonsPanel;
+    [Header("Scene Management")]                    // Groups all scene-related settings together in the Inspector.
+    [Tooltip("Exact name of the gameplay scene.")]  // Shows what this field is for when hovered.
+    [SerializeField] private string gameSceneName = "OpeningCutscene"; // Name of the scene to load when the player starts the game.
 
-    [Tooltip("Drag your SettingsPanel object here.")]
-    [SerializeField] private GameObject settingsPanel;
+    [Header("UI Panels")]                                   // Groups menu panel references together.
+    [Tooltip("Panel containing the main menu buttons.")]    // Helps explain what this panel is.
+    [SerializeField] private GameObject mainButtonsPanel;   // Reference to the main menu button panel.
 
-    // ==========================================
-    // AUDIO REFERENCES
-    // ==========================================
-    [Header("Audio Settings")]
-    [Tooltip("Drag your Main Audio Mixer asset here.")]
-    [SerializeField] private AudioMixer mainAudioMixer;
+    [Tooltip("Panel containing the settings controls.")]    // Explains the settings panel purpose.
+    [SerializeField] private GameObject settingsPanel;      // Reference to the settings menu panel.
 
-    [Tooltip("Drag your Music Volume Slider object here.")]
-    [SerializeField] private Slider musicSlider;
+    [Header("Audio Settings")]                                  // Groups audio settings in the Inspector.
+    [Tooltip("Audio Mixer used for music and sound effects.")]  // Tells the user what the mixer is for.
+    [SerializeField] private AudioMixer mainAudioMixer;         // Reference to the audio mixer that controls volume.
 
-    [Tooltip("Drag your SFX Volume Slider object here.")]
-    [SerializeField] private Slider sfxSlider;
+    [Tooltip("Slider used to control music volume.")]           // Describes the music volume slider.
+    [SerializeField] private Slider musicSlider;                // UI slider for music volume.
 
-    // ==========================================
-    // GAMEPLAY & GRAPHICS REFERENCES
-    // ==========================================
-    [Header("Gameplay & Graphics Settings")]
-    [Tooltip("Drag your Mouse Sensitivity Slider object here.")]
-    [SerializeField] private Slider sensitivitySlider;
+    [Tooltip("Slider used to control sound effects volume.")]   // Describes the SFX slider.
+    [SerializeField] private Slider sfxSlider;                  // UI slider for sound effects volume.
 
-    [Tooltip("Drag your Brightness/Gamma Slider object here.")]
-    [SerializeField] private Slider brightnessSlider;
+    [Header("Graphics Settings (URP)")]                         // Groups graphics settings together.
+    [Tooltip("Global Volume used for brightness.")]             // Explains the volume object used for camera effects.
+    [SerializeField] private Volume globalVolume;               // Reference to the global volume profile.
 
-    [Tooltip("Optional: Drag your scene's Directional Light here to adjust brightness visually.")]
-    [SerializeField] private Light sceneDirectionalLight;
+    [Tooltip("Slider used to control brightness.")]             // Describes the brightness slider.
+    [SerializeField] private Slider brightnessSlider;           // UI slider for screen brightness.
 
-    // Start runs automatically when the scene begins
+    [Tooltip("Drag your Main Title text or title image object here.")]
+    
+    [SerializeField] private GameObject gameTitleObject;        // Reference to the main title object in the menu.
+
+    [Tooltip("Optional: Drag a 'SETTINGS' text header object here if you create one.")] // Explains the purpose of the settings title header.
+    [SerializeField] private GameObject settingsTitleHeader;   // Reference to the settings title header object in the menu.
+
+
+    // Stores the brightness adjustment data from the URP volume profile.
+    private ColorAdjustments colorAdjustments;  
+
+    private void Awake()
+    {
+        // Keep one controller alive while scenes change.
+        if (Instance == null)
+        {
+            // Set this object as the active menu controller.
+            Instance = this;
+
+            // Keep this object alive between scene loads.
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            // Remove duplicate menu controllers.
+            Destroy(gameObject);
+
+            // Stop this object from continuing.
+            return;
+        }
+
+        // Load the initial brightness profile from the assigned volume.
+        FetchVolumeProfile(globalVolume);
+    }
+
+    private void OnEnable()
+    {
+        // Reapply brightness whenever a new scene loads.
+        // Listen for scene load events.
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        // Stop listening when this object is disabled.
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Start()
     {
-        // 1. Load saved preferences from disk (or use default values on first startup)
+        // Load saved preferences from disk (or use default values on first startup)
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);      // Default 75% volume
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);          // Default 75% volume
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);   // Default 50% middle ground
+
+        // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
         if (musicSlider != null) 
-            musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 0.75f); // Default 75% volume
+        {
+            musicSlider.value = savedMusic;
+        }
 
         if (sfxSlider != null) 
-            sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 0.75f);   // Default 75% volume
-
-        if (sensitivitySlider != null) 
-            sensitivitySlider.value = PlayerPrefs.GetFloat("MouseSensitivity", 2.0f); // Default sensitivity 2.0
+        {
+            sfxSlider.value = savedSFX;
+        }
 
         if (brightnessSlider != null) 
-            brightnessSlider.value = PlayerPrefs.GetFloat("Brightness", 1.0f); // Default brightness 1.0
+        {
+            brightnessSlider.value = savedBrightness;
+        }
 
-        // 2. Ensure Settings Panel is hidden and Main Menu buttons are visible when starting
+        // Loaded values to the Mixer and global lighting engine
+        SetMusicVolume(savedMusic);
+        SetSFXVolume(savedSFX);
+        SetBrightness(savedBrightness);
+
+        // Ensure Settings Panel is hidden and Main Menu buttons are visible when starting
         if (settingsPanel != null) 
             settingsPanel.SetActive(false);
 
@@ -69,87 +121,134 @@ public class MainMenuController : MonoBehaviour
             mainButtonsPanel.SetActive(true);
     }
 
-    // ==========================================
-    // BUTTON CLICK ACTIONS
-    // ==========================================
 
-    // Attach to the "Investigate" / Play Button OnClick() event
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Force a robust background delay callback (0.15 seconds). 
+        // This gives Unity 6 ample time to fully build and register the new scene's 
+        // Global Volume into memory before we try to look for it!
+        CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
+        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
+    }
+
+    private void ApplyLoadedSettingsToNewScene()
+    {
+        // 1. Re-locate the Global Volume in the freshly loaded scene
+        Volume newVolume = FindAnyObjectByType<Volume>();
+        FetchVolumeProfile(newVolume);
+
+        // 2. Load and slam your saved settings back into place immediately
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
+
+        SetBrightness(savedBrightness);
+        SetMusicVolume(savedMusic);
+        SetSFXVolume(savedSFX);
+        
+        Debug.Log($"[Settings Manager] Settings successfully synchronized for scene! Brightness: {savedBrightness}");
+    }
+
+
+
+    private void FetchVolumeProfile(Volume targetVolume)
+    {
+        if (targetVolume != null && targetVolume.profile != null)
+        {
+            // Read the ColorAdjustments effect from the volume profile.
+            targetVolume.profile.TryGet(out colorAdjustments);
+        }
+    }
+
     public void PlayGame()
     {
-        // Loads your main game level scene
+        // Save current slider positions to disk right before loading the new scene
+        PlayerPrefs.Save();
+        
+        // Explicitly re-enforce the current slider values to lock the Audio Mixer channels
+        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
+
+        // Load your cutscene
         SceneManager.LoadScene(gameSceneName);
     }
 
-    // Attach to the "Options" / Settings Button OnClick() event
+
+
     public void OpenSettings()
     {
-        // Hides main buttons, reveals the settings overlay panel
-        mainButtonsPanel.SetActive(false);
-        settingsPanel.SetActive(true);
+        // Show the settings panel and hide the main menu buttons.
+        if (mainButtonsPanel != null) mainButtonsPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(true);
+        
+        // Hide the game title so it clears the top space
+        if (gameTitleObject != null) gameTitleObject.SetActive(false);
+        if (settingsTitleHeader != null) settingsTitleHeader.SetActive(true);
     }
 
-    // Attach to the "Back" Button OnClick() event inside the Settings Panel
     public void CloseSettings()
     {
-        // Hides settings overlay panel, reveals main buttons
-        settingsPanel.SetActive(false);
-        mainButtonsPanel.SetActive(true);
-
-        // Save all slider changes to storage so settings persist next session
+        // Hide the settings panel and show the main menu buttons.
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (mainButtonsPanel != null) mainButtonsPanel.SetActive(true);
+        
+        // Bring the game title back when returning to the main screen
+        if (gameTitleObject != null) gameTitleObject.SetActive(true);
+        if (settingsTitleHeader != null) settingsTitleHeader.SetActive(false);
+        
         PlayerPrefs.Save();
     }
 
-    // Attach to the "Exit" Button OnClick() event
+
     public void QuitGame()
     {
+        // Print a message in the console before quitting.
         Debug.Log("Exiting Game...");
-        // Closes the application executable
-        Application.Quit();
+        #if UNITY_EDITOR
+                // Stop play mode in the Unity editor.
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                // Quit the game in a built application.
+                Application.Quit();
+        #endif
     }
 
-    // ==========================================
-    // SLIDER ADJUSTMENT FUNCTIONS
-    // ==========================================
-
-    // Attach to MusicSlider's On Value Changed (Single) event
     public void SetMusicVolume(float value)
     {
-        // Convert linear slider values (0.0001 to 1.0) into logarithmic Decibels (-80dB to 0dB) for AudioMixer
         if (mainAudioMixer != null)
-            mainAudioMixer.SetFloat("MusicVolume", Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20);
+        {
+            // Mixers use decibels, so convert the slider's 0-1 value.
+            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert a 0–1 slider value to decibels.
+            mainAudioMixer.SetFloat("MusicVolume", dB); // Apply the converted music volume to the mixer.
+        }
 
-        // Save value locally
-        PlayerPrefs.SetFloat("MusicVolume", value);
+        PlayerPrefs.SetFloat("MusicVolume", value); // Save the music volume value.
     }
 
-    // Attach to SFXSlider's On Value Changed (Single) event
     public void SetSFXVolume(float value)
     {
         if (mainAudioMixer != null)
-            mainAudioMixer.SetFloat("SFXVolume", Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20);
+        {
+            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert the slider value to decibels for SFX.
+            mainAudioMixer.SetFloat("SFXVolume", dB);               // Apply the sound effects volume to the mixer.
+        }
 
-        // Save value locally
-        PlayerPrefs.SetFloat("SFXVolume", value);
+        PlayerPrefs.SetFloat("SFXVolume", value); // Save the SFX volume value.
     }
 
-    // Attach to SensitivitySlider's On Value Changed (Single) event
-    public void SetSensitivity(float value)
-    {
-        // Saves sensitivity float so your First-Person Player Controller script can read it during gameplay
-        PlayerPrefs.SetFloat("MouseSensitivity", value);
-    }
-
-    // Attach to BrightnessSlider's On Value Changed (Single) event
     public void SetBrightness(float value)
     {
-        // Adjusts global environment ambient lighting intensity
-        RenderSettings.ambientIntensity = value;
+        if (colorAdjustments != null)
+        {
+            // Original exposure calculation
+            colorAdjustments.postExposure.value = Mathf.Lerp(-1.5f, 1.5f, value);
+        }
 
-        // Scale directional sun/moon light intensity if assigned
-        if (sceneDirectionalLight != null) 
-            sceneDirectionalLight.intensity = value;
-
-        // Save value locally
+        // Slightly tweak the ambient lighting intensity based on the slider.
+        // This forces Unity's Render Graph to dirty its frame cache and redraw 
+        // the Game view window instantly, even if the menu is completely static!
+        RenderSettings.ambientIntensity = Mathf.Max(value, 0.01f);
+        
         PlayerPrefs.SetFloat("Brightness", value);
     }
 }
