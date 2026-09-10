@@ -1,29 +1,64 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Uses the New Input System
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
 
-    public float speed = 12f;
+    [Header("Movement Speeds")]
+    public float walkSpeed = 6f;
+    public float runSpeed = 12f;
     public float gravity = -9.81f;
-    public float jumpHeight = 3f;
+    public float jumpHeight = 1.5f;
+
+    [Header("Stamina Settings")]
+    public float maxStamina = 100f;
+    public float staminaDrainRate = 15f;
+    public float staminaRegenRate = 14.28f;
+
+    [Header("Stamina State")]
+    public float currentStamina;
+    private bool isExhausted = false;
+
+    [Header("UI Reference")]
+    public Slider staminaSlider;
+
+    [Header("Flashlight Settings")]
+    public Light flashlight;
+    public bool hasFlashlight = false; // Player starts without the flashlight
+
+    // Public property so the pickup script can enable it
+    public bool HasFlashlight
+    {
+        get { return hasFlashlight; }
+        set { hasFlashlight = value; }
+    }
 
     private Vector3 velocity;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        currentStamina = maxStamina;
+
+        if (staminaSlider != null)
+        {
+            staminaSlider.maxValue = maxStamina;
+            staminaSlider.value = currentStamina;
+        }
+
+        // Ensure light is off at start
+        if (flashlight != null)
+        {
+            flashlight.enabled = false;
+        }
     }
 
     void Update()
     {
-        if (Keyboard.current == null)
-        {
-            Debug.LogError("No keyboard detected by Input System!");
-            return;
-        }
+        if (Keyboard.current == null) return;
 
         // 1. Reset downward velocity when grounded
         if (controller.isGrounded && velocity.y < 0)
@@ -31,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = -2f;
         }
 
-        // 2. Read input from the NEW Input System
+        // 2. Read movement input
         float x = 0f;
         float z = 0f;
 
@@ -40,20 +75,60 @@ public class PlayerMovement : MonoBehaviour
         if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) z += 1f;
         if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) z -= 1f;
 
-        // Prevent moving faster diagonally
         Vector3 moveInput = new Vector3(x, 0f, z).normalized;
 
-        // 3. Apply Horizontal Movement
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
-        controller.Move(move * speed * Time.deltaTime);
+        bool isMoving = moveInput.magnitude > 0;
+        bool shiftPressed = Keyboard.current.leftShiftKey.isPressed;
 
-        // 4. Jump check using NEW Input System
+        // 3. Handle Stamina & Exhaustion Recovery
+        if (isExhausted && currentStamina >= maxStamina * 0.2f)
+        {
+            isExhausted = false;
+        }
+
+        bool canSprint = shiftPressed && isMoving && currentStamina > 0 && !isExhausted;
+        float currentSpeed = canSprint ? runSpeed : walkSpeed;
+
+        if (canSprint)
+        {
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+            if (currentStamina <= 0)
+            {
+                currentStamina = 0;
+                isExhausted = true;
+            }
+        }
+        else
+        {
+            if (currentStamina < maxStamina)
+            {
+                currentStamina += staminaRegenRate * Time.deltaTime;
+                currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
+            }
+        }
+
+        if (staminaSlider != null)
+        {
+            staminaSlider.value = currentStamina;
+        }
+
+        // 4. Horizontal Movement
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
+        controller.Move(move * currentSpeed * Time.deltaTime);
+
+        // 5. Jump Check
         if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
 
-        // 5. Apply Gravity
+        // 6. Flashlight Toggle Check (Only works if player picked up the flashlight)
+        if (Keyboard.current.fKey.wasPressedThisFrame && flashlight != null && hasFlashlight)
+        {
+            flashlight.enabled = !flashlight.enabled;
+        }
+
+        // 7. Apply Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }
