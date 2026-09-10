@@ -176,6 +176,18 @@ public class MainMenuController : MonoBehaviour
     }
 
 
+    // This method is called when the intro cutscene finishes and the player is ready to enter Level 1.
+    public void LoadPoliceHQ()
+    {
+        Debug.Log("[Scene Transition] Intro Cutscene finished. Loading PoliceHQ Level 1...");
+        
+        // Ensure settings are saved right before moving into the core gameplay level
+        PlayerPrefs.Save();
+
+        // Load your Level 1 scene
+        SceneManager.LoadScene("PoliceHQ");
+    }
+
 
     public void OpenSettings()
     {
