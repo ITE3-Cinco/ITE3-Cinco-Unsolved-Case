@@ -3628,7 +3628,7 @@ MonoBehaviour:
   - {fileID: 377456405}
   - {fileID: 967623085}
   - {fileID: 146934705}
-  detectionRadius: 8
+  detectionRadius: 17.27
   catchDistance: 1.2
   playerTransform: {fileID: 1231311386}
   isChasing: 0
@@ -4349,6 +4349,38 @@ PrefabInstance:
     - target: {fileID: 3414989561015887155, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
       propertyPath: m_IsTrigger
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 6.61
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -13.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5936365
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5936363
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.38418207
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.38418204
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3531871995221804930, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 65.819
       objectReference: {fileID: 0}
     - target: {fileID: 3575824663541434141, guid: 12981954e40bccc489cd273a8b22143b, type: 3}
       propertyPath: m_IsActive
