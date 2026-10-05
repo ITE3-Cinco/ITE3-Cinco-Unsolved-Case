@@ -16,6 +16,10 @@ public class GhostEnemy : MonoBehaviour
     public float catchCooldown = 1.5f;
     private float catchCooldownTimer = 0f;
 
+    [Header("Animation")]
+    public Animator animator;
+    public string chasingParameter = "IsChasing";
+
     [Header("State")]
     public bool isChasing = false;
 
@@ -42,6 +46,7 @@ public class GhostEnemy : MonoBehaviour
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
+        UpdateAnimation();
 
         if (isChasing)
         {
@@ -80,9 +85,22 @@ public class GhostEnemy : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 5f);
     }
 
+    private void UpdateAnimation()
+    {
+        if (animator != null && !string.IsNullOrEmpty(chasingParameter))
+            animator.SetBool(chasingParameter, isChasing);
+    }
+
     private void CatchPlayer()
     {
         Debug.Log("<color=red>[Ghost]</color> Caught the player!");
+
+        if (animator != null)
+            animator.SetBool(chasingParameter, false);
+
+        GhostAudio ghostAudio = GetComponent<GhostAudio>();
+        if (ghostAudio != null)
+            ghostAudio.enabled = false;
 
         // Prevent repeated catches immediately after the respawn.
         catchCooldownTimer = catchCooldown;
