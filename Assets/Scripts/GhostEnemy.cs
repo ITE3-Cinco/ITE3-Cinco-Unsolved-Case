@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GhostEnemy : MonoBehaviour
 {
@@ -12,48 +13,71 @@ public class GhostEnemy : MonoBehaviour
     public float catchDistance = 1.2f;
     public Transform playerTransform;
 
+    [Header("Spawn / Animation")]
+    [Tooltip("The ghost stays in the idle animation at the spawn point until the player gets within this distance.")]
+    public float spawnIdleDistance = 8f;
+    public Animator animator;
+    public string movingParameter = "IsMoving";
+
     [Header("Catch Settings")]
     public float catchCooldown = 1.5f;
     private float catchCooldownTimer = 0f;
 
-    [Header("Animation")]
-    public Animator animator;
-    public string movingParameter = "IsMoving";
-
     [Header("Lose Scene")]
-    [Tooltip("Name of the scene shown after the player is caught.")]
     public string loseSceneName = "LoseScene";
-    [Tooltip("Fade duration before loading the lose scene.")]
-    public float loseFadeDuration = 1.5f;
+    [Tooltip("How long the black fade takes before the lose scene is loaded.")]
+    public float loseFadeDuration = 0.6f;
 
     [Header("State")]
     public bool isChasing = false;
 
     private bool isCaught = false;
+    private bool hasStartedMoving = false;
 
     private void Start()
     {
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) playerTransform = playerObj.transform;
+
+            if (playerObj != null)
+                playerTransform = playerObj.transform;
         }
 
         Collider col = GetComponent<Collider>();
-        if (col != null) col.isTrigger = true;
+
+        if (col != null)
+            col.isTrigger = true;
+
+        SetMovingAnimation(false);
     }
 
     private void Update()
     {
-        if (playerTransform == null || isCaught) return;
+        if (playerTransform == null || isCaught)
+            return;
 
         if (catchCooldownTimer > 0f)
             catchCooldownTimer -= Time.deltaTime;
 
-        bool isPlayerInvisible = InvisibilityConsumable.Instance != null &&
-                                 InvisibilityConsumable.Instance.isInvisible;
-
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        // The ghost begins in her idle spawn state.
+        // Once the player gets close enough, the idle state ends and movement begins.
+        if (!hasStartedMoving)
+        {
+            isChasing = false;
+            SetMovingAnimation(false);
+
+            if (distanceToPlayer <= spawnIdleDistance)
+                hasStartedMoving = true;
+            else
+                return;
+        }
+
+        bool isPlayerInvisible =
+            InvisibilityConsumable.Instance != null &&
+            InvisibilityConsumable.Instance.isInvisible;
 
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
 
@@ -71,7 +95,7 @@ public class GhostEnemy : MonoBehaviour
             isMoving = Patrol();
         }
 
-        UpdateAnimation(isMoving);
+        SetMovingAnimation(isMoving);
     }
 
     private bool Patrol()
@@ -132,10 +156,19 @@ public class GhostEnemy : MonoBehaviour
         return true;
     }
 
-    private void UpdateAnimation(bool isMoving)
+    private void SetMovingAnimation(bool moving)
     {
         if (animator != null && !string.IsNullOrEmpty(movingParameter))
-            animator.SetBool(movingParameter, isMoving);
+            animator.SetBool(movingParameter, moving);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (isCaught || catchCooldownTimer > 0f)
+            return;
+
+        if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
+            CatchPlayer();
     }
 
     private void CatchPlayer()
@@ -149,10 +182,13 @@ public class GhostEnemy : MonoBehaviour
 
         Debug.Log("<color=red>[Ghost]</color> Caught the player!");
 
-        if (animator != null && !string.IsNullOrEmpty(movingParameter))
-            animator.SetBool(movingParameter, false);
+        SetMovingAnimation(false);
+
+        if (playerTransform == null)
+            return;
 
         PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
+
         if (playerAudio != null)
             playerAudio.PlayCaught();
 
@@ -165,7 +201,7 @@ public class GhostEnemy : MonoBehaviour
         else
         {
             Debug.LogWarning("[Ghost] No ScreenFadeController found. Loading the lose scene directly.");
-            UnityEngine.SceneManagement.SceneManager.LoadScene(loseSceneName);
+            SceneManager.LoadScene(loseSceneName);
         }
     }
 
