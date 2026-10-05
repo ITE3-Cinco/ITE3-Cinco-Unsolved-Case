@@ -18,10 +18,18 @@ public class GhostEnemy : MonoBehaviour
 
     [Header("Animation")]
     public Animator animator;
-    public string chasingParameter = "IsChasing";
+    public string movingParameter = "IsMoving";
+
+    [Header("Lose Scene")]
+    [Tooltip("Name of the scene shown after the player is caught.")]
+    public string loseSceneName = "LoseScene";
+    [Tooltip("Fade duration before loading the lose scene.")]
+    public float loseFadeDuration = 1.5f;
 
     [Header("State")]
     public bool isChasing = false;
+
+    private bool isCaught = false;
 
     private void Start()
     {
@@ -37,79 +45,128 @@ public class GhostEnemy : MonoBehaviour
 
     private void Update()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null || isCaught) return;
 
         if (catchCooldownTimer > 0f)
             catchCooldownTimer -= Time.deltaTime;
 
-        bool isPlayerInvisible = InvisibilityConsumable.Instance != null && InvisibilityConsumable.Instance.isInvisible;
+        bool isPlayerInvisible = InvisibilityConsumable.Instance != null &&
+                                 InvisibilityConsumable.Instance.isInvisible;
+
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
-        UpdateAnimation();
+
+        bool isMoving;
 
         if (isChasing)
         {
-            ChasePlayer();
+            isMoving = ChasePlayer();
 
             if (distanceToPlayer <= catchDistance && catchCooldownTimer <= 0f)
                 CatchPlayer();
         }
         else
         {
-            Patrol();
+            isMoving = Patrol();
         }
+
+        UpdateAnimation(isMoving);
     }
 
-    private void Patrol()
+    private bool Patrol()
     {
-        if (patrolWaypoints.Length == 0) return;
+        if (patrolWaypoints == null || patrolWaypoints.Length == 0)
+            return false;
 
         Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
-        transform.position = Vector3.MoveTowards(transform.position, targetWaypoint.position, moveSpeed * Time.deltaTime);
+
+        if (targetWaypoint == null)
+            return false;
+
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetWaypoint.position,
+            moveSpeed * Time.deltaTime
+        );
 
         Vector3 direction = (targetWaypoint.position - transform.position).normalized;
+
         if (direction != Vector3.zero)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 5f);
+        {
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                Quaternion.LookRotation(direction),
+                Time.deltaTime * 5f
+            );
+        }
 
         if (Vector3.Distance(transform.position, targetWaypoint.position) < 0.3f)
             currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
+
+        return true;
     }
 
-    private void ChasePlayer()
+    private bool ChasePlayer()
     {
-        transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, moveSpeed * Time.deltaTime);
+        if (playerTransform == null)
+            return false;
+
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            playerTransform.position,
+            moveSpeed * Time.deltaTime
+        );
 
         Vector3 direction = (playerTransform.position - transform.position).normalized;
+
         if (direction != Vector3.zero)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 5f);
+        {
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                Quaternion.LookRotation(direction),
+                Time.deltaTime * 5f
+            );
+        }
+
+        return true;
     }
 
-    private void UpdateAnimation()
+    private void UpdateAnimation(bool isMoving)
     {
-        if (animator != null && !string.IsNullOrEmpty(chasingParameter))
-            animator.SetBool(chasingParameter, isChasing);
+        if (animator != null && !string.IsNullOrEmpty(movingParameter))
+            animator.SetBool(movingParameter, isMoving);
     }
 
     private void CatchPlayer()
     {
+        if (isCaught)
+            return;
+
+        isCaught = true;
+        isChasing = false;
+        catchCooldownTimer = catchCooldown;
+
         Debug.Log("<color=red>[Ghost]</color> Caught the player!");
 
-        if (animator != null)
-            animator.SetBool(chasingParameter, false);
-
-
-        // Prevent repeated catches immediately after the respawn.
-        catchCooldownTimer = catchCooldown;
-        isChasing = false;
+        if (animator != null && !string.IsNullOrEmpty(movingParameter))
+            animator.SetBool(movingParameter, false);
 
         PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
         if (playerAudio != null)
             playerAudio.PlayCaught();
 
-        PlayerRespawn respawnSystem = playerTransform.GetComponent<PlayerRespawn>();
-        if (respawnSystem != null)
-            respawnSystem.Respawn();
+        ScreenFadeController fadeController = FindFirstObjectByType<ScreenFadeController>();
+
+        if (fadeController != null)
+        {
+            fadeController.FadeToScene(loseSceneName, loseFadeDuration);
+        }
+        else
+        {
+            Debug.LogWarning("[Ghost] No ScreenFadeController found. Loading the lose scene directly.");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(loseSceneName);
+        }
     }
 
     private void OnDrawGizmosSelected()
