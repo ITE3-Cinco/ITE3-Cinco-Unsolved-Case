@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class RespawnPoint : MonoBehaviour
 {
-    // Static shared checkpoint across all instances
     public static Vector3 activeCheckpointPosition;
+    public static Quaternion activeCheckpointRotation;
     public static bool hasReachedCheckpoint = false;
 
     [Header("Checkpoint Type")]
@@ -11,20 +11,21 @@ public class RespawnPoint : MonoBehaviour
 
     private void Awake()
     {
-        // Set starting point if marked as initial spawn and no checkpoint reached yet
         if (isInitialSpawn && !hasReachedCheckpoint)
         {
             activeCheckpointPosition = transform.position;
+            activeCheckpointRotation = transform.rotation;
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Verify it's the player entering the trigger
         if (other.CompareTag("Player") || other.GetComponent<PlayerRespawn>() != null)
         {
             activeCheckpointPosition = transform.position;
+            activeCheckpointRotation = transform.rotation;
             hasReachedCheckpoint = true;
+
             Debug.Log($"<color=green>[Checkpoint Activated]</color> New respawn location: {transform.position}");
         }
     }
