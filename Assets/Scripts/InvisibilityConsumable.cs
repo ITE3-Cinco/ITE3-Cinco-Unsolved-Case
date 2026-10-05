@@ -58,4 +58,20 @@ public class InvisibilityConsumable : MonoBehaviour
         invisibilityCoroutine = null;
         Debug.Log("<color=purple>[Invisibility Expired]</color> Enemies can see you again!");
     }
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+
+        if (invisibilityCoroutine != null)
+        {
+            StopCoroutine(invisibilityCoroutine);
+            invisibilityCoroutine = null;
+        }
+
+        if (playerRenderer != null && originalMaterial != null)
+            playerRenderer.material = originalMaterial;
+
+        isInvisible = false;
+    }
 }
