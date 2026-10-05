@@ -88,7 +88,7 @@ public class Interactable : MonoBehaviour
         {
             if (ArtifactManager.Instance != null)
             {
-                ArtifactManager.Instance.CollectArtifact();
+                ArtifactManager.Instance.CollectArtifact(this);
             }
             else
             {
