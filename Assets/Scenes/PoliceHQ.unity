@@ -571,7 +571,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.6666667}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -100869,7 +100869,7 @@ GameObject:
   - component: {fileID: 4746542055883197172}
   - component: {fileID: 7194177325306476901}
   - component: {fileID: 6581689363726315419}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_Floor_Briefing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
