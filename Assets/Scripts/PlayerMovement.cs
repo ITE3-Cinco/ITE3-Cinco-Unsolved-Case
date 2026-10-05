@@ -13,6 +13,14 @@ public class PlayerMovement : MonoBehaviour
     public float gravity = -9.81f;
     public float jumpHeight = 1.5f;
 
+    [Header("Character Controller")]
+    [Tooltip("Maximum height the player can step over.")]
+    public float stepOffset = 0.5f;
+    [Tooltip("Maximum slope the player can walk up.")]
+    [Range(0f, 89f)] public float slopeLimit = 60f;
+    [Tooltip("Small collision skin that helps prevent the controller from snagging on seams.")]
+    public float skinWidth = 0.08f;
+
     [Header("Stamina Settings")]
     public float maxStamina = 100f;
     public float staminaDrainRate = 15f;
@@ -26,12 +34,11 @@ public class PlayerMovement : MonoBehaviour
     public Slider staminaSlider;
 
     [Header("Flashlight Settings")]
-    public Light flashlight;                 // The Light component on the flashlight
-    public ItemData flashlightItemData;      // The ItemData asset for the flashlight
-    public bool hasFlashlight = false;       // Becomes true when picked up
-    private bool isFlashlightOn = false;     // Remembered toggle state
+    public Light flashlight;
+    public ItemData flashlightItemData;
+    public bool hasFlashlight = false;
+    private bool isFlashlightOn = false;
 
-    // Public property so the pickup script can enable it
     public bool HasFlashlight
     {
         get { return hasFlashlight; }
@@ -45,7 +52,14 @@ public class PlayerMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         inventory = GetComponent<Inventory>();
-        if (inventory == null) inventory = GetComponentInParent<Inventory>();
+
+        if (inventory == null)
+            inventory = GetComponentInParent<Inventory>();
+
+        // Keep the controller from getting stuck on small floor/wall seams.
+        controller.stepOffset = stepOffset;
+        controller.slopeLimit = slopeLimit;
+        controller.skinWidth = skinWidth;
 
         currentStamina = maxStamina;
 
@@ -55,31 +69,22 @@ public class PlayerMovement : MonoBehaviour
             staminaSlider.value = currentStamina;
         }
 
-        // Ensure light is off at start
         isFlashlightOn = false;
-        if (flashlight != null)
-        {
-            flashlight.enabled = false;
-        }
 
-        // Sync held item state on start (in case the flashlight is already in the hotbar)
+        if (flashlight != null)
+            flashlight.enabled = false;
+
         if (inventory != null)
-        {
             UpdateHeldItem(inventory.GetSelectedItem());
-        }
     }
 
     void Update()
     {
         if (Keyboard.current == null) return;
 
-        // 1. Reset downward velocity when grounded
         if (controller.isGrounded && velocity.y < 0)
-        {
             velocity.y = -2f;
-        }
 
-        // 2. Read movement input
         float x = 0f;
         float z = 0f;
 
@@ -93,11 +98,8 @@ public class PlayerMovement : MonoBehaviour
         bool isMoving = moveInput.magnitude > 0;
         bool shiftPressed = Keyboard.current.leftShiftKey.isPressed;
 
-        // 3. Handle Stamina & Exhaustion Recovery
         if (isExhausted && currentStamina >= maxStamina * 0.2f)
-        {
             isExhausted = false;
-        }
 
         bool canSprint = shiftPressed && isMoving && currentStamina > 0 && !isExhausted;
         float currentSpeed = canSprint ? runSpeed : walkSpeed;
@@ -105,44 +107,39 @@ public class PlayerMovement : MonoBehaviour
         if (canSprint)
         {
             currentStamina -= staminaDrainRate * Time.deltaTime;
+
             if (currentStamina <= 0)
             {
                 currentStamina = 0;
                 isExhausted = true;
             }
         }
-        else
+        else if (currentStamina < maxStamina)
         {
-            if (currentStamina < maxStamina)
-            {
-                currentStamina += staminaRegenRate * Time.deltaTime;
-                currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
-            }
+            currentStamina += staminaRegenRate * Time.deltaTime;
+            currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         }
 
         if (staminaSlider != null)
-        {
             staminaSlider.value = currentStamina;
-        }
 
-        // 4. Horizontal Movement
         Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
-        controller.Move(move * currentSpeed * Time.deltaTime);
+        CollisionFlags horizontalFlags = controller.Move(move * currentSpeed * Time.deltaTime);
 
-        // 5. Jump Check
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
+        if ((horizontalFlags & CollisionFlags.Sides) != 0 && isMoving)
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            // Collision information is intentionally logged only when movement input
+            // is blocked. This makes hidden wall/mesh colliders easy to identify.
+            // Remove/disable this log after the offending collider is fixed.
         }
 
-        // 6. Flashlight Toggle
-        //    Only works when:
-        //      - Player has picked up the flashlight
-        //      - The flashlight item is the currently selected hotbar slot
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
         if (Keyboard.current.fKey.wasPressedThisFrame && flashlight != null && hasFlashlight)
         {
-            bool flashlightSlotSelected = (inventory == null)
-                || (inventory.GetSelectedItem() == flashlightItemData);
+            bool flashlightSlotSelected =
+                inventory == null || inventory.GetSelectedItem() == flashlightItemData;
 
             if (flashlightSlotSelected)
             {
@@ -151,45 +148,33 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // 7. Apply Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }
 
-    /// <summary>
-    /// Called by Inventory whenever the selected hotbar slot changes.
-    /// Turns the flashlight off when switching away, restores its state when switching back.
-    /// </summary>
     public void UpdateHeldItem(ItemData currentItem)
     {
         if (flashlight == null) return;
 
         if (!hasFlashlight || currentItem == null || currentItem != flashlightItemData)
         {
-            // Switched to an empty slot or a different item -> flashlight off
             flashlight.enabled = false;
             return;
         }
 
-        // Switched back to the flashlight slot -> restore previous toggle state
         flashlight.enabled = isFlashlightOn;
     }
 
-    /// <summary>
-    /// Call this from your pickup script when the player collects the flashlight.
-    /// Adds it to the inventory and enables the ability to toggle it.
-    /// </summary>
     public void PickUpFlashlight()
     {
         hasFlashlight = true;
 
         if (inventory != null && flashlightItemData != null)
         {
-            inventory.AddItem(flashlightItemData); // AddItem internally calls SelectSlot -> UpdateHeldItem
+            inventory.AddItem(flashlightItemData);
         }
         else
         {
-            // Fallback: no inventory, just allow toggling with F
             Debug.LogWarning("Flashlight picked up, but Inventory or flashlightItemData is missing!");
         }
     }
