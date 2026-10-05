@@ -103,6 +103,10 @@ public class GhostEnemy : MonoBehaviour
         catchCooldownTimer = catchCooldown;
         isChasing = false;
 
+        PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
+        if (playerAudio != null)
+            playerAudio.PlayCaught();
+
         PlayerRespawn respawnSystem = playerTransform.GetComponent<PlayerRespawn>();
         if (respawnSystem != null)
             respawnSystem.Respawn();
