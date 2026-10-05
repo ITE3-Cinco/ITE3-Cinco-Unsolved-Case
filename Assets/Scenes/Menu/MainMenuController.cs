@@ -2,8 +2,9 @@ using UnityEngine; // Unity core features, such as MonoBehaviour and GameObject.
 using UnityEngine.SceneManagement; // Used to load scenes and detect scene changes.
 using UnityEngine.UI; // Used for UI elements like sliders and buttons.
 using UnityEngine.Audio; // Used to control the audio mixer.
-using UnityEngine.Rendering; // Used for global rendering effects and volume settings.
-using UnityEngine.Rendering.Universal; // Used for URP post-processing effects like brightness.
+using UnityEngine.Rendering; // Used for accessing the Volume component and its profile.
+using UnityEngine.Rendering.Universal; // Use HDRP if your project uses High Def pipeline
+
 
 public class MainMenuController : MonoBehaviour
 {
@@ -45,8 +46,10 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private GameObject settingsTitleHeader;   // Reference to the settings title header object in the menu.
 
 
-    // Stores the brightness adjustment data from the URP volume profile.
-    private ColorAdjustments colorAdjustments;  
+    // Private fields to store the current volume and color adjustments for brightness control.
+    private Volume currentVolume;
+    private ColorAdjustments colorAdjustments;
+    private bool isPersistentInstance;
 
     private void Awake()
     {
@@ -55,42 +58,43 @@ public class MainMenuController : MonoBehaviour
         {
             // Set this object as the active menu controller.
             Instance = this;
+            isPersistentInstance = true;
 
             // Keep this object alive between scene loads.
             DontDestroyOnLoad(gameObject);
         }
         else
         {
-            // Remove duplicate menu controllers.
-            Destroy(gameObject);
-
-            // Stop this object from continuing.
-            return;
+            // Keep scene-local instances alive so Timeline signal callbacks remain valid.
+            isPersistentInstance = false;
         }
 
         // Load the initial brightness profile from the assigned volume.
-        FetchVolumeProfile(globalVolume);
+        if (isPersistentInstance)
+            FetchVolumeProfile(globalVolume);
     }
 
     private void OnEnable()
     {
         // Reapply brightness whenever a new scene loads.
         // Listen for scene load events.
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        if (isPersistentInstance)
+            SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         // Stop listening when this object is disabled.
-        SceneManager.sceneLoaded -= OnSceneLoaded;
+        if (isPersistentInstance)
+            SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Start()
     {
         // Load saved preferences from disk (or use default values on first startup)
-        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);      // Default 75% volume
-        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);          // Default 75% volume
-        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);   // Default 50% middle ground
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 8f);         // Slider range: 0–10
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 8f);             // Slider range: 0–10
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 5f);    // Slider range: 0–10
 
         // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
         if (musicSlider != null) 
@@ -121,26 +125,34 @@ public class MainMenuController : MonoBehaviour
             mainButtonsPanel.SetActive(true);
     }
 
-
+    //  This method is called whenever a new scene is loaded, allowing the menu controller to reapply settings and configurations.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Force a robust background delay callback (0.15 seconds). 
-        // This gives Unity 6 ample time to fully build and register the new scene's 
-        // Global Volume into memory before we try to look for it!
+        // Force a robust background delay callback for cinematic/intro scenes
         CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
         Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
     }
 
+
     private void ApplyLoadedSettingsToNewScene()
     {
         // 1. Re-locate the Global Volume in the freshly loaded scene
-        Volume newVolume = FindAnyObjectByType<Volume>();
+        Volume newVolume = null;
+        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
+        foreach (Volume volume in sceneVolumes)
+        {
+            if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
+            {
+                newVolume = volume;
+                break;
+            }
+        }
         FetchVolumeProfile(newVolume);
 
         // 2. Load and slam your saved settings back into place immediately
-        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 0.5f);
-        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
-        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
+        float savedBrightness = PlayerPrefs.GetFloat("Brightness", 5f);
+        float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 8f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 8f);
 
         SetBrightness(savedBrightness);
         SetMusicVolume(savedMusic);
@@ -153,6 +165,8 @@ public class MainMenuController : MonoBehaviour
 
     private void FetchVolumeProfile(Volume targetVolume)
     {
+        currentVolume = targetVolume;
+
         if (targetVolume != null && targetVolume.profile != null)
         {
             // Read the ColorAdjustments effect from the volume profile.
@@ -166,13 +180,25 @@ public class MainMenuController : MonoBehaviour
         PlayerPrefs.Save();
         
         // Explicitly re-enforce the current slider values to lock the Audio Mixer channels
-        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 0.75f));
-        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 0.75f));
+        SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", 8f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 8f));
 
         // Load your cutscene
         SceneManager.LoadScene(gameSceneName);
     }
 
+
+    // This method is called when the intro cutscene finishes and the player is ready to enter Level 1.
+    public void LoadPoliceHQ()
+    {
+        Debug.Log("[Scene Transition] Intro Cutscene finished. Loading PoliceHQ Level 1...");
+        
+        // Ensure settings are saved right before moving into the core gameplay level
+        PlayerPrefs.Save();
+
+        // Load your Level 1 scene
+        SceneManager.LoadScene("PoliceHQ");
+    }
 
 
     public void OpenSettings()
@@ -217,8 +243,9 @@ public class MainMenuController : MonoBehaviour
     {
         if (mainAudioMixer != null)
         {
-            // Mixers use decibels, so convert the slider's 0-1 value.
-            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert a 0–1 slider value to decibels.
+            // Convert the 0–10 slider value to 0–1 before converting to decibels.
+            float normalizedValue = Mathf.Clamp01(value / 10f);
+            float dB = Mathf.Log10(Mathf.Max(normalizedValue, 0.0001f)) * 20;
             mainAudioMixer.SetFloat("MusicVolume", dB); // Apply the converted music volume to the mixer.
         }
 
@@ -229,26 +256,34 @@ public class MainMenuController : MonoBehaviour
     {
         if (mainAudioMixer != null)
         {
-            float dB = Mathf.Log10(Mathf.Max(value, 0.0001f)) * 20; // Convert the slider value to decibels for SFX.
+            // Convert the 0–10 slider value to 0–1 before converting to decibels.
+            float normalizedValue = Mathf.Clamp01(value / 10f);
+            float dB = Mathf.Log10(Mathf.Max(normalizedValue, 0.0001f)) * 20;
             mainAudioMixer.SetFloat("SFXVolume", dB);               // Apply the sound effects volume to the mixer.
         }
 
         PlayerPrefs.SetFloat("SFXVolume", value); // Save the SFX volume value.
     }
 
-    public void SetBrightness(float value)
-    {
-        if (colorAdjustments != null)
-        {
-            // Original exposure calculation
-            colorAdjustments.postExposure.value = Mathf.Lerp(-1.5f, 1.5f, value);
-        }
 
-        // Slightly tweak the ambient lighting intensity based on the slider.
-        // This forces Unity's Render Graph to dirty its frame cache and redraw 
-        // the Game view window instantly, even if the menu is completely static!
-        RenderSettings.ambientIntensity = Mathf.Max(value, 0.01f);
-        
-        PlayerPrefs.SetFloat("Brightness", value);
+    // Call this inside your ApplyLoadedSettingsToNewScene() method
+    public void SetBrightness(float sliderValue)
+    {
+        // Keep the selected brightness value for the next session.
+        sliderValue = Mathf.Clamp(sliderValue, 0f, 10f);
+        PlayerPrefs.SetFloat("Brightness", sliderValue);
+
+        // Convert the 0–10 UI slider into an exposure modifier (-2.0 to +2.0 eV).
+        float normalizedValue = Mathf.Clamp01(sliderValue / 10f);
+        float exposureOffset = Mathf.Lerp(-2f, 2f, normalizedValue);
+
+        if (currentVolume != null && currentVolume.profile != null)
+        {
+            if (currentVolume.profile.TryGet(out colorAdjustments))
+            {
+                colorAdjustments.postExposure.overrideState = true;
+                colorAdjustments.postExposure.value = exposureOffset;
+            }
+        }
     }
 }

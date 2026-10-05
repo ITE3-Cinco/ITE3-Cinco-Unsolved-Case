@@ -1,39 +1,63 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Uses the New Input System
+using UnityEngine.InputSystem;
 
 public class MouseLook : MonoBehaviour
 {
-    public float mouseSensitivity = 100f;
+    [Header("Sensitivity Settings")]
+    [Range(0.1f, 10f)]
+    public float mouseSensitivity = 2f;
+
+    [Tooltip("If checked, ignores external scripts trying to change sensitivity at runtime.")]
+    public bool lockSensitivity = true;
+
     public Transform playerBody;
-
     private float xRotation = 0f;
+    private float targetSensitivity;
 
-    void Start()
+    private void Awake()
     {
-        // Locks and hides the cursor in the center of the screen
-        Cursor.lockState = CursorLockMode.Locked;
+        targetSensitivity = mouseSensitivity;
     }
 
-    void Update()
+    private void Start()
     {
-        if (Mouse.current == null) return;
+        LockCursor();
+    }
 
-        // Read mouse delta using the NEW Input System
-        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+    private void Update()
+    {
+        if (Mouse.current == null || PauseManager.IsGamePaused)
+            return;
 
-        float mouseX = mouseDelta.x * mouseSensitivity * Time.deltaTime;
-        float mouseY = mouseDelta.y * mouseSensitivity * Time.deltaTime;
+        if (lockSensitivity)
+            mouseSensitivity = targetSensitivity;
 
-        // Pitch (Looking Up/Down)
+        Vector2 delta = Mouse.current.delta.ReadValue();
+
+        if (delta == Vector2.zero)
+            return;
+
+        float mouseX = delta.x * (mouseSensitivity * 0.1f);
+        float mouseY = delta.y * (mouseSensitivity * 0.1f);
+
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-        // Yaw (Looking Left/Right) - Rotates the entire Player body
         if (playerBody != null)
-        {
             playerBody.Rotate(Vector3.up * mouseX);
-        }
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus && !PauseManager.IsGamePaused)
+            LockCursor();
+    }
+
+    private void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }

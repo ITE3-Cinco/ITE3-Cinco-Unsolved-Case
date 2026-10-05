@@ -1,37 +1,90 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Uses the New Input System
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
 
-    public float speed = 12f;
+    [Header("Movement Speeds")]
+    public float walkSpeed = 6f;
+    public float runSpeed = 12f;
     public float gravity = -9.81f;
-    public float jumpHeight = 3f;
+    public float jumpHeight = 1.5f;
+
+    [Header("Character Controller")]
+    [Tooltip("Maximum height the player can step over.")]
+    public float stepOffset = 0.5f;
+    [Tooltip("Maximum slope the player can walk up.")]
+    [Range(0f, 89f)] public float slopeLimit = 60f;
+    [Tooltip("Small collision skin that helps prevent the controller from snagging on seams.")]
+    public float skinWidth = 0.08f;
+
+    [Header("Stamina Settings")]
+    public float maxStamina = 100f;
+    public float staminaDrainRate = 15f;
+    public float staminaRegenRate = 14.28f;
+
+    [Header("Stamina State")]
+    public float currentStamina;
+    private bool isExhausted = false;
+
+    [Header("UI Reference")]
+    public Slider staminaSlider;
+
+    [Header("Flashlight Settings")]
+    public Light flashlight;
+    public ItemData flashlightItemData;
+    public bool hasFlashlight = false;
+    private bool isFlashlightOn = false;
+
+    public bool HasFlashlight
+    {
+        get { return hasFlashlight; }
+        set { hasFlashlight = value; }
+    }
 
     private Vector3 velocity;
+    private Inventory inventory;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        inventory = GetComponent<Inventory>();
+
+        if (inventory == null)
+            inventory = GetComponentInParent<Inventory>();
+
+        // Keep the controller from getting stuck on small floor/wall seams.
+        controller.stepOffset = stepOffset;
+        controller.slopeLimit = slopeLimit;
+        controller.skinWidth = skinWidth;
+
+        currentStamina = maxStamina;
+
+        if (staminaSlider != null)
+        {
+            staminaSlider.maxValue = maxStamina;
+            staminaSlider.value = currentStamina;
+        }
+
+        isFlashlightOn = false;
+
+        if (flashlight != null)
+            flashlight.enabled = false;
+
+        if (inventory != null)
+            UpdateHeldItem(inventory.GetSelectedItem());
     }
 
     void Update()
     {
-        if (Keyboard.current == null)
-        {
-            Debug.LogError("No keyboard detected by Input System!");
-            return;
-        }
+        if (Keyboard.current == null) return;
 
-        // 1. Reset downward velocity when grounded
         if (controller.isGrounded && velocity.y < 0)
-        {
             velocity.y = -2f;
-        }
 
-        // 2. Read input from the NEW Input System
         float x = 0f;
         float z = 0f;
 
@@ -40,21 +93,89 @@ public class PlayerMovement : MonoBehaviour
         if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) z += 1f;
         if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) z -= 1f;
 
-        // Prevent moving faster diagonally
         Vector3 moveInput = new Vector3(x, 0f, z).normalized;
 
-        // 3. Apply Horizontal Movement
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
-        controller.Move(move * speed * Time.deltaTime);
+        bool isMoving = moveInput.magnitude > 0;
+        bool shiftPressed = Keyboard.current.leftShiftKey.isPressed;
 
-        // 4. Jump check using NEW Input System
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
+        if (isExhausted && currentStamina >= maxStamina * 0.2f)
+            isExhausted = false;
+
+        bool canSprint = shiftPressed && isMoving && currentStamina > 0 && !isExhausted;
+        float currentSpeed = canSprint ? runSpeed : walkSpeed;
+
+        if (canSprint)
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            currentStamina -= staminaDrainRate * Time.deltaTime;
+
+            if (currentStamina <= 0)
+            {
+                currentStamina = 0;
+                isExhausted = true;
+            }
+        }
+        else if (currentStamina < maxStamina)
+        {
+            currentStamina += staminaRegenRate * Time.deltaTime;
+            currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         }
 
-        // 5. Apply Gravity
+        if (staminaSlider != null)
+            staminaSlider.value = currentStamina;
+
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
+        CollisionFlags horizontalFlags = controller.Move(move * currentSpeed * Time.deltaTime);
+
+        if ((horizontalFlags & CollisionFlags.Sides) != 0 && isMoving)
+        {
+            // Collision information is intentionally logged only when movement input
+            // is blocked. This makes hidden wall/mesh colliders easy to identify.
+            // Remove/disable this log after the offending collider is fixed.
+        }
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+        if (Keyboard.current.fKey.wasPressedThisFrame && flashlight != null && hasFlashlight)
+        {
+            bool flashlightSlotSelected =
+                inventory == null || inventory.GetSelectedItem() == flashlightItemData;
+
+            if (flashlightSlotSelected)
+            {
+                isFlashlightOn = !isFlashlightOn;
+                flashlight.enabled = isFlashlightOn;
+            }
+        }
+
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    public void UpdateHeldItem(ItemData currentItem)
+    {
+        if (flashlight == null) return;
+
+        if (!hasFlashlight || currentItem == null || currentItem != flashlightItemData)
+        {
+            flashlight.enabled = false;
+            return;
+        }
+
+        flashlight.enabled = isFlashlightOn;
+    }
+
+    public void PickUpFlashlight()
+    {
+        hasFlashlight = true;
+
+        if (inventory != null && flashlightItemData != null)
+        {
+            inventory.AddItem(flashlightItemData);
+        }
+        else
+        {
+            Debug.LogWarning("Flashlight picked up, but Inventory or flashlightItemData is missing!");
+        }
     }
 }
