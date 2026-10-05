@@ -8,53 +8,75 @@ public class PlayerAudio : MonoBehaviour
     public AudioClip footstepClip;
     public float walkStepInterval = 0.45f;
     public float runStepInterval = 0.28f;
-    [Range(0f, 1f)] public float footstepVolume = 0.8f;
+    [Range(0f, 1f)] public float footstepVolume = 0.65f;
+
+    [Tooltip("Prevents a new footstep from starting while the previous one is still playing.")]
+    public bool preventFootstepOverlap = true;
 
     [Header("Caught / Lose")]
     public AudioClip caughtClip;
     [Range(0f, 1f)] public float caughtVolume = 1f;
 
-    private AudioSource audioSource;
+    private AudioSource footstepSource;
+    private AudioSource caughtSource;
     private CharacterController controller;
     private float stepTimer;
 
     private void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
         controller = GetComponent<CharacterController>();
 
-        audioSource.playOnAwake = false;
-        audioSource.loop = false;
-        audioSource.spatialBlend = 0f;
-        audioSource.volume = 1f;
-        audioSource.mute = false;
-        audioSource.priority = 0;
+        AudioSource[] sources = GetComponents<AudioSource>();
+
+        if (sources.Length > 0)
+            footstepSource = sources[0];
+        else
+            footstepSource = gameObject.AddComponent<AudioSource>();
+
+        if (sources.Length > 1)
+            caughtSource = sources[1];
+        else
+            caughtSource = gameObject.AddComponent<AudioSource>();
+
+        ConfigureFootstepSource();
+        ConfigureCaughtSource();
+    }
+
+    private void ConfigureFootstepSource()
+    {
+        footstepSource.playOnAwake = false;
+        footstepSource.loop = false;
+        footstepSource.spatialBlend = 0f;
+        footstepSource.volume = 1f;
+        footstepSource.mute = false;
+        footstepSource.priority = 128;
+        footstepSource.reverbZoneMix = 0f;
+        footstepSource.bypassReverbZones = true;
+        footstepSource.bypassEffects = false;
+    }
+
+    private void ConfigureCaughtSource()
+    {
+        caughtSource.playOnAwake = false;
+        caughtSource.loop = false;
+        caughtSource.spatialBlend = 0f;
+        caughtSource.volume = 1f;
+        caughtSource.mute = false;
+        caughtSource.priority = 0;
+        caughtSource.reverbZoneMix = 1f;
     }
 
     private void Update()
     {
-        if (controller == null || footstepClip == null || Keyboard.current == null)
+        if (controller == null || Keyboard.current == null)
             return;
 
-        if (!controller.isGrounded)
-        {
-            stepTimer = 0f;
-            return;
-        }
+        bool grounded = controller.isGrounded;
+        bool moving = IsMovementInputHeld();
 
-        bool moving =
-            Keyboard.current.wKey.isPressed ||
-            Keyboard.current.aKey.isPressed ||
-            Keyboard.current.sKey.isPressed ||
-            Keyboard.current.dKey.isPressed ||
-            Keyboard.current.upArrowKey.isPressed ||
-            Keyboard.current.downArrowKey.isPressed ||
-            Keyboard.current.leftArrowKey.isPressed ||
-            Keyboard.current.rightArrowKey.isPressed;
-
-        if (!moving)
+        if (!grounded || !moving || footstepClip == null)
         {
-            stepTimer = 0f;
+            StopFootsteps();
             return;
         }
 
@@ -65,20 +87,39 @@ public class PlayerAudio : MonoBehaviour
 
         if (stepTimer <= 0f)
         {
-            audioSource.PlayOneShot(footstepClip, footstepVolume);
+            if (!preventFootstepOverlap || !footstepSource.isPlaying)
+                footstepSource.PlayOneShot(footstepClip, footstepVolume);
+
             stepTimer = interval;
         }
+    }
+
+    private bool IsMovementInputHeld()
+    {
+        return
+            Keyboard.current.wKey.isPressed ||
+            Keyboard.current.aKey.isPressed ||
+            Keyboard.current.sKey.isPressed ||
+            Keyboard.current.dKey.isPressed ||
+            Keyboard.current.upArrowKey.isPressed ||
+            Keyboard.current.downArrowKey.isPressed ||
+            Keyboard.current.leftArrowKey.isPressed ||
+            Keyboard.current.rightArrowKey.isPressed;
+    }
+
+    private void StopFootsteps()
+    {
+        stepTimer = 0f;
+
+        if (footstepSource != null && footstepSource.isPlaying)
+            footstepSource.Stop();
     }
 
     public void PlayCaught()
     {
         if (caughtClip != null)
-        {
-            audioSource.PlayOneShot(caughtClip, caughtVolume);
-        }
+            caughtSource.PlayOneShot(caughtClip, caughtVolume);
         else
-        {
             Debug.LogWarning("[PlayerAudio] No caught/scream AudioClip is assigned.");
-        }
     }
 }
