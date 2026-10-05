@@ -192,7 +192,7 @@ public class GhostEnemy : MonoBehaviour
         if (playerAudio != null)
             playerAudio.PlayCaught();
 
-        ScreenFadeController fadeController = FindFirstObjectByType<ScreenFadeController>();
+        ScreenFadeController fadeController = FindAnyObjectByType<ScreenFadeController>();
 
         if (fadeController != null)
         {
