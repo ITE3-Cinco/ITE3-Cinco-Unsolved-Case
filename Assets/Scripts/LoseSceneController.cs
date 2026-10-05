@@ -27,7 +27,7 @@ public class LoseSceneController : MonoBehaviour
         if (exitButton != null)
             exitButton.onClick.AddListener(Exit);
 
-        Time.timeScale = 1f);
+        Time.timeScale = 1f;
     }
 
     private void OnDestroy()
