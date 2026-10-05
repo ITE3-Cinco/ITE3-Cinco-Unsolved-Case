@@ -1,32 +1,53 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LoseSceneController : MonoBehaviour
 {
     [Header("Scene Names")]
-    [Tooltip("The level the player should return to when trying again.")]
     public string retrySceneName = "PoliceHQ";
+    public string exitSceneName = "MainMenu";
 
-    [Tooltip("Optional scene for the Exit button. Leave empty to return to the main menu.")]
-    public string exitSceneName = "";
+    [Header("Buttons")]
+    public Button tryAgainButton;
+    public Button exitButton;
+
+    [Header("References")]
+    public GameObject loseCanvas;   // Drag the LoseCanvas here
+
+    void Start()
+    {
+        // Hide the lose screen at the beginning
+        if (loseCanvas != null)
+            loseCanvas.SetActive(false);
+
+        // Wire buttons
+        if (tryAgainButton != null)
+            tryAgainButton.onClick.AddListener(TryAgain);
+
+        if (exitButton != null)
+            exitButton.onClick.AddListener(Exit);
+    }
+
+    // Call this when the ghost catches the player
+    public void ShowLoseScreen()
+    {
+        if (loseCanvas != null)
+            loseCanvas.SetActive(true);
+
+        // Optional: pause the game
+        Time.timeScale = 0f;
+    }
 
     public void TryAgain()
     {
-        if (string.IsNullOrEmpty(retrySceneName))
-        {
-            Debug.LogWarning("[LoseScene] No retry scene name is assigned.");
-            return;
-        }
-
+        Time.timeScale = 1f;   // unpause
         SceneManager.LoadScene(retrySceneName);
     }
 
     public void Exit()
     {
-        string sceneToLoad = string.IsNullOrEmpty(exitSceneName)
-            ? "MainMenu"
-            : exitSceneName;
-
-        SceneManager.LoadScene(sceneToLoad);
+        Time.timeScale = 1f;   // unpause
+        SceneManager.LoadScene(exitSceneName);
     }
 }
