@@ -11,8 +11,9 @@ public class CollectibleGroup : MonoBehaviour
     [SerializeField] private int totalItems;
     [SerializeField] private int collectedItems;
 
-    private readonly HashSet<Interactable> collected = new HashSet<Interactable>();
     private readonly HashSet<Interactable> registered = new HashSet<Interactable>();
+    private readonly HashSet<int> registeredIds = new HashSet<int>();
+    private readonly HashSet<int> collectedIds = new HashSet<int>();
 
     public int TotalItems => totalItems;
     public int CollectedItems => collectedItems;
@@ -28,16 +29,22 @@ public class CollectibleGroup : MonoBehaviour
         Interactable[] items = GetComponentsInChildren<Interactable>(true);
 
         registered.Clear();
+
         foreach (Interactable item in items)
         {
             if (item != null)
                 registered.Add(item);
         }
 
-        totalItems = registered.Count;
-        // Preserve valid collection progress when this method is called again.
-        collected.RemoveWhere(item => item == null || !registered.Contains(item));
-        collectedItems = collected.Count;
+        // Keep stable IDs for previously registered items so destroyed
+        // collectibles remain counted after they have been picked up.
+        foreach (Interactable item in registered)
+            registeredIds.Add(item.GetInstanceID());
+
+        // Refresh can discover newly added collectibles, but never removes
+        // previously registered ones or resets collection progress.
+        totalItems = Mathf.Max(totalItems, registeredIds.Count);
+        collectedItems = collectedIds.Count;
     }
 
     public void NotifyCollected(Interactable item)
@@ -45,7 +52,9 @@ public class CollectibleGroup : MonoBehaviour
         if (!requiredForEscape || item == null || !registered.Contains(item))
             return;
 
-        if (collected.Add(item))
+        int itemId = item.GetInstanceID();
+
+        if (collectedIds.Add(itemId))
         {
             collectedItems++;
             Debug.Log($"[CollectibleGroup] {name}: {collectedItems}/{totalItems} collected.");
