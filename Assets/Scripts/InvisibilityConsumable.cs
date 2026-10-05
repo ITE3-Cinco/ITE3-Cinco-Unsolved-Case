@@ -14,17 +14,24 @@ public class InvisibilityConsumable : MonoBehaviour
     public Material invisibleMaterial; // Semi-transparent shader material
     public Renderer playerRenderer;
 
+    private Coroutine invisibilityCoroutine;
+
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
     }
 
     public void UseInvisibility()
     {
         if (!isInvisible)
         {
-            StartCoroutine(InvisibilityRoutine());
+            invisibilityCoroutine = StartCoroutine(InvisibilityRoutine());
         }
     }
 
@@ -48,6 +55,7 @@ public class InvisibilityConsumable : MonoBehaviour
         }
 
         isInvisible = false;
+        invisibilityCoroutine = null;
         Debug.Log("<color=purple>[Invisibility Expired]</color> Enemies can see you again!");
     }
 }
