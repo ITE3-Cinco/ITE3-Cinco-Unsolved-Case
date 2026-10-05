@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -12,6 +13,8 @@ public class ArtifactManager : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI artifactCounterText; // Option icon counter (e.g., 0/3)
     public ObjectiveItem artifactObjective;    // Drag your ObjectiveItem script here
+
+    private readonly HashSet<Interactable> collectedArtifacts = new HashSet<Interactable>();
 
     private void Awake()
     {
@@ -30,9 +33,21 @@ public class ArtifactManager : MonoBehaviour
         UpdateUI();
     }
 
-    public void CollectArtifact()
+    public void CollectArtifact(Interactable artifact)
     {
-        artifactsCollected++;
+        if (artifact == null)
+        {
+            Debug.LogWarning("[ArtifactManager] CollectArtifact called with a null artifact.");
+            return;
+        }
+
+        if (!collectedArtifacts.Add(artifact))
+        {
+            Debug.Log($"[ArtifactManager] Ignored duplicate collection for '{artifact.gameObject.name}'.");
+            return;
+        }
+
+        artifactsCollected = collectedArtifacts.Count;
         UpdateUI();
 
         Debug.Log($"Artifact Collected! Progress: {artifactsCollected}/{totalArtifacts}");
