@@ -5,9 +5,9 @@ public class GhostAudio : MonoBehaviour
 {
     [Header("Humming")]
     public AudioClip hummingClip;
-    public float maxVolume = 0.7f;
-    public float maxDistance = 12f;
-    public float minDistance = 2f;
+    [Range(0f, 1f)] public float maxVolume = 0.8f;
+    public float maxDistance = 18f;
+    public float minDistance = 3f;
     public bool playOnlyWhileChasing = false;
 
     private AudioSource audioSource;
@@ -18,44 +18,74 @@ public class GhostAudio : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         ghost = GetComponent<GhostEnemy>();
+
         audioSource.playOnAwake = false;
         audioSource.loop = true;
-        audioSource.spatialBlend = 1f;
+        audioSource.spatialBlend = 0.35f;
+        audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
+        audioSource.volume = maxVolume;
+        audioSource.dopplerLevel = 0f;
+        audioSource.priority = 0;
         audioSource.clip = hummingClip;
-        audioSource.volume = 0f;
     }
 
     private void Start()
     {
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject != null)
-            player = playerObject.transform;
+        FindPlayer();
+        UpdateHumming();
     }
 
     private void Update()
     {
+        if (player == null)
+            FindPlayer();
+
+        UpdateHumming();
+    }
+
+    private void FindPlayer()
+    {
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObject != null)
+            player = playerObject.transform;
+    }
+
+    private void UpdateHumming()
+    {
         if (hummingClip == null || player == null)
+        {
+            StopHumming();
             return;
+        }
 
         float distance = Vector3.Distance(transform.position, player.position);
         bool inRange = distance <= maxDistance;
         bool allowed = !playOnlyWhileChasing || (ghost != null && ghost.isChasing);
 
-        if (inRange && allowed)
+        if (!inRange || !allowed)
         {
-            if (!audioSource.isPlaying)
-                audioSource.Play();
+            StopHumming();
+            return;
+        }
 
-            float closeness = 1f - Mathf.InverseLerp(minDistance, maxDistance, distance);
-            audioSource.volume = closeness * maxVolume;
-        }
-        else
+        if (!audioSource.isPlaying)
         {
-            audioSource.volume = 0f;
-            if (audioSource.isPlaying)
-                audioSource.Stop();
+            audioSource.clip = hummingClip;
+            audioSource.Play();
         }
+
+        float closeness = 1f - Mathf.InverseLerp(minDistance, maxDistance, distance);
+        audioSource.volume = Mathf.Lerp(0.15f, maxVolume, closeness);
+    }
+
+    private void StopHumming()
+    {
+        if (audioSource.isPlaying)
+            audioSource.Stop();
+
+        audioSource.volume = 0f;
     }
 }
