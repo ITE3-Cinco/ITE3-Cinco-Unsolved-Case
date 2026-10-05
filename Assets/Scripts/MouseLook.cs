@@ -14,53 +14,50 @@ public class MouseLook : MonoBehaviour
     private float xRotation = 0f;
     private float targetSensitivity;
 
-    void Awake()
+    private void Awake()
     {
         targetSensitivity = mouseSensitivity;
     }
 
-    void Start()
+    private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        LockCursor();
     }
 
-    void Update()
+    private void Update()
     {
-        if (Mouse.current == null) return;
+        if (Mouse.current == null || PauseManager.IsGamePaused)
+            return;
 
-        // Force sensitivity to stay at Inspector value if locked
         if (lockSensitivity)
-        {
             mouseSensitivity = targetSensitivity;
-        }
 
         Vector2 delta = Mouse.current.delta.ReadValue();
-        if (delta == Vector2.zero) return;
 
-        // Apply controlled scaling
+        if (delta == Vector2.zero)
+            return;
+
         float mouseX = delta.x * (mouseSensitivity * 0.1f);
         float mouseY = delta.y * (mouseSensitivity * 0.1f);
 
-        // Pitch (Up/Down)
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-        // Yaw (Left/Right)
         if (playerBody != null)
-        {
             playerBody.Rotate(Vector3.up * mouseX);
-        }
     }
 
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (hasFocus)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        if (hasFocus && !PauseManager.IsGamePaused)
+            LockCursor();
+    }
+
+    private void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }
