@@ -23696,7 +23696,7 @@ GameObject:
   - component: {fileID: 2090645826699388297}
   - component: {fileID: 7916242760892346606}
   - component: {fileID: 353738476846819081}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.018
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31103,7 +31103,7 @@ GameObject:
   - component: {fileID: 6711285772850440197}
   - component: {fileID: 8973262012229540927}
   - component: {fileID: 7550750087919441114}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31993,7 +31993,7 @@ GameObject:
   - component: {fileID: 1198787678004753370}
   - component: {fileID: 4508279835496712716}
   - component: {fileID: 973603604326091181}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.122
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32403,7 +32403,7 @@ GameObject:
   - component: {fileID: 4021496525971837833}
   - component: {fileID: 5389942632735863527}
   - component: {fileID: 8454066316725379531}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33581,7 +33581,7 @@ GameObject:
   - component: {fileID: 6119721644723949623}
   - component: {fileID: 4603837907022941795}
   - component: {fileID: 5141884270787347265}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44090,7 +44090,7 @@ GameObject:
   - component: {fileID: 7137322301516675223}
   - component: {fileID: 1074243008058008227}
   - component: {fileID: 5780646372101797402}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.024
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52149,7 +52149,7 @@ GameObject:
   - component: {fileID: 57451312565333033}
   - component: {fileID: 8642267495658291736}
   - component: {fileID: 1154798667239253756}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.037
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55087,7 +55087,7 @@ GameObject:
   - component: {fileID: 6141060597398080842}
   - component: {fileID: 6782905316166324591}
   - component: {fileID: 5840494451914318977}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.021
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66133,7 +66133,7 @@ GameObject:
   - component: {fileID: 6933162806114129596}
   - component: {fileID: 8181997403308467376}
   - component: {fileID: 4722588643876615383}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.051
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78964,7 +78964,7 @@ GameObject:
   - component: {fileID: 6887963867761002390}
   - component: {fileID: 4043109427682256668}
   - component: {fileID: 6136920169664183248}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.045
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -83332,7 +83332,7 @@ GameObject:
   - component: {fileID: 2303339056154810556}
   - component: {fileID: 4596773890760997574}
   - component: {fileID: 4933099637595549380}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.025
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89988,7 +89988,7 @@ GameObject:
   - component: {fileID: 717605210585603803}
   - component: {fileID: 5631583734864190140}
   - component: {fileID: 3557117158406503798}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.042
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -90913,7 +90913,7 @@ GameObject:
   - component: {fileID: 8813512245894583136}
   - component: {fileID: 5273161305223672289}
   - component: {fileID: 1767661971524580004}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.119
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95311,7 +95311,7 @@ GameObject:
   - component: {fileID: 6149443184265680136}
   - component: {fileID: 7051677183874651888}
   - component: {fileID: 3994302644289843218}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96716,7 +96716,7 @@ GameObject:
   - component: {fileID: 3665225419272536865}
   - component: {fileID: 4060840510567166783}
   - component: {fileID: 6073769870524866834}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.126
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97151,7 +97151,7 @@ GameObject:
   - component: {fileID: 8221623050411636678}
   - component: {fileID: 6491318142972877436}
   - component: {fileID: 949413397268883493}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.131 (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104090,7 +104090,7 @@ GameObject:
   - component: {fileID: 1835631625812289113}
   - component: {fileID: 1310572477534753235}
   - component: {fileID: 8743475497469369419}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104506,7 +104506,7 @@ GameObject:
   - component: {fileID: 5147783028243953931}
   - component: {fileID: 7012466662650016832}
   - component: {fileID: 4401209652347215137}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.023
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -108763,7 +108763,7 @@ GameObject:
   - component: {fileID: 8884758493092713386}
   - component: {fileID: 2743295214977358977}
   - component: {fileID: 7309504931092346803}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -111822,7 +111822,7 @@ GameObject:
   - component: {fileID: 1013523091341200908}
   - component: {fileID: 5878811223690729517}
   - component: {fileID: 9030963130138311779}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.116
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -115735,7 +115735,7 @@ GameObject:
   - component: {fileID: 5789876875553422231}
   - component: {fileID: 5893774529540315663}
   - component: {fileID: 676138521805323946}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.030
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117454,7 +117454,7 @@ GameObject:
   - component: {fileID: 5625724487829130603}
   - component: {fileID: 3429832303558792084}
   - component: {fileID: 5934961182601169600}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121608,7 +121608,7 @@ GameObject:
   - component: {fileID: 8444107542128116239}
   - component: {fileID: 3038490957583227051}
   - component: {fileID: 4128898191892104430}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123618,7 +123618,7 @@ GameObject:
   - component: {fileID: 1359280715883879494}
   - component: {fileID: 601314316544654008}
   - component: {fileID: 8312489837045179779}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.014
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -125307,7 +125307,7 @@ GameObject:
   - component: {fileID: 5786692634505172558}
   - component: {fileID: 618737424032713895}
   - component: {fileID: 5117188633930365710}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.114
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -141179,7 +141179,7 @@ GameObject:
   - component: {fileID: 7434389279454867179}
   - component: {fileID: 58850251037544121}
   - component: {fileID: 415698641835403110}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.017
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -143922,7 +143922,7 @@ GameObject:
   - component: {fileID: 24773485414084219}
   - component: {fileID: 3681712941013982761}
   - component: {fileID: 8864639518277486887}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.133
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -145220,7 +145220,7 @@ GameObject:
   - component: {fileID: 8759130948248280041}
   - component: {fileID: 1353767382417565102}
   - component: {fileID: 6453757977194572242}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.038
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -150681,7 +150681,7 @@ GameObject:
   - component: {fileID: 4705709263527163337}
   - component: {fileID: 127601584040989110}
   - component: {fileID: 1464094447661843183}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -162489,7 +162489,7 @@ GameObject:
   - component: {fileID: 4153097835569246926}
   - component: {fileID: 6988091907826299789}
   - component: {fileID: 3748077039970339468}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.027
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -167565,7 +167565,7 @@ GameObject:
   - component: {fileID: 103981015941703633}
   - component: {fileID: 7567349324965333119}
   - component: {fileID: 5411664148476843510}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.049
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -167810,7 +167810,7 @@ GameObject:
   - component: {fileID: 4208172650401443573}
   - component: {fileID: 1641907369538047064}
   - component: {fileID: 8546164268841517386}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.043
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -171760,7 +171760,7 @@ GameObject:
   - component: {fileID: 4773624926793135725}
   - component: {fileID: 598514432585896052}
   - component: {fileID: 9205564738842813989}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.046
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -180772,7 +180772,7 @@ GameObject:
   - component: {fileID: 8825943215046490652}
   - component: {fileID: 3550215614506633125}
   - component: {fileID: 7808635915774008838}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.041
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -184750,7 +184750,7 @@ GameObject:
   - component: {fileID: 3187482896822659794}
   - component: {fileID: 5234720584626925991}
   - component: {fileID: 590772144847636217}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.036
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188131,7 +188131,7 @@ GameObject:
   - component: {fileID: 8070072935085079068}
   - component: {fileID: 8044080221510080703}
   - component: {fileID: 6742987368731281288}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.013
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -197471,7 +197471,7 @@ GameObject:
   - component: {fileID: 6894318502005151543}
   - component: {fileID: 794791087662656529}
   - component: {fileID: 7305364143211094202}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.112
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -202467,7 +202467,7 @@ GameObject:
   - component: {fileID: 4332413257100101429}
   - component: {fileID: 75331217433105472}
   - component: {fileID: 4736251409249447112}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.125
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -202486,7 +202486,7 @@ GameObject:
   - component: {fileID: 1923462908551659512}
   - component: {fileID: 1468510723178654365}
   - component: {fileID: 2431417710501078275}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.123
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225023,7 +225023,7 @@ GameObject:
   - component: {fileID: 8346238845636700941}
   - component: {fileID: 6736467954230957214}
   - component: {fileID: 363256624236912931}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.129
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -230123,7 +230123,7 @@ GameObject:
   - component: {fileID: 4335191850261302956}
   - component: {fileID: 5050178511465248706}
   - component: {fileID: 4725322727660390073}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.115
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -240498,7 +240498,7 @@ GameObject:
   - component: {fileID: 464904823195634223}
   - component: {fileID: 5472752049627229646}
   - component: {fileID: 770386325207923129}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.015
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -253132,7 +253132,7 @@ GameObject:
   - component: {fileID: 7268500366946156249}
   - component: {fileID: 2454322176288435947}
   - component: {fileID: 5555564389553851929}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.132
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -290740,7 +290740,7 @@ GameObject:
   - component: {fileID: 295305092108874761}
   - component: {fileID: 8663918660140055813}
   - component: {fileID: 3289919813820687062}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -293788,7 +293788,7 @@ GameObject:
   - component: {fileID: 7717574119311814432}
   - component: {fileID: 6259647271915810310}
   - component: {fileID: 3469111092108319446}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.020
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -296926,7 +296926,7 @@ GameObject:
   - component: {fileID: 3524924632253382932}
   - component: {fileID: 4731342816496298378}
   - component: {fileID: 8310251978949326287}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.130
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -299711,7 +299711,7 @@ GameObject:
   - component: {fileID: 6930074510304415812}
   - component: {fileID: 2698237902193226436}
   - component: {fileID: 3452383924717043871}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.124
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304114,7 +304114,7 @@ GameObject:
   - component: {fileID: 8429434072498603292}
   - component: {fileID: 5827826299649026888}
   - component: {fileID: 690117216359633741}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.040
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304171,7 +304171,7 @@ GameObject:
   - component: {fileID: 743662393693475694}
   - component: {fileID: 7215269661435971662}
   - component: {fileID: 2738986258215292869}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304434,7 +304434,7 @@ GameObject:
   - component: {fileID: 2321533232842804009}
   - component: {fileID: 7761267350173402436}
   - component: {fileID: 8961789585819461937}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.117
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -305371,7 +305371,7 @@ GameObject:
   - component: {fileID: 8932574574752952937}
   - component: {fileID: 1467358502359512129}
   - component: {fileID: 834194115409565300}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.028
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -315977,7 +315977,7 @@ GameObject:
   - component: {fileID: 1493331555269275694}
   - component: {fileID: 2193931347811513512}
   - component: {fileID: 6692349185980080871}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.033
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -319234,7 +319234,7 @@ GameObject:
   - component: {fileID: 103748507790219276}
   - component: {fileID: 5082526964696924896}
   - component: {fileID: 4986572016897073395}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.121
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -351435,7 +351435,7 @@ GameObject:
   - component: {fileID: 9106041141979102530}
   - component: {fileID: 6199195770380209399}
   - component: {fileID: 679329887437520345}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.039
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -354897,7 +354897,7 @@ GameObject:
   - component: {fileID: 8971419815896534908}
   - component: {fileID: 1114876243797865097}
   - component: {fileID: 6850889680456517017}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.110
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -363694,7 +363694,7 @@ GameObject:
   - component: {fileID: 3740687982315065651}
   - component: {fileID: 21715211486363810}
   - component: {fileID: 80505787688167866}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.034
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -368759,7 +368759,7 @@ GameObject:
   - component: {fileID: 4852725408022192738}
   - component: {fileID: 1666434645786328771}
   - component: {fileID: 8795314803856405010}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.048
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -371500,7 +371500,7 @@ GameObject:
   - component: {fileID: 7783706804597297680}
   - component: {fileID: 14332689772677918}
   - component: {fileID: 8104691503707485571}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.035
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -374211,7 +374211,7 @@ GameObject:
   - component: {fileID: 2744476785603388932}
   - component: {fileID: 8780913942757593362}
   - component: {fileID: 7603354464050585438}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -375750,7 +375750,7 @@ GameObject:
   - component: {fileID: 2617593855351760688}
   - component: {fileID: 6081113672332818720}
   - component: {fileID: 1933312020437331122}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.128
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -400634,7 +400634,7 @@ GameObject:
   - component: {fileID: 3785844828157753843}
   - component: {fileID: 6189208403655060922}
   - component: {fileID: 7210581133981894899}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.026
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -401163,7 +401163,7 @@ GameObject:
   - component: {fileID: 2318257808963193331}
   - component: {fileID: 8993949816957140793}
   - component: {fileID: 5420052846507714665}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.019
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -404653,7 +404653,7 @@ GameObject:
   - component: {fileID: 6055079772818318090}
   - component: {fileID: 6101233918254243226}
   - component: {fileID: 8802765793947459856}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.127
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -406087,7 +406087,7 @@ GameObject:
   - component: {fileID: 1478903191272771333}
   - component: {fileID: 5161212151391644204}
   - component: {fileID: 5665403731654972905}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.031
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -420584,7 +420584,7 @@ GameObject:
   - component: {fileID: 7369580776473955524}
   - component: {fileID: 9064267418405915879}
   - component: {fileID: 5032678983752065912}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.052
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -440392,7 +440392,7 @@ GameObject:
   - component: {fileID: 6834287847153845447}
   - component: {fileID: 3278499487985305375}
   - component: {fileID: 5306340311395231900}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.016
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -441829,7 +441829,7 @@ GameObject:
   - component: {fileID: 5998635518161070517}
   - component: {fileID: 5706586100133995349}
   - component: {fileID: 4516043595255642797}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.131
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -447316,7 +447316,7 @@ GameObject:
   - component: {fileID: 1612487353976060393}
   - component: {fileID: 5857847780370221736}
   - component: {fileID: 7383713222939200492}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.113
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -449187,7 +449187,7 @@ GameObject:
   - component: {fileID: 2355462449913360710}
   - component: {fileID: 4702481765513669795}
   - component: {fileID: 5336202801999648158}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.050
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -457226,7 +457226,7 @@ GameObject:
   - component: {fileID: 5064548298692697876}
   - component: {fileID: 5165463136289262743}
   - component: {fileID: 2295436264718806203}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.044
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -458356,7 +458356,7 @@ GameObject:
   - component: {fileID: 5219893697563678876}
   - component: {fileID: 4210221643901067565}
   - component: {fileID: 6663131619930262713}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.032
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -465854,7 +465854,7 @@ GameObject:
   - component: {fileID: 7647702839214574689}
   - component: {fileID: 5931958426618304843}
   - component: {fileID: 3891303478055625525}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.047
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -466399,7 +466399,7 @@ GameObject:
   - component: {fileID: 537722932900121698}
   - component: {fileID: 644716837904080528}
   - component: {fileID: 3987625525848393448}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.022
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -468116,7 +468116,7 @@ GameObject:
   - component: {fileID: 1554445185449781541}
   - component: {fileID: 8831437177665279496}
   - component: {fileID: 2624023418562112505}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.120
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -471573,7 +471573,7 @@ GameObject:
   - component: {fileID: 3158511895163263563}
   - component: {fileID: 3791984061815023113}
   - component: {fileID: 224865377905483777}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.111
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -483200,7 +483200,7 @@ GameObject:
   - component: {fileID: 9123631436285246019}
   - component: {fileID: 4104886890371322695}
   - component: {fileID: 606294711592099338}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ARCH_CorridorFloor.007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
