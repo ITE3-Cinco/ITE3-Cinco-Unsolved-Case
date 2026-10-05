@@ -11,8 +11,8 @@ public class ScreenFadeController : MonoBehaviour
     [Tooltip("Full-screen black Image used for fading.")]
     public Image fadeImage;
 
-    [Tooltip("Keep the fade controller alive when changing scenes.")]
-    public bool dontDestroyOnLoad = true;
+    [Tooltip("Keep this controller alive between scenes. Usually leave this OFF for a scene-specific fade.")]
+    public bool dontDestroyOnLoad = false;
 
     private Coroutine fadeCoroutine;
 
@@ -31,7 +31,9 @@ public class ScreenFadeController : MonoBehaviour
 
         if (fadeImage != null)
         {
-            fadeImage.color = new Color(0f, 0f, 0f, 0f);
+            Color color = fadeImage.color;
+            color.a = 0f;
+            fadeImage.color = color;
             fadeImage.raycastTarget = false;
         }
     }
@@ -60,18 +62,21 @@ public class ScreenFadeController : MonoBehaviour
 
     private IEnumerator FadeAndLoad(string sceneName, float duration)
     {
-        yield return FadeRoutine(duration, 1f);
+        if (fadeImage == null)
+        {
+            Debug.LogWarning("[ScreenFade] No fade Image is assigned. Loading the scene directly.");
+            SceneManager.LoadScene(sceneName);
+            yield break;
+        }
 
+        yield return FadeRoutine(duration, 1f);
         SceneManager.LoadScene(sceneName);
     }
 
     private IEnumerator FadeRoutine(float duration, float targetAlpha)
     {
         if (fadeImage == null)
-        {
-            Debug.LogWarning("[ScreenFade] No fade Image is assigned.");
             yield break;
-        }
 
         fadeImage.raycastTarget = true;
 
