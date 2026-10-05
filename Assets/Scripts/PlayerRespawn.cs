@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerRespawn : MonoBehaviour
 {
@@ -19,16 +20,25 @@ public class PlayerRespawn : MonoBehaviour
         if (!RespawnPoint.hasReachedCheckpoint && defaultSpawnPoint != null)
         {
             RespawnPoint.activeCheckpointPosition = defaultSpawnPoint.position;
+            RespawnPoint.activeCheckpointRotation = defaultSpawnPoint.rotation;
         }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(debugRespawnKey))
+        if (Keyboard.current != null && GetDebugRespawnKeyPressed())
             Respawn();
 
         if (transform.position.y < killYDepth)
             Respawn();
+    }
+
+    private bool GetDebugRespawnKeyPressed()
+    {
+        if (debugRespawnKey == KeyCode.R)
+            return Keyboard.current.rKey.wasPressedThisFrame;
+
+        return false;
     }
 
     public void Respawn()
