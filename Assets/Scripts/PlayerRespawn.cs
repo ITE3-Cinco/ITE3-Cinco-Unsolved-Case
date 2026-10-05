@@ -15,7 +15,7 @@ public class PlayerRespawn : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
 
-        // Set default position if no checkpoint has been hit yet
+        // The lobby is the fallback spawn until a checkpoint is reached.
         if (!RespawnPoint.hasReachedCheckpoint && defaultSpawnPoint != null)
         {
             RespawnPoint.activeCheckpointPosition = defaultSpawnPoint.position;
@@ -25,33 +25,31 @@ public class PlayerRespawn : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(debugRespawnKey))
-        {
             Respawn();
-        }
 
         if (transform.position.y < killYDepth)
-        {
             Respawn();
-        }
     }
 
     public void Respawn()
     {
-        // 1. Target the reached checkpoint first, fallback to default transform
         Vector3 targetPosition = RespawnPoint.hasReachedCheckpoint
             ? RespawnPoint.activeCheckpointPosition
             : (defaultSpawnPoint != null ? defaultSpawnPoint.position : transform.position);
 
-        // 2. Disable CharacterController temporarily to allow direct transform movement
+        Quaternion targetRotation = RespawnPoint.hasReachedCheckpoint
+            ? RespawnPoint.activeCheckpointRotation
+            : (defaultSpawnPoint != null ? defaultSpawnPoint.rotation : transform.rotation);
+
         if (characterController != null)
         {
             characterController.enabled = false;
-            transform.position = targetPosition;
+            transform.SetPositionAndRotation(targetPosition, targetRotation);
             characterController.enabled = true;
         }
         else
         {
-            transform.position = targetPosition;
+            transform.SetPositionAndRotation(targetPosition, targetRotation);
         }
 
         Debug.Log($"[Respawn] Teleported to: {targetPosition}");
