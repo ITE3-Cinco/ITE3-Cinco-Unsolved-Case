@@ -645,6 +645,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up artifact.
   itemData: {fileID: 11400000, guid: 9c7916d32634eb748a23e544f1a118a0, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!136 &113262142
@@ -1613,6 +1615,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Agimat.
   itemData: {fileID: 11400000, guid: cc2e3a7d10b2fe240a5e74494f52a35d, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!136 &447926668
@@ -1727,6 +1731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 0}
   isInitialSpawn: 0
 --- !u!65 &513184774
 BoxCollider:
@@ -2559,6 +2564,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Agimat.
   itemData: {fileID: 11400000, guid: cc2e3a7d10b2fe240a5e74494f52a35d, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!136 &639882366
@@ -2690,6 +2697,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Agimat.
   itemData: {fileID: 11400000, guid: cc2e3a7d10b2fe240a5e74494f52a35d, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!136 &673670423
@@ -4258,6 +4267,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up artifact.
   itemData: {fileID: 11400000, guid: 9c7916d32634eb748a23e544f1a118a0, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!136 &973646715
@@ -4542,6 +4553,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up
   itemData: {fileID: 11400000, guid: 830bf104484b1734ca0fe186e8cd649d, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!1 &1028129535
@@ -4671,6 +4684,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up
   itemData: {fileID: 11400000, guid: 2e900e6d57b9611468c77217ed8e3285, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!1 &1065201715
@@ -5618,7 +5633,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRespawn
   defaultSpawnPoint: {fileID: 1231311386}
-  debugRespawnKey: 114
   killYDepth: -20
 --- !u!114 &1231311391
 MonoBehaviour:
@@ -5876,7 +5890,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34f52179deaa6e6418927ba2769cd2dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputBridge
-  targetRespawnScript: {fileID: 0}
 --- !u!4 &1315943011
 Transform:
   m_ObjectHideFlags: 0
@@ -5979,6 +5992,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 7279277242565221155}
   isInitialSpawn: 0
 --- !u!114 &1416228265
 MonoBehaviour:
@@ -5992,6 +6006,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 5510414885406206584}
   isInitialSpawn: 0
 --- !u!114 &1416228266
 MonoBehaviour:
@@ -6005,6 +6020,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 5297183271542641859}
   isInitialSpawn: 0
 --- !u!114 &1416228267
 MonoBehaviour:
@@ -6018,6 +6034,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 6713404563476113853}
   isInitialSpawn: 0
 --- !u!1 &1432033127
 GameObject:
@@ -6560,6 +6577,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up artifact.
   itemData: {fileID: 11400000, guid: 9c7916d32634eb748a23e544f1a118a0, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!136 &1607110172
@@ -7109,6 +7128,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up artifact.
   itemData: {fileID: 11400000, guid: 9c7916d32634eb748a23e544f1a118a0, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 1
   flashlightObjective: {fileID: 0}
 --- !u!1 &1803010070
@@ -7359,6 +7380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
+  checkpointSpawnPoint: {fileID: 0}
   isInitialSpawn: 1
 --- !u!65 &1867562088
 BoxCollider:
@@ -7575,6 +7597,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Flashlight
   itemData: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!1 &1962672358
@@ -7626,6 +7650,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Agimat.
   itemData: {fileID: 11400000, guid: cc2e3a7d10b2fe240a5e74494f52a35d, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!136 &1962672361
@@ -7976,6 +8002,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   promptMessage: Press [E] to pick up Flashlight
   itemData: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
 --- !u!1 &2100100844
@@ -18277,27 +18305,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5119757434445911921}
   m_Mesh: {fileID: 5243301623446829928, guid: 14f6d190df1dc9a499510ed3c8ac6316, type: 3}
---- !u!65 &178927520958754689
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5831330838856668369}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.0368024, y: 4.6599374, z: 40.11318}
-  m_Center: {x: -0.018401295, y: -1.317459, z: 19.556606}
 --- !u!23 &179538114895078036
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -310230,8 +310237,8 @@ GameObject:
   - component: {fileID: 5297183271542641859}
   - component: {fileID: 5055470004788811858}
   - component: {fileID: 3939711723239418591}
-  - component: {fileID: 178927520958754689}
   - component: {fileID: 1416228266}
+  - component: {fileID: 5831330838856668370}
   m_Layer: 0
   m_Name: Map Holder (2)
   m_TagString: Untagged
@@ -310239,6 +310246,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!64 &5831330838856668370
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5831330838856668369}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &5831446818336100031
 MeshFilter:
   m_ObjectHideFlags: 0
