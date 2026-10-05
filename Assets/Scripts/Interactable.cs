@@ -107,7 +107,18 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 6. REMOVE 3D WORLD OBJECT
+        // 6. ESCAPE/COLLECTIBLE GROUP TRACKING
+        // ---------------------------------------------------------------
+        // If this item is inside a CollectibleGroup parent, tell the group
+        // that this specific required item has been collected.
+        CollectibleGroup collectibleGroup = GetComponentInParent<CollectibleGroup>();
+        if (collectibleGroup != null)
+        {
+            collectibleGroup.NotifyCollected(this);
+        }
+
+        // ---------------------------------------------------------------
+        // 7. REMOVE 3D WORLD OBJECT
         // ---------------------------------------------------------------
         Destroy(gameObject);
     }
