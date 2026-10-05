@@ -98,9 +98,6 @@ public class GhostEnemy : MonoBehaviour
         if (animator != null)
             animator.SetBool(chasingParameter, false);
 
-        GhostAudio ghostAudio = GetComponent<GhostAudio>();
-        if (ghostAudio != null)
-            ghostAudio.enabled = false;
 
         // Prevent repeated catches immediately after the respawn.
         catchCooldownTimer = catchCooldown;
