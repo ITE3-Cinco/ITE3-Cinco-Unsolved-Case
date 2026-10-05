@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GhostEnemy : MonoBehaviour
 {
@@ -23,10 +22,9 @@ public class GhostEnemy : MonoBehaviour
     public float catchCooldown = 1.5f;
     private float catchCooldownTimer = 0f;
 
-    [Header("Lose Scene")]
-    public string loseSceneName = "LoseScene";
-    [Tooltip("How long the black fade takes before the lose scene is loaded.")]
-    public float loseFadeDuration = 0.6f;
+    [Header("Lose UI")]
+    [Tooltip("Controller for the Lose Canvas shown when the ghost catches the player. If empty, one is found automatically.")]
+    public LoseSceneController loseSceneController;
 
     [Header("State")]
     public bool isChasing = false;
@@ -43,6 +41,9 @@ public class GhostEnemy : MonoBehaviour
             if (playerObj != null)
                 playerTransform = playerObj.transform;
         }
+
+        if (loseSceneController == null)
+            loseSceneController = FindAnyObjectByType<LoseSceneController>();
 
         Collider col = GetComponent<Collider>();
 
@@ -184,24 +185,24 @@ public class GhostEnemy : MonoBehaviour
 
         SetMovingAnimation(false);
 
-        if (playerTransform == null)
-            return;
-
-        PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
-
-        if (playerAudio != null)
-            playerAudio.PlayCaught();
-
-        ScreenFadeController fadeController = FindAnyObjectByType<ScreenFadeController>();
-
-        if (fadeController != null)
+        if (playerTransform != null)
         {
-            fadeController.FadeToScene(loseSceneName, loseFadeDuration);
+            PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
+
+            if (playerAudio != null)
+                playerAudio.PlayCaught();
+        }
+
+        if (loseSceneController == null)
+            loseSceneController = FindAnyObjectByType<LoseSceneController>();
+
+        if (loseSceneController != null)
+        {
+            loseSceneController.ShowLoseScreen();
         }
         else
         {
-            Debug.LogWarning("[Ghost] No ScreenFadeController found. Loading the lose scene directly.");
-            SceneManager.LoadScene(loseSceneName);
+            Debug.LogError("[Ghost] No LoseSceneController was found. Assign the existing Lose Canvas controller to GhostEnemy.");
         }
     }
 
