@@ -13,41 +13,49 @@ public class LoseSceneController : MonoBehaviour
     public Button exitButton;
 
     [Header("References")]
-    public GameObject loseCanvas;   // Drag the LoseCanvas here
+    public GameObject loseCanvas;
 
-    void Start()
+    private void Start()
     {
-        // Hide the lose screen at the beginning
+        // This is a dedicated Lose Scene, so the lose canvas should be visible by default.
         if (loseCanvas != null)
-            loseCanvas.SetActive(false);
+            loseCanvas.SetActive(true);
 
-        // Wire buttons
         if (tryAgainButton != null)
             tryAgainButton.onClick.AddListener(TryAgain);
 
         if (exitButton != null)
             exitButton.onClick.AddListener(Exit);
+
+        Time.timeScale = 1f);
     }
 
-    // Call this when the ghost catches the player
+    private void OnDestroy()
+    {
+        if (tryAgainButton != null)
+            tryAgainButton.onClick.RemoveListener(TryAgain);
+
+        if (exitButton != null)
+            exitButton.onClick.RemoveListener(Exit);
+    }
+
     public void ShowLoseScreen()
     {
         if (loseCanvas != null)
             loseCanvas.SetActive(true);
 
-        // Optional: pause the game
         Time.timeScale = 0f;
     }
 
     public void TryAgain()
     {
-        Time.timeScale = 1f;   // unpause
+        Time.timeScale = 1f;
         SceneManager.LoadScene(retrySceneName);
     }
 
     public void Exit()
     {
-        Time.timeScale = 1f;   // unpause
+        Time.timeScale = 1f;
         SceneManager.LoadScene(exitSceneName);
     }
 }
