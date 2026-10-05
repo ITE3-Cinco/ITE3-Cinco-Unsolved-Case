@@ -7,6 +7,13 @@ public class Interactable : MonoBehaviour
     [Header("Inventory Integration")]
     public ItemData itemData; // Assign ItemData for flashlight, keys, artifacts, etc.
 
+    [Header("Checkpoint Settings")]
+    [Tooltip("Tick this for a map that acts as a checkpoint. The player must interact with the map to activate its respawn location.")]
+    public bool isCheckpoint = false;
+
+    [Tooltip("Optional. If empty, the RespawnPoint on this same GameObject is used.")]
+    public RespawnPoint checkpoint;
+
     [Header("Artifact Settings")]
     public bool isArtifact = false; // Tick true for artifacts (increments counter & objective)
 
@@ -16,10 +23,34 @@ public class Interactable : MonoBehaviour
 
     public void Interact(GameObject playerObject)
     {
-        Debug.Log($"[Interactable] Interact called on '{gameObject.name}'. isArtifact={isArtifact}");
+        Debug.Log($"[Interactable] Interact called on '{gameObject.name}'. isArtifact={isArtifact}, isCheckpoint={isCheckpoint}");
 
         // ---------------------------------------------------------------
-        // 1. GET PLAYER & INVENTORY REFERENCES
+        // 1. CHECKPOINT MAP
+        // ---------------------------------------------------------------
+        // Checkpoint maps are not inventory items and are not destroyed.
+        // Interacting with the map explicitly activates its respawn point.
+        if (isCheckpoint)
+        {
+            RespawnPoint checkpointPoint = checkpoint;
+
+            if (checkpointPoint == null)
+                checkpointPoint = GetComponent<RespawnPoint>();
+
+            if (checkpointPoint != null)
+            {
+                checkpointPoint.ActivateCheckpoint();
+            }
+            else
+            {
+                Debug.LogWarning($"[Interactable] '{gameObject.name}' is marked as a checkpoint, but no RespawnPoint is assigned or attached.");
+            }
+
+            return;
+        }
+
+        // ---------------------------------------------------------------
+        // 2. GET PLAYER & INVENTORY REFERENCES
         // ---------------------------------------------------------------
         PlayerMovement player = playerObject.GetComponent<PlayerMovement>();
         if (player == null) player = playerObject.GetComponentInParent<PlayerMovement>();
@@ -30,7 +61,7 @@ public class Interactable : MonoBehaviour
         if (inventory == null) inventory = playerObject.GetComponentInChildren<Inventory>();
 
         // ---------------------------------------------------------------
-        // 2. ADD TO INVENTORY HOTBAR
+        // 3. ADD TO INVENTORY HOTBAR
         // ---------------------------------------------------------------
         bool added = false;
         if (inventory != null && itemData != null)
@@ -51,7 +82,7 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 3. ARTIFACT COUNTER (Runs if inventory add succeeded or itemData is null)
+        // 4. ARTIFACT COUNTER (Runs if inventory add succeeded or itemData is null)
         // ---------------------------------------------------------------
         if (isArtifact)
         {
@@ -66,7 +97,7 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 4. FLASHLIGHT PICKUP & OBJECTIVE LOGIC
+        // 5. FLASHLIGHT PICKUP & OBJECTIVE LOGIC
         // ---------------------------------------------------------------
         bool isFlashlightPickup = (player != null && itemData != null && itemData == player.flashlightItemData);
         if (isFlashlightPickup)
@@ -92,7 +123,7 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 5. NOTIFICATIONS
+        // 6. NOTIFICATIONS
         // ---------------------------------------------------------------
         if (NotificationManager.Instance != null)
         {
@@ -107,7 +138,7 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 6. ESCAPE/COLLECTIBLE GROUP TRACKING
+        // 7. ESCAPE/COLLECTIBLE GROUP TRACKING
         // ---------------------------------------------------------------
         // If this item is inside a CollectibleGroup parent, tell the group
         // that this specific required item has been collected.
@@ -118,7 +149,7 @@ public class Interactable : MonoBehaviour
         }
 
         // ---------------------------------------------------------------
-        // 7. REMOVE 3D WORLD OBJECT
+        // 8. REMOVE 3D WORLD OBJECT
         // ---------------------------------------------------------------
         Destroy(gameObject);
     }
