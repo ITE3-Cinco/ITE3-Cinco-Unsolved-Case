@@ -35,8 +35,9 @@ public class CollectibleGroup : MonoBehaviour
         }
 
         totalItems = registered.Count;
-        collectedItems = 0;
-        collected.Clear();
+        // Preserve valid collection progress when this method is called again.
+        collected.RemoveWhere(item => item == null || !registered.Contains(item));
+        collectedItems = collected.Count;
     }
 
     public void NotifyCollected(Interactable item)
