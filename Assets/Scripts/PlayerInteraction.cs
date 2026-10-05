@@ -13,37 +13,48 @@ public class PlayerInteraction : MonoBehaviour
 
     private Camera mainCam;
 
-    void Start()
+    private void Start()
     {
-        mainCam = Camera.main;
+        FindMainCamera();
+
         if (interactionText != null)
-        {
             interactionText.gameObject.SetActive(false);
-        }
     }
 
-    void Update()
+    private void Update()
     {
-        if (Keyboard.current == null) return;
+        if (Keyboard.current == null || PauseManager.IsGamePaused)
+            return;
 
-        // Cast a ray from the center of the screen
-        Ray ray = mainCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, interactDistance))
+        if (mainCam == null)
         {
-            Interactable interactable = hit.collider.GetComponent<Interactable>();
+            FindMainCamera();
+
+            if (mainCam == null)
+                return;
+        }
+
+        // Cast a ray from the center of the screen.
+        Ray ray = mainCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+
+        int layerMask = interactableLayer.value == 0
+            ? Physics.DefaultRaycastLayers
+            : interactableLayer.value;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, layerMask))
+        {
+            // Allow the collider to be on a child object of the actual
+            // interactable, which is common for detailed map/item models.
+            Interactable interactable = hit.collider.GetComponentInParent<Interactable>();
 
             if (interactable != null)
             {
-                // Show prompt UI
                 if (interactionText != null)
                 {
                     interactionText.text = interactable.promptMessage;
                     interactionText.gameObject.SetActive(true);
                 }
 
-                // Check for 'E' key press
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
                     interactable.Interact(transform.root.gameObject);
@@ -52,14 +63,19 @@ public class PlayerInteraction : MonoBehaviour
                         interactionText.gameObject.SetActive(false);
                 }
 
-                return; // Stop execution if we hit an interactable
+                return;
             }
         }
 
-        // Hide UI prompt if not pointing at an interactable object
         if (interactionText != null && interactionText.gameObject.activeSelf)
-        {
             interactionText.gameObject.SetActive(false);
-        }
+    }
+
+    private void FindMainCamera()
+    {
+        mainCam = Camera.main;
+
+        if (mainCam == null)
+            Debug.LogWarning("[PlayerInteraction] No camera tagged MainCamera was found.");
     }
 }
