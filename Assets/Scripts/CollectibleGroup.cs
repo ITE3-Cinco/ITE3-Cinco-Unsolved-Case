@@ -11,9 +11,10 @@ public class CollectibleGroup : MonoBehaviour
     [SerializeField] private int totalItems;
     [SerializeField] private int collectedItems;
 
+    // Keep references to all items ever registered/collected. Unity object
+    // references remain valid as identity even after the world object is destroyed.
     private readonly HashSet<Interactable> registered = new HashSet<Interactable>();
-    private readonly HashSet<int> registeredIds = new HashSet<int>();
-    private readonly HashSet<int> collectedIds = new HashSet<int>();
+    private readonly HashSet<Interactable> collected = new HashSet<Interactable>();
 
     public int TotalItems => totalItems;
     public int CollectedItems => collectedItems;
@@ -28,23 +29,17 @@ public class CollectibleGroup : MonoBehaviour
     {
         Interactable[] items = GetComponentsInChildren<Interactable>(true);
 
-        registered.Clear();
-
+        // Add currently existing children without clearing previous progress.
+        // Previously collected objects may already have been destroyed, but
+        // their references remain in the HashSet and continue counting.
         foreach (Interactable item in items)
         {
             if (item != null)
                 registered.Add(item);
         }
 
-        // Keep stable IDs for previously registered items so destroyed
-        // collectibles remain counted after they have been picked up.
-        foreach (Interactable item in registered)
-            registeredIds.Add(item.GetInstanceID());
-
-        // Refresh can discover newly added collectibles, but never removes
-        // previously registered ones or resets collection progress.
-        totalItems = Mathf.Max(totalItems, registeredIds.Count);
-        collectedItems = collectedIds.Count;
+        totalItems = registered.Count;
+        collectedItems = collected.Count;
     }
 
     public void NotifyCollected(Interactable item)
@@ -52,11 +47,9 @@ public class CollectibleGroup : MonoBehaviour
         if (!requiredForEscape || item == null || !registered.Contains(item))
             return;
 
-        int itemId = item.GetInstanceID();
-
-        if (collectedIds.Add(itemId))
+        if (collected.Add(item))
         {
-            collectedItems++;
+            collectedItems = collected.Count;
             Debug.Log($"[CollectibleGroup] {name}: {collectedItems}/{totalItems} collected.");
 
             if (EscapeManager.Instance != null)
