@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class GhostEnemy : MonoBehaviour
 {
     [Header("Movement Settings")]
@@ -9,6 +11,7 @@ public class GhostEnemy : MonoBehaviour
     private Vector3 automaticPatrolCenter;
     private Vector3 automaticPatrolTarget;
     private bool hasAutomaticPatrolTarget = false;
+    private NavMeshAgent navAgent;
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
@@ -19,7 +22,9 @@ public class GhostEnemy : MonoBehaviour
     [Tooltip("If no patrol waypoints are assigned, the ghost automatically patrols around its starting position.")]
     public bool useAutomaticPatrol = true;
     public float automaticPatrolRadius = 6f;
-    public float automaticPatrolPointTolerance = 0.5f;
+    public float automaticPatrolPointTolerance = 0.75f;
+    [Tooltip("If disabled, the ghost starts patrolling immediately instead of waiting for the player to approach.")]
+    public bool waitForPlayerBeforePatrolling = false;
 
     [Header("Spawn / Animation")]
     [Tooltip("The ghost stays in the idle animation at the spawn point until the player gets within this distance.")]
@@ -54,12 +59,22 @@ public class GhostEnemy : MonoBehaviour
         if (loseSceneController == null)
             loseSceneController = FindAnyObjectByType<LoseSceneController>();
 
+        navAgent = GetComponent<NavMeshAgent>();
+        if (navAgent != null)
+        {
+            navAgent.speed = moveSpeed;
+            navAgent.stoppingDistance = 0.1f;
+            navAgent.updateRotation = true;
+            navAgent.updateUpAxis = true;
+        }
+
         Collider col = GetComponent<Collider>();
 
         if (col != null)
             col.isTrigger = true;
 
         automaticPatrolCenter = transform.position;
+        hasStartedMoving = !waitForPlayerBeforePatrolling;
         SetNewAutomaticPatrolTarget();
         SetMovingAnimation(false);
     }
@@ -115,6 +130,21 @@ public class GhostEnemy : MonoBehaviour
         if (patrolWaypoints == null || patrolWaypoints.Length == 0)
             return useAutomaticPatrol && AutomaticPatrol();
 
+        if (navAgent != null && navAgent.isOnNavMesh)
+        {
+            Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
+            if (targetWaypoint == null)
+                return false;
+
+            navAgent.speed = moveSpeed;
+            navAgent.SetDestination(targetWaypoint.position);
+
+            if (!navAgent.pathPending && navAgent.remainingDistance <= Mathf.Max(navAgent.stoppingDistance + 0.1f, 0.3f))
+                currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
+
+            return true;
+        }
+
         Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
 
         if (targetWaypoint == null)
@@ -148,6 +178,17 @@ public class GhostEnemy : MonoBehaviour
         if (!hasAutomaticPatrolTarget)
             SetNewAutomaticPatrolTarget();
 
+        if (navAgent != null && navAgent.isOnNavMesh)
+        {
+            navAgent.speed = moveSpeed;
+            navAgent.SetDestination(automaticPatrolTarget);
+
+            if (!navAgent.pathPending && navAgent.remainingDistance <= automaticPatrolPointTolerance)
+                SetNewAutomaticPatrolTarget();
+
+            return true;
+        }
+
         transform.position = Vector3.MoveTowards(
             transform.position,
             automaticPatrolTarget,
@@ -177,11 +218,16 @@ public class GhostEnemy : MonoBehaviour
         float angle = Random.Range(0f, Mathf.PI * 2f);
         float radius = Random.Range(automaticPatrolRadius * 0.55f, automaticPatrolRadius);
 
-        automaticPatrolTarget = automaticPatrolCenter + new Vector3(
+        Vector3 candidate = automaticPatrolCenter + new Vector3(
             Mathf.Cos(angle) * radius,
             0f,
             Mathf.Sin(angle) * radius
         );
+
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, automaticPatrolRadius, NavMesh.AllAreas))
+            automaticPatrolTarget = hit.position;
+        else
+            automaticPatrolTarget = candidate;
 
         hasAutomaticPatrolTarget = true;
     }
@@ -190,6 +236,13 @@ public class GhostEnemy : MonoBehaviour
     {
         if (playerTransform == null)
             return false;
+
+        if (navAgent != null && navAgent.isOnNavMesh)
+        {
+            navAgent.speed = moveSpeed;
+            navAgent.SetDestination(playerTransform.position);
+            return true;
+        }
 
         transform.position = Vector3.MoveTowards(
             transform.position,
