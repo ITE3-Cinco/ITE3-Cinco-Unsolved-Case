@@ -51,7 +51,6 @@ public class GhostEnemy : MonoBehaviour
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-
             if (playerObj != null)
                 playerTransform = playerObj.transform;
         }
@@ -65,11 +64,12 @@ public class GhostEnemy : MonoBehaviour
             navAgent.speed = moveSpeed;
             navAgent.stoppingDistance = 0.1f;
             navAgent.updateRotation = true;
-            navAgent.updateUpAxis = true;
+            // Keep the ghost upright — do NOT let the NavMeshAgent tilt it
+            // to match the surface normal (that causes the face-down bug).
+            navAgent.updateUpAxis = false;
         }
 
         Collider col = GetComponent<Collider>();
-
         if (col != null)
             col.isTrigger = true;
 
@@ -89,8 +89,7 @@ public class GhostEnemy : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-        // The ghost begins in her idle spawn state.
-        // Once the player gets close enough, the idle state ends and movement begins.
+        // Wait in idle until the player enters the spawn-idle radius.
         if (!hasStartedMoving)
         {
             isChasing = false;
@@ -106,23 +105,24 @@ public class GhostEnemy : MonoBehaviour
             InvisibilityConsumable.Instance != null &&
             InvisibilityConsumable.Instance.isInvisible;
 
+        // Detection radius only controls whether the ghost chases.
+        // The lose screen is triggered exclusively by physical collision
+        // (OnTriggerEnter), NOT by proximity distance here.
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
 
         bool isMoving;
 
         if (isChasing)
-        {
             isMoving = ChasePlayer();
-
-            if (distanceToPlayer <= catchDistance && catchCooldownTimer <= 0f)
-                CatchPlayer();
-        }
         else
-        {
             isMoving = Patrol();
-        }
 
         SetMovingAnimation(isMoving);
+
+        // Keep the ghost perfectly upright every frame regardless of
+        // NavMesh surface normals or manual movement.
+        Vector3 euler = transform.eulerAngles;
+        transform.eulerAngles = new Vector3(0f, euler.y, 0f);
     }
 
     private bool Patrol()
@@ -132,12 +132,11 @@ public class GhostEnemy : MonoBehaviour
 
         if (navAgent != null && navAgent.isOnNavMesh)
         {
-            Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
-            if (targetWaypoint == null)
-                return false;
+            Transform wpNav = patrolWaypoints[currentWaypointIndex];
+            if (wpNav == null) return false;
 
             navAgent.speed = moveSpeed;
-            navAgent.SetDestination(targetWaypoint.position);
+            navAgent.SetDestination(wpNav.position);
 
             if (!navAgent.pathPending && navAgent.remainingDistance <= Mathf.Max(navAgent.stoppingDistance + 0.1f, 0.3f))
                 currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
@@ -145,29 +144,27 @@ public class GhostEnemy : MonoBehaviour
             return true;
         }
 
-        Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
-
-        if (targetWaypoint == null)
-            return false;
+        // Fallback: manual movement when not on a NavMesh
+        Transform wpFallback = patrolWaypoints[currentWaypointIndex];
+        if (wpFallback == null) return false;
 
         transform.position = Vector3.MoveTowards(
             transform.position,
-            targetWaypoint.position,
+            wpFallback.position,
             moveSpeed * Time.deltaTime
         );
 
-        Vector3 direction = (targetWaypoint.position - transform.position).normalized;
-
-        if (direction != Vector3.zero)
+        Vector3 dir = (wpFallback.position - transform.position).normalized;
+        if (dir != Vector3.zero)
         {
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
-                Quaternion.LookRotation(direction),
+                Quaternion.LookRotation(dir),
                 Time.deltaTime * 5f
             );
         }
 
-        if (Vector3.Distance(transform.position, targetWaypoint.position) < 0.3f)
+        if (Vector3.Distance(transform.position, wpFallback.position) < 0.3f)
             currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
 
         return true;
@@ -251,7 +248,6 @@ public class GhostEnemy : MonoBehaviour
         );
 
         Vector3 direction = (playerTransform.position - transform.position).normalized;
-
         if (direction != Vector3.zero)
         {
             transform.rotation = Quaternion.Slerp(
@@ -270,6 +266,10 @@ public class GhostEnemy : MonoBehaviour
             animator.SetBool(movingParameter, moving);
     }
 
+    /// <summary>
+    /// Lose screen is ONLY triggered here — by actual physical collision,
+    /// not by the detection radius.
+    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
         if (isCaught || catchCooldownTimer > 0f)
@@ -295,7 +295,6 @@ public class GhostEnemy : MonoBehaviour
         if (playerTransform != null)
         {
             PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
-
             if (playerAudio != null)
                 playerAudio.PlayCaught();
         }
@@ -304,18 +303,16 @@ public class GhostEnemy : MonoBehaviour
             loseSceneController = FindAnyObjectByType<LoseSceneController>();
 
         if (loseSceneController != null)
-        {
             loseSceneController.ShowLoseScreen();
-        }
         else
-        {
-            Debug.LogError("[Ghost] No LoseSceneController was found. Assign the existing Lose Canvas controller to GhostEnemy.");
-        }
+            Debug.LogError("[Ghost] No LoseSceneController found. Assign it to GhostEnemy.");
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, catchDistance);
     }
 }

@@ -3,39 +3,39 @@ using UnityEditor;
 using System.Collections.Generic;
 
 /// <summary>
-/// Comprehensive one-shot scene fixer for PoliceHQ.
+/// Comprehensive one-shot scene collider fixer for PoliceHQ.
+/// Searches ALL GameObjects in the scene recursively regardless of hierarchy depth.
 ///
-/// Pass 1 — ARCH_ colliders: fit each BoxCollider to its mesh bounds.
-/// Pass 2 — MARKER_* : BoxCollider.isTrigger = true.
-/// Pass 3 — artifact sample: CapsuleCollider.isTrigger = true.
-/// Pass 4 — Interactable artifacts: BoxCollider.isTrigger = true + negative scale fix.
-/// Pass 5 — Wall Y-snap: walls whose bottom Y deviates from the two dominant
-///           levels (0.40 and 1.60) by more than 0.05 are snapped to the
-///           nearest dominant level by adjusting localPosition.y.
+/// Pass 1 — ARCH_ architectural pieces: fit BoxCollider to mesh bounds.
+/// Pass 2 — CEILING_Corridor tiles: fit BoxCollider to mesh bounds.
+/// Pass 3 — MARKER_* objects: BoxCollider.isTrigger = true.
+/// Pass 4 — artifact sample / Agmiat sample: CapsuleCollider.isTrigger = true.
+/// Pass 5 — Interactable artifact world objects: BoxCollider.isTrigger = true + negative scale fix.
+/// Pass 6 — Wall Y-snap: snap wall bottom Y to dominant levels (0.40 / 1.60).
 /// </summary>
 public class FixAllSceneColliders
 {
-    // Dominant wall-bottom Y levels found by audit
-    const float WALL_GREEN_BOTTOM_Y   = 0.40f;   // lower green band
-    const float WALL_PLASTER_BOTTOM_Y = 1.60f;   // upper plaster band
-    const float SNAP_TOLERANCE        = 0.12f;   // snap if within this distance
+    const float WALL_GREEN_BOTTOM_Y   = 0.40f;
+    const float WALL_PLASTER_BOTTOM_Y = 1.60f;
+    const float SNAP_TOLERANCE        = 0.12f;
 
     [MenuItem("Tools/Fix All Scene Colliders")]
     public static void Execute()
     {
         int fixCount = 0;
 
-        GameObject[] all = GameObject.FindObjectsByType<GameObject>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        // Use Resources to get every GameObject in the scene, including
+        // deeply nested children (Floors/, Ceiling/, etc.)
+        GameObject[] all = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
 
         foreach (GameObject obj in all)
         {
             string n = obj.name;
 
             // ----------------------------------------------------------
-            // Pass 1: ARCH_ — fit BoxCollider exactly to mesh bounds
+            // Pass 1 & 2: ARCH_ and CEILING_ — fit BoxCollider to mesh
             // ----------------------------------------------------------
-            if (n.StartsWith("ARCH_"))
+            if (n.StartsWith("ARCH_") || n.StartsWith("CEILING_"))
             {
                 MeshFilter mf = obj.GetComponent<MeshFilter>();
                 BoxCollider bc = obj.GetComponent<BoxCollider>();
@@ -53,11 +53,12 @@ public class FixAllSceneColliders
                         bc.size   = mb.size;
                         bc.providesContacts = false;
                         EditorUtility.SetDirty(bc);
+                        Debug.Log($"[Fix] {n}: BoxCollider fitted to mesh bounds size={mb.size}");
                         fixCount++;
                     }
                 }
 
-                // Pass 5: snap wall bottom Y to dominant level
+                // Pass 6: snap wall bottom Y
                 if (n.StartsWith("ARCH_Wall_"))
                 {
                     MeshRenderer mr = obj.GetComponent<MeshRenderer>();
@@ -73,7 +74,6 @@ public class FixAllSceneColliders
 
                         if (targetY >= 0f && Mathf.Abs(worldBottomY - targetY) > 0.005f)
                         {
-                            // Adjust world Y so the bottom of the mesh sits at targetY
                             float delta = targetY - worldBottomY;
                             Undo.RecordObject(obj.transform, $"Snap {n} Y");
                             Vector3 wp = obj.transform.position;
@@ -89,7 +89,7 @@ public class FixAllSceneColliders
             }
 
             // ----------------------------------------------------------
-            // Pass 2: MARKER_* — must never block the player
+            // Pass 3: MARKER_* — must never block the player
             // ----------------------------------------------------------
             if (n.StartsWith("MARKER_"))
             {
@@ -106,9 +106,9 @@ public class FixAllSceneColliders
             }
 
             // ----------------------------------------------------------
-            // Pass 3: artifact sample — CapsuleCollider trigger
+            // Pass 4: artifact sample / Agmiat sample — CapsuleCollider trigger
             // ----------------------------------------------------------
-            if (n.StartsWith("artifact sample"))
+            if (n.StartsWith("artifact sample") || n.StartsWith("Agmiat sample"))
             {
                 CapsuleCollider cc = obj.GetComponent<CapsuleCollider>();
                 if (cc != null && !cc.isTrigger)
@@ -123,7 +123,7 @@ public class FixAllSceneColliders
             }
 
             // ----------------------------------------------------------
-            // Pass 4: Interactable artifact objects
+            // Pass 5: Interactable artifact world objects
             // ----------------------------------------------------------
             if (n == "Witness_Sketch_Note" || n == "Image_Artifact" || n == "Sketch_Artifact")
             {
