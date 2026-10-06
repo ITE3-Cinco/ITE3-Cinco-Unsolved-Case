@@ -465,7 +465,7 @@ Transform:
   m_GameObject: {fileID: 41796414}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 93.6321, y: 0.2, z: 34.10914}
+  m_LocalPosition: {x: -47.74214, y: 0.2, z: 95.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1123,7 +1123,7 @@ Transform:
   m_GameObject: {fileID: 300633193}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 76.0791, y: 10.7, z: 111.0631}
+  m_LocalPosition: {x: -65.29515, y: 10.7, z: 170.06311}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1718,7 +1718,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &513184773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1820,7 +1820,7 @@ Transform:
   m_GameObject: {fileID: 513184772}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 81.74, y: 1.404, z: 84.474}
+  m_LocalPosition: {x: -3.345982, y: -8.902, z: 78.8}
   m_LocalScale: {x: 0.013798738, y: 0.013798738, z: 0.013798738}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2226,7 +2226,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
@@ -2506,7 +2506,7 @@ Transform:
   m_GameObject: {fileID: 632341593}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 111.922, y: 0.31400013, z: 5.688011}
+  m_LocalPosition: {x: -29.452255, y: 0.31400013, z: 64.68801}
   m_LocalScale: {x: 1.0868672, y: 0.015227, z: 1.4313}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4050,7 +4050,7 @@ Transform:
   m_GameObject: {fileID: 956517514}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.00043444542, w: 0.99999994}
-  m_LocalPosition: {x: 106.27, y: 0.318, z: 39.9307}
+  m_LocalPosition: {x: -35.104263, y: 0.318, z: 98.930695}
   m_LocalScale: {x: 1, y: -0.019706, z: 1.3992}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5149,7 +5149,7 @@ Transform:
   m_GameObject: {fileID: 1167986990}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 44.67427, y: 11.7, z: 105.4369}
+  m_LocalPosition: {x: -96.7, y: 11.7, z: 164.43689}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5186,15 +5186,14 @@ MonoBehaviour:
   - {fileID: 377456405}
   - {fileID: 967623085}
   - {fileID: 146934705}
-  detectionRadius: 10
-  catchDistance: 11.5
+  detectionRadius: 12
+  catchDistance: 8
   playerTransform: {fileID: 1231311386}
   spawnIdleDistance: 8
   animator: {fileID: 0}
   movingParameter: IsMoving
   catchCooldown: 1.5
-  loseSceneName: LoseScene
-  loseFadeDuration: 1.5
+  loseSceneController: {fileID: 574735490}
   isChasing: 0
 --- !u!114 &1186399120
 MonoBehaviour:
@@ -5209,8 +5208,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostAudio
   hummingClip: {fileID: 8300000, guid: a2acd4ea9e743a1459224301047d2448, type: 3}
-  maxVolume: 0.7
-  maxDistance: 12
+  maxVolume: 0.8
+  maxDistance: 30
   minDistance: 2
   playOnlyWhileChasing: 0
 --- !u!82 &1186399121
@@ -5827,7 +5826,7 @@ Transform:
   m_GameObject: {fileID: 1273424346}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 52.5381, y: 0.32, z: 103.92638}
+  m_LocalPosition: {x: -88.83617, y: 0.32, z: 162.92638}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6422,7 +6421,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: -1
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 3
   m_TargetDisplay: 0
 --- !u!224 &1513529659
 RectTransform:
@@ -7402,7 +7401,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1867562087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7415,7 +7414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 033eb1e8a9621f54bb8b9abf731b9e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RespawnPoint
-  checkpointSpawnPoint: {fileID: 0}
+  checkpointSpawnPoint: {fileID: 1867562091}
   isInitialSpawn: 1
 --- !u!65 &1867562088
 BoxCollider:
@@ -7434,7 +7433,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 722.0914, y: 362.46423, z: 2.7200906}
   m_Center: {x: 60.53255, y: 158.45981, z: 0.8600452}
@@ -7504,7 +7503,7 @@ Transform:
   m_GameObject: {fileID: 1867562086}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 49.9982, y: 0.2828, z: 87.41}
+  m_LocalPosition: {x: -91.37605, y: 0.2828, z: 146.41}
   m_LocalScale: {x: 0.013798738, y: 0.013798738, z: 0.013798738}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -66625,7 +66624,7 @@ Transform:
   m_GameObject: {fileID: 4276125258501850203}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 44.67427, y: 11.7, z: 105.4369}
+  m_LocalPosition: {x: -96.7, y: 11.7, z: 164.43689}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -270006,7 +270005,7 @@ BoxCollider:
     m_Bits: 0
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.06, y: 0.059999987, z: 0}
@@ -270503,7 +270502,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3621100319168417801}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 59}
   m_LocalScale: {x: 1.6717, y: 1.6717, z: 1.6717}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -310294,7 +310293,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
@@ -482990,7 +482989,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 3.8194687, z: 30.843687}
   m_Center: {x: 0.0000000036018961, y: -0.70732445, z: 14.921778}

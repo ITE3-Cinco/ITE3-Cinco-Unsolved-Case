@@ -353,7 +353,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f10dd60657c6004587f237a7e90f8e4, type: 3}
   m_Name: AudioPlayableAsset
   m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.AudioPlayableAsset
-  m_Clip: {fileID: 8300000, guid: 6d4428072848d10449a40a716a598f8f, type: 3}
+  m_Clip: {fileID: 8300000, guid: e4b9c4f4a92214d43a3a50e8fbd40d1a, type: 3}
   m_Loop: 0
   m_bufferingTime: 0.1
   m_ClipProperties:
@@ -850,7 +850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f10dd60657c6004587f237a7e90f8e4, type: 3}
   m_Name: AudioPlayableAsset(Clone)
   m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.AudioPlayableAsset
-  m_Clip: {fileID: 8300000, guid: 6d4428072848d10449a40a716a598f8f, type: 3}
+  m_Clip: {fileID: 8300000, guid: e4b9c4f4a92214d43a3a50e8fbd40d1a, type: 3}
   m_Loop: 0
   m_bufferingTime: 0.1
   m_ClipProperties:
@@ -1220,7 +1220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f10dd60657c6004587f237a7e90f8e4, type: 3}
   m_Name: AudioPlayableAsset
   m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.AudioPlayableAsset
-  m_Clip: {fileID: 8300000, guid: b1b93bd9008013e4c8f840abd878e781, type: 3}
+  m_Clip: {fileID: 8300000, guid: c4315bf4785e5a94092a192ab44e13a6, type: 3}
   m_Loop: 0
   m_bufferingTime: 0.1
   m_ClipProperties:
