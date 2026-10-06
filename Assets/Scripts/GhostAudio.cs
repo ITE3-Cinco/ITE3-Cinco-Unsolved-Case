@@ -6,8 +6,8 @@ public class GhostAudio : MonoBehaviour
     [Header("Humming")]
     public AudioClip hummingClip;
     [Range(0f, 1f)] public float maxVolume = 1f;
-    public float maxDistance = 30f;
-    public float minDistance = 2f;
+    public float maxDistance = 40f;
+    public float minDistance = 6f;
     public bool playOnlyWhileChasing = false;
 
     private AudioSource audioSource;
@@ -21,7 +21,7 @@ public class GhostAudio : MonoBehaviour
 
         audioSource.playOnAwake = false;
         audioSource.loop = true;
-        audioSource.spatialBlend = 1f;
+        audioSource.spatialBlend = 0.85f;
         audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
@@ -78,7 +78,7 @@ public class GhostAudio : MonoBehaviour
         }
 
         float closeness = 1f - Mathf.InverseLerp(minDistance, maxDistance, distance);
-        audioSource.volume = Mathf.Lerp(0.15f, maxVolume, closeness);
+        audioSource.volume = Mathf.Lerp(0.2f, maxVolume, closeness);
     }
 
     private void StopHumming()
