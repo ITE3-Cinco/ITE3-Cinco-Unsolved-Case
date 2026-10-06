@@ -268,11 +268,28 @@ public class GhostEnemy : MonoBehaviour
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
-        if (isCaught || catchCooldownTimer > 0f)
+        TryCatchPlayer(other);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        TryCatchPlayer(collision.collider);
+    }
+
+    private void TryCatchPlayer(Collider other)
+    {
+        if (isCaught || catchCooldownTimer > 0f || other == null)
             return;
 
-        if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
-            CatchPlayer();
+        bool isPlayer =
+            other.CompareTag("Player") ||
+            (other.transform.root != null && other.transform.root.CompareTag("Player"));
+
+        if (!isPlayer)
+            return;
+
+        Debug.Log("[Ghost] Player collision detected. Showing Lose Canvas.");
+        CatchPlayer();
     }
 
     private void CatchPlayer()
@@ -299,9 +316,14 @@ public class GhostEnemy : MonoBehaviour
             loseSceneController = FindAnyObjectByType<LoseSceneController>(FindObjectsInactive.Include);
 
         if (loseSceneController != null)
+        {
+            Debug.Log("[Ghost] LoseSceneController found. Calling ShowLoseScreen().");
             loseSceneController.ShowLoseScreen();
+        }
         else
-            Debug.LogError("[Ghost] No LoseSceneController found. Assign it to GhostEnemy.");
+        {
+            Debug.LogError("[Ghost] No LoseSceneController found in the scene, including inactive objects.");
+        }
     }
 
     private void OnDrawGizmosSelected()
