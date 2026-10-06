@@ -15,6 +15,7 @@ public class GhostEnemy : MonoBehaviour
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
+    [Tooltip("Visual reference only. Catching the player is handled by the ghost trigger collision.")]
     public float catchDistance = 1.2f;
     public Transform playerTransform;
 
@@ -37,7 +38,7 @@ public class GhostEnemy : MonoBehaviour
     private float catchCooldownTimer = 0f;
 
     [Header("Lose UI")]
-    [Tooltip("Controller for the Lose Canvas shown when the ghost catches the player. If empty, one is found automatically.")]
+    [Tooltip("Controller for the existing Lose Canvas shown when the ghost catches the player. If empty, one is found automatically, including inactive UI objects.")]
     public LoseSceneController loseSceneController;
 
     [Header("State")]
@@ -56,7 +57,7 @@ public class GhostEnemy : MonoBehaviour
         }
 
         if (loseSceneController == null)
-            loseSceneController = FindAnyObjectByType<LoseSceneController>();
+            loseSceneController = FindAnyObjectByType<LoseSceneController>(FindObjectsInactive.Include);
 
         navAgent = GetComponent<NavMeshAgent>();
         if (navAgent != null)
@@ -65,7 +66,7 @@ public class GhostEnemy : MonoBehaviour
             navAgent.stoppingDistance = 0.1f;
             navAgent.updateRotation = true;
             // Keep the ghost upright — do NOT let the NavMeshAgent tilt it
-            // to match the surface normal (that causes the face-down bug).
+            // to match the surface normal.
             navAgent.updateUpAxis = false;
         }
 
@@ -89,7 +90,6 @@ public class GhostEnemy : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-        // Wait in idle until the player enters the spawn-idle radius.
         if (!hasStartedMoving)
         {
             isChasing = false;
@@ -106,8 +106,7 @@ public class GhostEnemy : MonoBehaviour
             InvisibilityConsumable.Instance.isInvisible;
 
         // Detection radius only controls whether the ghost chases.
-        // The lose screen is triggered exclusively by physical collision
-        // (OnTriggerEnter), NOT by proximity distance here.
+        // The lose screen is triggered exclusively by physical collision.
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
 
         bool isMoving;
@@ -119,8 +118,6 @@ public class GhostEnemy : MonoBehaviour
 
         SetMovingAnimation(isMoving);
 
-        // Keep the ghost perfectly upright every frame regardless of
-        // NavMesh surface normals or manual movement.
         Vector3 euler = transform.eulerAngles;
         transform.eulerAngles = new Vector3(0f, euler.y, 0f);
     }
@@ -144,7 +141,6 @@ public class GhostEnemy : MonoBehaviour
             return true;
         }
 
-        // Fallback: manual movement when not on a NavMesh
         Transform wpFallback = patrolWaypoints[currentWaypointIndex];
         if (wpFallback == null) return false;
 
@@ -300,7 +296,7 @@ public class GhostEnemy : MonoBehaviour
         }
 
         if (loseSceneController == null)
-            loseSceneController = FindAnyObjectByType<LoseSceneController>();
+            loseSceneController = FindAnyObjectByType<LoseSceneController>(FindObjectsInactive.Include);
 
         if (loseSceneController != null)
             loseSceneController.ShowLoseScreen();
