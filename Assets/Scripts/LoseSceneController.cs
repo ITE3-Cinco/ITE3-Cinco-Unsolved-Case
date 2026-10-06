@@ -16,20 +16,36 @@ public class LoseSceneController : MonoBehaviour
     [Tooltip("The existing Lose Canvas/UI panel in the gameplay scene.")]
     public GameObject loseCanvas;
 
+    private void Awake()
+    {
+        // If this controller is placed directly on the Lose Canvas,
+        // use that object automatically.
+        if (loseCanvas == null)
+            loseCanvas = gameObject;
+
+        if (loseCanvas != gameObject)
+            loseCanvas.SetActive(false);
+    }
+
     private void Start()
     {
-        // The Lose Canvas is part of the gameplay scene.
-        // It must start hidden and only appear when the player is caught.
-        if (loseCanvas != null)
-            loseCanvas.SetActive(false);
+        Time.timeScale = 1f;
+        SetupButtons();
+    }
 
+    private void SetupButtons()
+    {
         if (tryAgainButton != null)
+        {
+            tryAgainButton.onClick.RemoveListener(TryAgain);
             tryAgainButton.onClick.AddListener(TryAgain);
+        }
 
         if (exitButton != null)
+        {
+            exitButton.onClick.RemoveListener(Exit);
             exitButton.onClick.AddListener(Exit);
-
-        Time.timeScale = 1f;
+        }
     }
 
     private void OnDestroy()
@@ -43,8 +59,18 @@ public class LoseSceneController : MonoBehaviour
 
     public void ShowLoseScreen()
     {
+        // If the controller is on the Canvas itself, use that Canvas.
+        if (loseCanvas == null)
+            loseCanvas = gameObject;
+
         if (loseCanvas != null)
             loseCanvas.SetActive(true);
+
+        // If the Canvas was inactive at scene start, make sure the
+        // buttons are wired now that the lose UI is being shown.
+        SetupButtons();
+
+        Debug.Log("[LoseSceneController] Lose Canvas activated.");
 
         Time.timeScale = 0f;
     }
