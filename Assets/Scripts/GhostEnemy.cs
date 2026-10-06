@@ -71,8 +71,21 @@ public class GhostEnemy : MonoBehaviour
         }
 
         Collider col = GetComponent<Collider>();
+
+        // The Ghost needs a trigger collider to detect the player,
+        // but a trigger does not block walls or other objects.
+        // Allow the collider to be on the Ghost or one of its children.
+        if (col == null)
+            col = GetComponentInChildren<Collider>();
+
         if (col != null)
+        {
             col.isTrigger = true;
+        }
+        else
+        {
+            Debug.LogWarning("[Ghost] No Collider found on the Ghost or its children. Add a Trigger Collider so the Ghost can catch the player.");
+        }
 
         automaticPatrolCenter = transform.position;
         hasStartedMoving = !waitForPlayerBeforePatrolling;
