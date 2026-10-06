@@ -23,7 +23,7 @@ public class LoseSceneController : MonoBehaviour
         if (loseCanvas == null)
             loseCanvas = gameObject;
 
-        if (loseCanvas != gameObject)
+        if (loseCanvas != null)
             loseCanvas.SetActive(false);
     }
 
