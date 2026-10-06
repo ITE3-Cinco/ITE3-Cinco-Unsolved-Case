@@ -15,7 +15,7 @@ public class GhostEnemy : MonoBehaviour
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
-    [Tooltip("Visual reference only. Catching the player is handled by the ghost trigger collision.")]
+    [Tooltip("Visual reference only. Catching the player is handled by the Rigidbody-free catch check.")]
     public float catchDistance = 1.2f;
     public Transform playerTransform;
 
@@ -34,6 +34,8 @@ public class GhostEnemy : MonoBehaviour
     public string movingParameter = "IsMoving";
 
     [Header("Catch Settings")]
+    [Tooltip("Distance used for the Rigidbody-free physical catch check.")]
+    public float catchRadius = 0.9f;
     public float catchCooldown = 1.5f;
     private float catchCooldownTimer = 0f;
 
@@ -65,14 +67,9 @@ public class GhostEnemy : MonoBehaviour
             navAgent.speed = moveSpeed;
             navAgent.stoppingDistance = 0.1f;
             navAgent.updateRotation = true;
-            // Keep the ghost upright — do NOT let the NavMeshAgent tilt it
-            // to match the surface normal.
+            // Keep the ghost upright.
             navAgent.updateUpAxis = false;
         }
-
-        Collider col = GetComponent<Collider>();
-        if (col != null)
-            col.isTrigger = true;
 
         automaticPatrolCenter = transform.position;
         hasStartedMoving = !waitForPlayerBeforePatrolling;
@@ -90,6 +87,19 @@ public class GhostEnemy : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
+        // Rigidbody-free catch system.
+        // The detection radius only controls chasing. This separate, small
+        // catch radius represents actual physical contact with the Ghost.
+        if (catchCooldownTimer <= 0f &&
+            !isCaught &&
+            !IsPlayerInvisible() &&
+            distanceToPlayer <= GetCatchDistance())
+        {
+            TryCatchPlayerByDistance();
+            if (isCaught)
+                return;
+        }
+
         if (!hasStartedMoving)
         {
             isChasing = false;
@@ -101,12 +111,10 @@ public class GhostEnemy : MonoBehaviour
                 return;
         }
 
-        bool isPlayerInvisible =
-            InvisibilityConsumable.Instance != null &&
-            InvisibilityConsumable.Instance.isInvisible;
+        bool isPlayerInvisible = IsPlayerInvisible();
 
         // Detection radius only controls whether the ghost chases.
-        // The lose screen is triggered exclusively by physical collision.
+        // Catching is handled separately by the small catch-radius check.
         isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
 
         bool isMoving;
@@ -120,6 +128,34 @@ public class GhostEnemy : MonoBehaviour
 
         Vector3 euler = transform.eulerAngles;
         transform.eulerAngles = new Vector3(0f, euler.y, 0f);
+    }
+
+    private bool IsPlayerInvisible()
+    {
+        return InvisibilityConsumable.Instance != null &&
+               InvisibilityConsumable.Instance.isInvisible;
+    }
+
+    private float GetCatchDistance()
+    {
+        if (catchRadius > 0f)
+            return catchRadius;
+
+        return catchDistance;
+    }
+
+    private void TryCatchPlayerByDistance()
+    {
+        if (playerTransform == null)
+            return;
+
+        CharacterController playerController = playerTransform.GetComponent<CharacterController>();
+
+        if (playerController != null && !playerController.enabled)
+            return;
+
+        Debug.Log("[Ghost] Player entered the physical catch radius. Showing Lose Canvas.");
+        CatchPlayer();
     }
 
     private bool Patrol()
@@ -262,36 +298,6 @@ public class GhostEnemy : MonoBehaviour
             animator.SetBool(movingParameter, moving);
     }
 
-    /// <summary>
-    /// Lose screen is ONLY triggered here — by actual physical collision,
-    /// not by the detection radius.
-    /// </summary>
-    private void OnTriggerEnter(Collider other)
-    {
-        TryCatchPlayer(other);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        TryCatchPlayer(collision.collider);
-    }
-
-    private void TryCatchPlayer(Collider other)
-    {
-        if (isCaught || catchCooldownTimer > 0f || other == null)
-            return;
-
-        bool isPlayer =
-            other.CompareTag("Player") ||
-            (other.transform.root != null && other.transform.root.CompareTag("Player"));
-
-        if (!isPlayer)
-            return;
-
-        Debug.Log("[Ghost] Player collision detected. Showing Lose Canvas.");
-        CatchPlayer();
-    }
-
     private void CatchPlayer()
     {
         if (isCaught)
@@ -331,6 +337,6 @@ public class GhostEnemy : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, catchDistance);
+        Gizmos.DrawWireSphere(transform.position, GetCatchDistance());
     }
 }
