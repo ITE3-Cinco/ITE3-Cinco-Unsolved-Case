@@ -20,6 +20,11 @@ public class EscapeDoor : MonoBehaviour
         UpdateDoorVisual();
     }
 
+    public void RefreshDoorVisual()
+    {
+        UpdateDoorVisual();
+    }
+
     private void UpdateDoorVisual()
     {
         bool unlocked = EscapeManager.Instance != null && EscapeManager.Instance.CanEscape();
@@ -51,7 +56,12 @@ public class EscapeDoor : MonoBehaviour
         if (!playerInside && requirePlayerTrigger)
             return;
 
-        if (EscapeManager.Instance == null || !EscapeManager.Instance.CanEscape())
+        bool canEscape = EscapeManager.Instance != null && EscapeManager.Instance.CanEscape();
+
+        // Refresh the indicator before deciding what message/state to show.
+        UpdateDoorVisual();
+
+        if (!canEscape)
         {
             ShowMessage(lockedMessage);
             return;
