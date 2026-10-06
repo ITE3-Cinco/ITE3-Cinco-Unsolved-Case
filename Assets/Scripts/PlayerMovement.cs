@@ -152,6 +152,22 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(velocity * Time.deltaTime);
     }
 
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        // Log only side collisions so we can identify hidden/overlapping colliders
+        // that physically block the player in corridor sections.
+        if ((hit.moveDirection.y > -0.5f && hit.moveDirection.y < 0.5f) && hit.collider != null)
+        {
+            Debug.Log(
+                $"[PlayerCollision] BLOCKED BY: {hit.collider.name} | " +
+                $"Object: {hit.collider.gameObject.name} | " +
+                $"Tag: {hit.collider.tag} | " +
+                $"Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)} | " +
+                $"Normal: {hit.normal}"
+            );
+        }
+    }
+
     public void UpdateHeldItem(ItemData currentItem)
     {
         if (flashlight == null) return;
