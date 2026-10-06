@@ -17,10 +17,9 @@ public class LoseSceneController : MonoBehaviour
 
     private void Start()
     {
-        // The Lose Canvas is part of the gameplay scene and should only appear
-        // after the player is caught by the ghost.
+        // This is a dedicated Lose Scene, so the lose canvas should be visible by default.
         if (loseCanvas != null)
-            loseCanvas.SetActive(false);
+            loseCanvas.SetActive(true);
 
         if (tryAgainButton != null)
             tryAgainButton.onClick.AddListener(TryAgain);
@@ -46,9 +45,6 @@ public class LoseSceneController : MonoBehaviour
             loseCanvas.SetActive(true);
 
         Time.timeScale = 0f;
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
     public void TryAgain()
