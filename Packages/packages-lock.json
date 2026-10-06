@@ -1,34 +1,10 @@
 {
   "dependencies": {
-    "com.coplaydev.coplay": {
-      "version": "https://github.com/CoplayDev/coplay-unity-plugin.git#beta",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.inputsystem": "1.1.1",
-        "com.unity.cloud.gltfast": "6.12.1"
-      },
-      "hash": "f7f876f5fa3bc6be0ecdc2ee2e2948dc6d1e06d8"
-    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
-    },
-    "com.unity.ai.assistant": {
-      "version": "2.20.0-pre.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.2d.sprite": "1.0.0",
-        "com.unity.mathematics": "1.3.2",
-        "com.unity.nuget.mono-cecil": "1.11.5",
-        "com.unity.modules.uielements": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.unity.modules.unitywebrequest": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
     },
     "com.unity.ai.inference": {
       "version": "2.6.1",
