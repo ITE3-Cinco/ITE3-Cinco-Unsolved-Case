@@ -145,18 +145,18 @@ public class GhostEnemy : MonoBehaviour
             return true;
         }
 
-        Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
+        Transform waypointTarget = patrolWaypoints[currentWaypointIndex];
 
-        if (targetWaypoint == null)
+        if (waypointTarget == null)
             return false;
 
         transform.position = Vector3.MoveTowards(
             transform.position,
-            targetWaypoint.position,
+            waypointTarget.position,
             moveSpeed * Time.deltaTime
         );
 
-        Vector3 direction = (targetWaypoint.position - transform.position).normalized;
+        Vector3 direction = (waypointTarget.position - transform.position).normalized;
 
         if (direction != Vector3.zero)
         {
@@ -167,7 +167,7 @@ public class GhostEnemy : MonoBehaviour
             );
         }
 
-        if (Vector3.Distance(transform.position, targetWaypoint.position) < 0.3f)
+        if (Vector3.Distance(transform.position, waypointTarget.position) < 0.3f)
             currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
 
         return true;
