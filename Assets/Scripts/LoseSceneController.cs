@@ -13,13 +13,15 @@ public class LoseSceneController : MonoBehaviour
     public Button exitButton;
 
     [Header("References")]
+    [Tooltip("The existing Lose Canvas/UI panel in the gameplay scene.")]
     public GameObject loseCanvas;
 
     private void Start()
     {
-        // This is a dedicated Lose Scene, so the lose canvas should be visible by default.
+        // The Lose Canvas is part of the gameplay scene.
+        // It must start hidden and only appear when the player is caught.
         if (loseCanvas != null)
-            loseCanvas.SetActive(true);
+            loseCanvas.SetActive(false);
 
         if (tryAgainButton != null)
             tryAgainButton.onClick.AddListener(TryAgain);
@@ -50,12 +52,26 @@ public class LoseSceneController : MonoBehaviour
     public void TryAgain()
     {
         Time.timeScale = 1f;
+
+        if (string.IsNullOrWhiteSpace(retrySceneName))
+        {
+            Debug.LogError("[LoseSceneController] Retry scene name is empty.");
+            return;
+        }
+
         SceneManager.LoadScene(retrySceneName);
     }
 
     public void Exit()
     {
         Time.timeScale = 1f;
+
+        if (string.IsNullOrWhiteSpace(exitSceneName))
+        {
+            Debug.LogError("[LoseSceneController] Exit scene name is empty.");
+            return;
+        }
+
         SceneManager.LoadScene(exitSceneName);
     }
 }
