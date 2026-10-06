@@ -5,9 +5,9 @@ public class GhostAudio : MonoBehaviour
 {
     [Header("Humming")]
     public AudioClip hummingClip;
-    [Range(0f, 1f)] public float maxVolume = 0.8f;
-    public float maxDistance = 18f;
-    public float minDistance = 3f;
+    [Range(0f, 1f)] public float maxVolume = 1f;
+    public float maxDistance = 30f;
+    public float minDistance = 2f;
     public bool playOnlyWhileChasing = false;
 
     private AudioSource audioSource;
@@ -21,7 +21,7 @@ public class GhostAudio : MonoBehaviour
 
         audioSource.playOnAwake = false;
         audioSource.loop = true;
-        audioSource.spatialBlend = 0.35f;
+        audioSource.spatialBlend = 1f;
         audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
