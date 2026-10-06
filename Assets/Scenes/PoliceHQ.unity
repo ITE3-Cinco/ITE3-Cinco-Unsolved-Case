@@ -1755,6 +1755,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1186399122}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1186399123}
   m_SourcePrefab: {fileID: -5645937942226959685, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
 --- !u!1 &447926665
 GameObject:
@@ -5369,8 +5372,9 @@ MonoBehaviour:
   spawnIdleDistance: 8
   animator: {fileID: 0}
   movingParameter: IsMoving
+  catchRadius: 0.9
   catchCooldown: 1.5
-  loseSceneController: {fileID: 0}
+  loseSceneController: {fileID: 1685782108}
   isChasing: 0
 --- !u!114 &1186399120
 MonoBehaviour:
@@ -5508,6 +5512,29 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!136 &1186399123
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1186399117}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.36568844
+  m_Height: 2.1886818
+  m_Direction: 1
+  m_Center: {x: -0.025476128, y: -0.08204484, z: -0.10883546}
 --- !u!1001 &1191927079
 PrefabInstance:
   m_ObjectHideFlags: 0
