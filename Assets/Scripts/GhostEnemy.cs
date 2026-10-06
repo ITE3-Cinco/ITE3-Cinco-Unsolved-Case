@@ -6,11 +6,20 @@ public class GhostEnemy : MonoBehaviour
     public float moveSpeed = 3f;
     public Transform[] patrolWaypoints;
     private int currentWaypointIndex = 0;
+    private Vector3 automaticPatrolCenter;
+    private Vector3 automaticPatrolTarget;
+    private bool hasAutomaticPatrolTarget = false;
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
     public float catchDistance = 1.2f;
     public Transform playerTransform;
+
+    [Header("Automatic Patrol Fallback")]
+    [Tooltip("If no patrol waypoints are assigned, the ghost automatically patrols around its starting position.")]
+    public bool useAutomaticPatrol = true;
+    public float automaticPatrolRadius = 6f;
+    public float automaticPatrolPointTolerance = 0.5f;
 
     [Header("Spawn / Animation")]
     [Tooltip("The ghost stays in the idle animation at the spawn point until the player gets within this distance.")]
@@ -50,6 +59,8 @@ public class GhostEnemy : MonoBehaviour
         if (col != null)
             col.isTrigger = true;
 
+        automaticPatrolCenter = transform.position;
+        SetNewAutomaticPatrolTarget();
         SetMovingAnimation(false);
     }
 
@@ -102,7 +113,7 @@ public class GhostEnemy : MonoBehaviour
     private bool Patrol()
     {
         if (patrolWaypoints == null || patrolWaypoints.Length == 0)
-            return false;
+            return useAutomaticPatrol && AutomaticPatrol();
 
         Transform targetWaypoint = patrolWaypoints[currentWaypointIndex];
 
@@ -130,6 +141,49 @@ public class GhostEnemy : MonoBehaviour
             currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
 
         return true;
+    }
+
+    private bool AutomaticPatrol()
+    {
+        if (!hasAutomaticPatrolTarget)
+            SetNewAutomaticPatrolTarget();
+
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            automaticPatrolTarget,
+            moveSpeed * Time.deltaTime
+        );
+
+        Vector3 direction = automaticPatrolTarget - transform.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude > 0.01f)
+        {
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                Quaternion.LookRotation(direction.normalized),
+                Time.deltaTime * 5f
+            );
+        }
+
+        if (Vector3.Distance(transform.position, automaticPatrolTarget) <= automaticPatrolPointTolerance)
+            SetNewAutomaticPatrolTarget();
+
+        return true;
+    }
+
+    private void SetNewAutomaticPatrolTarget()
+    {
+        float angle = Random.Range(0f, Mathf.PI * 2f);
+        float radius = Random.Range(automaticPatrolRadius * 0.55f, automaticPatrolRadius);
+
+        automaticPatrolTarget = automaticPatrolCenter + new Vector3(
+            Mathf.Cos(angle) * radius,
+            0f,
+            Mathf.Sin(angle) * radius
+        );
+
+        hasAutomaticPatrolTarget = true;
     }
 
     private bool ChasePlayer()
