@@ -29,7 +29,6 @@ public class LoseSceneController : MonoBehaviour
 
     private void Start()
     {
-        Time.timeScale = 1f;
         SetupButtons();
     }
 
@@ -73,31 +72,38 @@ public class LoseSceneController : MonoBehaviour
         Debug.Log("[LoseSceneController] Lose Canvas activated.");
 
         Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void TryAgain()
     {
-        Time.timeScale = 1f;
-
         if (string.IsNullOrWhiteSpace(retrySceneName))
         {
             Debug.LogError("[LoseSceneController] Retry scene name is empty.");
             return;
         }
 
+        Scene currentScene = SceneManager.GetActiveScene();
+        if (retrySceneName == currentScene.name || retrySceneName == currentScene.path)
+            RespawnPoint.PrepareForRetry(currentScene.path);
+        else
+            RespawnPoint.ResetCheckpoint();
+
+        Time.timeScale = 1f;
         SceneManager.LoadScene(retrySceneName);
     }
 
     public void Exit()
     {
-        Time.timeScale = 1f;
-
         if (string.IsNullOrWhiteSpace(exitSceneName))
         {
             Debug.LogError("[LoseSceneController] Exit scene name is empty.");
             return;
         }
 
+        RespawnPoint.ResetCheckpoint();
+        Time.timeScale = 1f;
         SceneManager.LoadScene(exitSceneName);
     }
 }

@@ -1,157 +1,121 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Comprehensive one-shot scene collider fixer for PoliceHQ.
-/// Searches ALL GameObjects in the scene recursively regardless of hierarchy depth.
-///
-/// Pass 1 — ARCH_ architectural pieces: fit BoxCollider to mesh bounds.
-/// Pass 2 — CEILING_Corridor tiles: fit BoxCollider to mesh bounds.
-/// Pass 3 — MARKER_* objects: BoxCollider.isTrigger = true.
-/// Pass 4 — artifact sample / Agmiat sample: CapsuleCollider.isTrigger = true.
-/// Pass 5 — Interactable artifact world objects: BoxCollider.isTrigger = true + negative scale fix.
-/// Pass 6 — Wall Y-snap: snap wall bottom Y to dominant levels (0.40 / 1.60).
+/// Repairs known PoliceHQ hierarchy blockers without moving map geometry or
+/// fitting a solid box around a group of meshes. Changes can be undone and
+/// are left unsaved for inspection in the Physics Debugger.
 /// </summary>
-public class FixAllSceneColliders
+public static class FixAllSceneColliders
 {
-    const float WALL_GREEN_BOTTOM_Y   = 0.40f;
-    const float WALL_PLASTER_BOTTOM_Y = 1.60f;
-    const float SNAP_TOLERANCE        = 0.12f;
-
     [MenuItem("Tools/Fix All Scene Colliders")]
     public static void Execute()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.IsValid() || !scene.isLoaded)
+            return;
+
+        Undo.IncrementCurrentGroup();
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Fix scene colliders");
         int fixCount = 0;
 
-        // Use Resources to get every GameObject in the scene, including
-        // deeply nested children (Floors/, Ceiling/, etc.)
-        GameObject[] all = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include);
-
-        foreach (GameObject obj in all)
+        // Work only in the active scene, including inactive nested objects.
+        foreach (GameObject root in scene.GetRootGameObjects())
         {
-            string n = obj.name;
-
-            // ----------------------------------------------------------
-            // Pass 1 & 2: ARCH_ and CEILING_ — fit BoxCollider to mesh
-            // ----------------------------------------------------------
-            if (n.StartsWith("ARCH_") || n.StartsWith("CEILING_"))
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
             {
-                MeshFilter mf = obj.GetComponent<MeshFilter>();
-                BoxCollider bc = obj.GetComponent<BoxCollider>();
+                GameObject obj = child.gameObject;
+                string name = obj.name;
+                bool hinge = name.StartsWith("DOOR_Hinge_");
 
-                if (mf != null && mf.sharedMesh != null && bc != null)
+                // Imported empty transforms received default unit boxes. At
+                // the door's 100x scale these occupy entire sections of the map.
+                if ((hinge || name == "PoliceHeadquarters") &&
+                    obj.GetComponent<MeshFilter>() == null &&
+                    obj.GetComponent<Renderer>() == null)
                 {
-                    Bounds mb = mf.sharedMesh.bounds;
-                    bool centerWrong = (bc.center - mb.center).sqrMagnitude > 1e-6f;
-                    bool sizeWrong   = (bc.size   - mb.size  ).sqrMagnitude > 1e-6f;
-
-                    if (centerWrong || sizeWrong)
+                    foreach (BoxCollider box in obj.GetComponents<BoxCollider>())
                     {
-                        Undo.RecordObject(bc, $"Fix {n} collider");
-                        bc.center = mb.center;
-                        bc.size   = mb.size;
-                        bc.providesContacts = false;
-                        EditorUtility.SetDirty(bc);
-                        Debug.Log($"[Fix] {n}: BoxCollider fitted to mesh bounds size={mb.size}");
+                        if (!box.enabled || box.isTrigger ||
+                            box.center != Vector3.zero || box.size != Vector3.one)
+                            continue;
+
+                        if (hinge)
+                            fixCount += EnsureDoorLeafColliders(obj);
+
+                        Undo.RecordObject(box, "Disable hierarchy collider");
+                        box.enabled = false;
+                        RecordChange(box);
                         fixCount++;
                     }
                 }
 
-                // Pass 6: snap wall bottom Y
-                if (n.StartsWith("ARCH_Wall_"))
+                bool marker = name.StartsWith("MARKER_");
+                bool sample = name.StartsWith("artifact sample") || name.StartsWith("Agmiat sample");
+                bool artifact = name == "Witness_Sketch_Note" ||
+                    name == "Image_Artifact" || name == "Sketch_Artifact";
+
+                if (marker || sample || artifact)
                 {
-                    MeshRenderer mr = obj.GetComponent<MeshRenderer>();
-                    if (mr != null)
+                    foreach (Collider collider in obj.GetComponents<Collider>())
                     {
-                        float worldBottomY = mr.bounds.min.y;
-                        float targetY = -1f;
+                        // Non-convex mesh colliders cannot be triggers.
+                        if (collider.isTrigger || !(collider is BoxCollider || collider is CapsuleCollider))
+                            continue;
 
-                        if (Mathf.Abs(worldBottomY - WALL_GREEN_BOTTOM_Y) <= SNAP_TOLERANCE)
-                            targetY = WALL_GREEN_BOTTOM_Y;
-                        else if (Mathf.Abs(worldBottomY - WALL_PLASTER_BOTTOM_Y) <= SNAP_TOLERANCE)
-                            targetY = WALL_PLASTER_BOTTOM_Y;
-
-                        if (targetY >= 0f && Mathf.Abs(worldBottomY - targetY) > 0.005f)
-                        {
-                            float delta = targetY - worldBottomY;
-                            Undo.RecordObject(obj.transform, $"Snap {n} Y");
-                            Vector3 wp = obj.transform.position;
-                            obj.transform.position = new Vector3(wp.x, wp.y + delta, wp.z);
-                            EditorUtility.SetDirty(obj.transform);
-                            Debug.Log($"[Fix] {n}: wall bottom Y snapped {worldBottomY:F3} -> {targetY:F3}");
-                            fixCount++;
-                        }
+                        Undo.RecordObject(collider, "Make marker or pickup non-blocking");
+                        collider.isTrigger = true;
+                        RecordChange(collider);
+                        fixCount++;
                     }
-                }
-
-                continue;
-            }
-
-            // ----------------------------------------------------------
-            // Pass 3: MARKER_* — must never block the player
-            // ----------------------------------------------------------
-            if (n.StartsWith("MARKER_"))
-            {
-                BoxCollider bc = obj.GetComponent<BoxCollider>();
-                if (bc != null && !bc.isTrigger)
-                {
-                    Undo.RecordObject(bc, $"Fix {n} isTrigger");
-                    bc.isTrigger = true;
-                    EditorUtility.SetDirty(bc);
-                    Debug.Log($"[Fix] {n}: BoxCollider.isTrigger = true");
-                    fixCount++;
-                }
-                continue;
-            }
-
-            // ----------------------------------------------------------
-            // Pass 4: artifact sample / Agmiat sample — CapsuleCollider trigger
-            // ----------------------------------------------------------
-            if (n.StartsWith("artifact sample") || n.StartsWith("Agmiat sample"))
-            {
-                CapsuleCollider cc = obj.GetComponent<CapsuleCollider>();
-                if (cc != null && !cc.isTrigger)
-                {
-                    Undo.RecordObject(cc, $"Fix {n} CapsuleCollider isTrigger");
-                    cc.isTrigger = true;
-                    EditorUtility.SetDirty(cc);
-                    Debug.Log($"[Fix] {n}: CapsuleCollider.isTrigger = true");
-                    fixCount++;
-                }
-                continue;
-            }
-
-            // ----------------------------------------------------------
-            // Pass 5: Interactable artifact world objects
-            // ----------------------------------------------------------
-            if (n == "Witness_Sketch_Note" || n == "Image_Artifact" || n == "Sketch_Artifact")
-            {
-                BoxCollider bc = obj.GetComponent<BoxCollider>();
-                if (bc != null && !bc.isTrigger)
-                {
-                    Undo.RecordObject(bc, $"Fix {n} BoxCollider isTrigger");
-                    bc.isTrigger = true;
-                    EditorUtility.SetDirty(bc);
-                    fixCount++;
-                }
-
-                Vector3 sc = obj.transform.localScale;
-                if (sc.x < 0f || sc.y < 0f || sc.z < 0f)
-                {
-                    Undo.RecordObject(obj.transform, $"Fix {n} negative scale");
-                    obj.transform.localScale = new Vector3(
-                        Mathf.Abs(sc.x), Mathf.Abs(sc.y), Mathf.Abs(sc.z));
-                    EditorUtility.SetDirty(obj.transform);
-                    fixCount++;
                 }
             }
         }
 
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
+        Undo.CollapseUndoOperations(undoGroup);
+        if (fixCount > 0)
+            EditorSceneManager.MarkSceneDirty(scene);
 
-        Debug.Log($"[FixAllSceneColliders] Complete. {fixCount} fix(es) applied. Scene saved.");
+        Debug.Log($"[FixAllSceneColliders] {fixCount} fix(es) in {scene.name}. Inspect and save the scene when ready.");
+    }
+
+    private static int EnsureDoorLeafColliders(GameObject hinge)
+    {
+        int count = 0;
+        foreach (MeshFilter leaf in hinge.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (!leaf.name.StartsWith("DOOR_Leaf") || leaf.sharedMesh == null ||
+                leaf.GetComponent<Collider>() != null)
+                continue;
+
+            // A non-convex collider preserves openings in the leaf mesh. These
+            // environment doors are static; do not apply it to a dynamic body.
+            Rigidbody body = leaf.GetComponentInParent<Rigidbody>();
+            if (body != null && !body.isKinematic)
+            {
+                Debug.LogWarning($"[FixAllSceneColliders] {leaf.name} needs a compound collider for its dynamic Rigidbody.", leaf);
+                continue;
+            }
+
+            MeshCollider collider = Undo.AddComponent<MeshCollider>(leaf.gameObject);
+            collider.sharedMesh = leaf.sharedMesh;
+            collider.convex = false;
+            RecordChange(collider);
+            count++;
+        }
+        return count;
+    }
+
+    private static void RecordChange(Object target)
+    {
+        EditorUtility.SetDirty(target);
+        if (PrefabUtility.IsPartOfPrefabInstance(target))
+            PrefabUtility.RecordPrefabInstancePropertyModifications(target);
     }
 }
