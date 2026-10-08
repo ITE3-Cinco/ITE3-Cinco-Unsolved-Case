@@ -51,9 +51,13 @@ public class JumpscareTrigger : MonoBehaviour
             }
         }
 
+        float screamDuration = 0f;
+        if (scareObject != null)
+            foreach (Animator animator in scareObject.GetComponentsInChildren<Animator>())
+                screamDuration = Mathf.Max(screamDuration, GhostAnimation.PlayScream(animator, "Scream"));
         GhostAudio.PlayScare(scareAudio, player.position, audioVolume);
 
-        yield return new WaitForSeconds(visibleDuration);
+        yield return new WaitForSeconds(Mathf.Max(visibleDuration, screamDuration));
 
         if (scareObject != null)
             scareObject.SetActive(false);
