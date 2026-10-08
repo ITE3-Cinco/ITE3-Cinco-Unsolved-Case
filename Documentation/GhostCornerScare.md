@@ -6,17 +6,17 @@ PoliceHQ has **=== ENEMY === > Artifact 2 Corner Scare**, with editable **Corner
 
 1. Collecting the second of the three required artifacts arms the encounter. Flashlights, consumables, and map checkpoints do not count. Duplicate collection notifications do not increment progress.
 2. It waits until the player is within 12 metres and the corner appears within the middle 80% of the camera view, with no solid collider obstructing the sight line. The event stays armed if the player looks away or collects artifact three before reaching the corner.
-3. A visual copy of the White Lady appears facing the player, plays WhiteLady-Scream, and holds for 1.2 seconds.
+3. A fresh White Lady rig appears facing the player, plays WhiteLady-Scream, and holds for at least 1.2 seconds or the full scream animation length.
 4. It moves at 2.5 units/second to the exit point beyond the wall, then disappears. This copy has no active patrol, catch, navigation, or collision behaviour. The original ghost keeps patrolling/chasing normally.
 5. It plays once per level run. Retry reloads the level and resets artifact progress and the encounter. Pausing freezes the visual sequence; disabling its component removes the apparition.
 
-The default corner is in the central corridor beside the interview room: spawn **(-92, 2, 83)**, exit **(-97, 2, 83)**. The route crosses `ARCH_Wall_Plaster.054`. These coordinates refer to the current PoliceHQ layout.
+The default corner is in the central corridor beside the interview room: spawn **(-92, .32, 83)**, exit **(-97, .32, 83)**. The route crosses `ARCH_Wall_Plaster.054`. These coordinates refer to the current PoliceHQ layout.
 
 The White Lady now has a locally generated humanoid rig and animation driver. See [Navigation and animation](GhostNavigationAndAnimation.md) for the walking setup, Humanoid GhostScream import, and Unity validation steps. Root motion stays disabled so the apparition route controls movement.
 
 ## Inspector controls
 
-Select **Artifact 2 Corner Scare** to change the required artifact count, activation distance, hold duration, exit speed, visibility mask, sound, and volume. Move its two child transforms to change the corner and route. Keep Corner Spawn at the model's center height and outside solid geometry, and put Wall Exit far enough behind the wall to hide the entire model. Gizmos display the route and activation radius.
+Select **Artifact 2 Corner Scare** to change the required artifact count, activation distance, hold duration, exit speed, visibility mask, sound, and volume. Move its two child transforms to change the corner and route. Keep Corner Spawn at floor/feet height and outside solid geometry, and put Wall Exit far enough behind the wall to hide the entire model. Gizmos display the route and activation radius.
 
 ## Verification
 
@@ -34,3 +34,9 @@ Unity Play Mode checks (Editor unavailable in the sandbox):
 - Collect the third artifact before approaching the corner in a fresh run; the pending encounter should still play. Revisit afterward: it should not repeat.
 - Disable the scare component during its hold or exit: the visual should be removed. Reload through Try Again and repeat the 2/3 flow.
 - Check the chosen corner from both corridor approaches. Adjust the two scene handles if needed after viewing the imported model in Unity.
+
+## First-artifact corner
+
+The first-artifact encounter uses spawn **(-56, .32, 35)** and exit **(-61, .32, 35)** beside `ARCH_Wall_Plaster.089`. Its former z=44 marker had no corridor floor beneath it. Both encounters use feet markers, check visibility one metre above the floor and ignore the player's own colliders. Each stays armed until its corner is approached and visible.
+
+Apparitions instantiate the resource rig in its rest pose and copy animation clips/blend settings. They do not clone the live enemy's posed skeleton, navigation, audio sources or catch components. GhostScream plays through the animation driver alongside the configured WhiteLady scream audio; the visual then walks through the wall. Validate both one- and two-artifact corners in Unity, including pause/resume and collecting another artifact while an encounter remains pending.

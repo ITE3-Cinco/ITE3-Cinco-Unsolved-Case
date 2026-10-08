@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AI;
 
 /// <summary>A visual-only, once-per-run encounter armed by artifact progress.</summary>
 public class ArtifactCornerScare : MonoBehaviour
@@ -11,6 +10,7 @@ public class ArtifactCornerScare : MonoBehaviour
     public GhostEnemy ghost;
     public Transform player;
     public Camera playerCamera;
+    [Tooltip("Feet position on the corridor floor.")]
     public Transform cornerSpawn;
     [Tooltip("Place beyond a wall. The apparition deliberately ignores collision and navigation.")]
     public Transform wallExit;
@@ -82,14 +82,20 @@ public class ArtifactCornerScare : MonoBehaviour
         if (Vector3.Distance(player.position, cornerSpawn.position) > activationDistance)
             return;
 
-        Vector3 viewport = playerCamera.WorldToViewportPoint(cornerSpawn.position);
+        Vector3 sightTarget = cornerSpawn.position + Vector3.up;
+        Vector3 viewport = playerCamera.WorldToViewportPoint(sightTarget);
         if (viewport.z <= 0f || viewport.x < 0.1f || viewport.x > 0.9f ||
             viewport.y < 0.1f || viewport.y > 0.9f)
             return;
 
-        if (Physics.Linecast(playerCamera.transform.position, cornerSpawn.position,
-            visibilityMask, QueryTriggerInteraction.Ignore))
+        Vector3 sightLine = sightTarget - playerCamera.transform.position;
+        foreach (RaycastHit hit in Physics.RaycastAll(playerCamera.transform.position,
+            sightLine.normalized, sightLine.magnitude, visibilityMask, QueryTriggerInteraction.Ignore))
+        {
+            // Held items and the player's body must not block their own view.
+            if (hit.transform.IsChildOf(player)) continue;
             return;
+        }
 
         HasPlayed = true;
         IsArmed = false;
@@ -98,46 +104,23 @@ public class ArtifactCornerScare : MonoBehaviour
 
     private IEnumerator PlayScare()
     {
-        // Clone while inactive so the copy cannot start patrol/catch behaviour.
+        // Copy only animation configuration. The fresh resource supplies a rest
+        // pose, and no enemy scripts, colliders or agents enter this hierarchy.
         apparition = new GameObject("White Lady Apparition (visual only)");
         apparition.SetActive(false);
         apparition.transform.position = cornerSpawn.position;
-        GameObject visual = Instantiate(ghost.gameObject, apparition.transform, false);
-        visual.name = "White Lady Visual";
-        visual.transform.localPosition = Vector3.zero;
-        // Preserve the source's model orientation, without its current yaw.
-        visual.transform.localRotation = Quaternion.Inverse(
-            Quaternion.Euler(0f, ghost.transform.eulerAngles.y, 0f)) * ghost.transform.rotation;
-        visual.transform.localScale = ghost.transform.lossyScale;
-
-        foreach (MonoBehaviour behaviour in visual.GetComponentsInChildren<MonoBehaviour>(true))
-            if (behaviour != null && !(behaviour is GhostAnimation))
-                behaviour.enabled = false;
-        foreach (NavMeshAgent agent in visual.GetComponentsInChildren<NavMeshAgent>(true))
-            agent.enabled = false;
-        foreach (Collider collider in visual.GetComponentsInChildren<Collider>(true))
-            collider.enabled = false;
-        foreach (Rigidbody body in visual.GetComponentsInChildren<Rigidbody>(true))
+        GhostAnimation source = ghost.GetComponent<GhostAnimation>();
+        GhostAnimation animation = apparition.AddComponent<GhostAnimation>();
+        if (source != null)
         {
-            body.isKinematic = true;
-            body.detectCollisions = false;
+            animation.idleClip = source.idleClip;
+            animation.walkingClip = source.walkingClip;
+            animation.screamClip = source.screamClip;
+            animation.blendDuration = source.blendDuration;
         }
-        foreach (AudioSource source in visual.GetComponentsInChildren<AudioSource>(true))
-        {
-            source.playOnAwake = false;
-            source.enabled = false;
-        }
-        foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
-        {
-            animator.applyRootMotion = false;
-            SetMoving(animator, false);
-        }
-        foreach (Transform child in visual.GetComponentsInChildren<Transform>(true))
-            child.gameObject.tag = "Untagged";
-
         Face(player.position - cornerSpawn.position);
-        visual.SetActive(true);
         apparition.SetActive(true);
+        GameObject visual = apparition;
         float screamDuration = 0f;
         foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
             screamDuration = Mathf.Max(screamDuration, GhostAnimation.PlayScream(animator, ghost.screamParameter));

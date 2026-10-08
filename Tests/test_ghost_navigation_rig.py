@@ -49,8 +49,15 @@ class GhostNavigationRigTests(unittest.TestCase):
         animation = self.docs['8800000000000000022'][1]
         self.assertEqual(reference(animation, 'm_GameObject'), '1186399117')
         self.assertIn('addedObject: {fileID: 8800000000000000022}', self.docs['437939276'][1])
-        self.assertEqual(float(field(animation, 'visualFootOffset')),
-                         -float(field(self.docs['1186399122'][1], 'm_BaseOffset')))
+        self.assertEqual(float(field(animation, 'visualFootOffset')), 0)
+        self.assertEqual(float(field(self.docs['1186399122'][1], 'm_BaseOffset')), 0)
+        capsule = self.docs['1186399123'][1]
+        center = scare_tests.GhostCornerScareTests.vector(capsule, 'm_Center')
+        self.assertAlmostEqual(center[1] - float(field(capsule, 'm_Height')) / 2, 0)
+        # Physical collision plus the player's skin must be inside the catch range.
+        player = next(b for k, b in self.docs.values() if k == 143)
+        contact = float(field(capsule, 'm_Radius')) + float(field(player, 'm_Radius')) + float(field(player, 'm_SkinWidth'))
+        self.assertGreater(float(field(self.docs['1186399119'][1], 'catchRadius')), contact)
         for name in ['GhostWalk', 'GhostIdle']:
             meta = (ROOT / f'Assets/Resources/GhostAnimations/{name}.fbx.meta').read_text()
             self.assertIn('  animationType: 3', meta)

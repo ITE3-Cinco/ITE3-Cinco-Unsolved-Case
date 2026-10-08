@@ -72,6 +72,40 @@ class GhostCornerScareTests(unittest.TestCase):
             transform_id = reference(body, 'm_Father')
         return point
 
+    def test_both_spawns_have_floor_support_and_clear_body_space(self):
+        boxes = []
+        for go, (kind, body) in self.docs.items():
+            if kind != 1:
+                continue
+            name = field(body, 'm_Name') or ''
+            if not name.startswith(('ARCH_', 'CEILING_', 'COL_')):
+                continue
+            tr = next((i for i, k, b in self.components[go] if k == 4), None)
+            if tr is None:
+                continue
+            for _, k, box in self.components[go]:
+                if k != 65 or field(box, 'm_Enabled') != '1' or field(box, 'm_IsTrigger') != '0':
+                    continue
+                center, size = self.vector(box, 'm_Center'), self.vector(box, 'm_Size')
+                corners = [self.world(tr, [c+s*d/2 for c,s,d in zip(center,size,signs)])
+                           for signs in itertools.product([-1, 1], repeat=3)]
+                boxes.append((name, [min(p[j] for p in corners) for j in range(3)],
+                              [max(p[j] for p in corners) for j in range(3)]))
+        for _, scare in self.scares:
+            point = self.world(reference(scare, 'cornerSpawn'), [0, 0, 0])
+            for dx, dz in [(0, 0), (.4, 0), (-.4, 0), (0, .4), (0, -.4)]:
+                x, z = point[0]+dx, point[2]+dz
+                self.assertTrue(any(name.startswith('ARCH_CorridorFloor') and
+                                    lo[0] <= x <= hi[0] and lo[2] <= z <= hi[2] and
+                                    abs(point[1]-hi[1]) < .02 for name,lo,hi in boxes),
+                                f'Scare has no corridor floor at {point}')
+            for name, lo, hi in boxes:
+                if name.startswith('ARCH_CorridorFloor'):
+                    continue
+                self.assertFalse(all(lo[j]-.3 < point[j] < hi[j]+.3 for j in [0, 2]) and
+                                 lo[1] < point[1]+1.8 and hi[1] > point[1]+.05,
+                                 f'Scare body intersects {name}')
+
     def test_exit_route_crosses_a_wall_with_spawn_in_corridor(self):
         _, scare = next((i, b) for i, b in self.scares if field(b, 'requiredArtifacts') == '2')
         spawn = self.world(reference(scare, 'cornerSpawn'), [0, 0, 0])
@@ -88,9 +122,13 @@ class GhostCornerScareTests(unittest.TestCase):
         hi = [max(p[k] for p in corners) for k in range(3)]
         self.assertGreater(spawn[0], hi[0] + 0.5)
         self.assertLess(end[0], lo[0] - 0.5)
+        # Markers now represent feet. The upper body must cross the wall,
+        # whose collider begins above the floor in this authored layout.
+        self.assertGreater(spawn[1] + 2, lo[1])
+        self.assertLess(spawn[1], hi[1])
+        self.assertGreater(spawn[2], lo[2])
+        self.assertLess(spawn[2], hi[2])
         for axis in (1, 2):
-            self.assertGreater(spawn[axis], lo[axis])
-            self.assertLess(spawn[axis], hi[axis])
             self.assertAlmostEqual(spawn[axis], end[axis])
         self.assertGreater(float(field(scare, 'exitSpeed')), 0)
 

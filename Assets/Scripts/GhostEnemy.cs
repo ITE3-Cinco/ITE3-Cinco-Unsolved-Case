@@ -55,7 +55,7 @@ public class GhostEnemy : MonoBehaviour
 
     [Header("Catch Settings")]
     [Tooltip("Distance used for the Rigidbody-free physical catch check.")]
-    public float catchRadius = 0.9f;
+    public float catchRadius = 1.2f;
     public float catchCooldown = 1.5f;
     private float catchCooldownTimer = 0f;
 
@@ -231,7 +231,7 @@ public class GhostEnemy : MonoBehaviour
 
     private void Update()
     {
-        if (playerTransform == null || isCaught || (requireNavigation && !navigationReady) ||
+        if (playerTransform == null || isCaught ||
             Time.timeScale <= 0f || PauseManager.IsGamePaused)
             return;
 
@@ -239,9 +239,18 @@ public class GhostEnemy : MonoBehaviour
             catchCooldownTimer -= Time.deltaTime;
 
         Vector3 playerOffset = playerTransform.position - transform.position;
-        // The agent root follows its base offset while the player root is at their feet.
         float distanceToPlayer = new Vector2(playerOffset.x, playerOffset.z).magnitude;
         bool sameFloor = Mathf.Abs(playerOffset.y) <= navAgent.height;
+
+        // Contact remains dangerous during patrol, even before hunting unlocks
+        // or if navigation failed. Safety effects are checked by CatchPlayer.
+        if (catchCooldownTimer <= 0f && sameFloor &&
+            distanceToPlayer <= GetCatchDistance() && HasLineOfSight())
+        {
+            TryCatchPlayerByDistance();
+            if (isCaught) return;
+        }
+        if (requireNavigation && !navigationReady) return;
 
         if (Time.time < repelledUntil || IsPlayerInvisible())
         {
@@ -266,19 +275,6 @@ public class GhostEnemy : MonoBehaviour
             losePlayerTimer = 0f;
             intendedMoving = Patrol();
             return;
-        }
-
-        // Rigidbody-free catch system.
-        // The detection radius only controls chasing. This separate, small
-        // catch radius represents actual physical contact with the Ghost.
-        if (catchCooldownTimer <= 0f &&
-            !isCaught &&
-            !IsPlayerInvisible() &&
-            sameFloor && distanceToPlayer <= GetCatchDistance() && HasLineOfSight())
-        {
-            TryCatchPlayerByDistance();
-            if (isCaught)
-                return;
         }
 
         if (!hasStartedMoving)
@@ -338,7 +334,8 @@ public class GhostEnemy : MonoBehaviour
 
         // Cast from the ghost's approximate eye level to the player's center.
         Vector3 origin = transform.position + Vector3.up * (navAgent.height * 0.85f - navAgent.baseOffset);
-        Vector3 target = playerTransform.position + Vector3.up * 1f;
+        CharacterController controller = playerTransform.GetComponent<CharacterController>();
+        Vector3 target = controller != null ? controller.bounds.center : playerTransform.position + Vector3.up;
         Vector3 direction = target - origin;
 
         // The ghost can share Default with walls; filter by hierarchy, not layer.
@@ -367,7 +364,7 @@ public class GhostEnemy : MonoBehaviour
 
     private void TryCatchPlayerByDistance()
     {
-        if (playerTransform == null)
+        if (playerTransform == null || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
             return;
 
         CharacterController playerController = playerTransform.GetComponent<CharacterController>();
