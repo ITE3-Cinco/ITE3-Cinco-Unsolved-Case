@@ -2,9 +2,15 @@
 
 ## Escape
 
-Collecting all three artifacts adds **Escape the corridors.** to the permanent objective list and displays the same pickup notification. `EscapeManager` requires the artifact count only. An amber, gently moving **ESCAPE** marker appears above `SIGN_COLD_CASE_FILES`.
+Collecting all three artifacts adds **Escape via Cold Case Files in Archive A.** to the permanent objective list and pickup notification. A screen overlay names **ARCHIVE A / COLD CASE FILES**, shows distance and a camera-relative bearing toward the visible `SIGN_COLD_CASE_FILES` mesh. It stays readable through walls; the bearing points toward the destination, not a computed route through rooms.
 
-The player can escape within 1.8 units of either collider on `ARCH_Wall_Plaster.085` and `ARCH_Wall_Plaster.084 (1)`. This measures distance to the wall surface, not the model pivot. With `Level2` enabled in Build Settings, gameplay freezes during a 1.5-second black fade and then loads that scene. The fade overlay is created if the scene has no assigned fade image.
+The player can escape only within **1.8 units of the collider surface on `ARCH_Wall_Plaster.085`**. `ARCH_Wall_Plaster.084 (1)` is no longer an exit. Both automatic proximity checks and `EscapeDoor` use the same guarded manager method. All artifacts, proximity, unpaused gameplay and a loadable destination are required before gameplay freezes.
+
+With `Level2` enabled in Build Settings, gameplay freezes during a 1.5-second unscaled fade. A dedicated black overlay renders above the wake-up canvas and other UI, including when a legacy assigned fade image is hidden. A fully black frame is rendered before the next scene loads and time resumes.
+
+## Wake-up
+
+WakeUpCanvas starts fully black using two half-screen black images, then opens slightly, closes, opens wider, closes, and slowly opens completely. The sequence lasts about eight seconds. Normalized canvas anchors follow resolution/aspect changes and CanvasScaler. Scaled time freezes the sequence while paused, and the eyelid canvas temporarily hides so the pause menu is readable. It no longer modifies a randomly selected scene Volume's depth-of-field settings. The canvas disables itself after the final opening; its sort order stays below the escape fade.
 
 **Level2 is deliberately deferred:** the user is preparing it on another unpublished branch. Until it is merged and included in Build Settings, the exit logs one configuration error and leaves gameplay running. Set `EscapeManager.nextSceneName` if the final scene has another name.
 
@@ -22,7 +28,7 @@ PoliceHQ now builds its NavMesh at startup, and the ghost uses reachable paths f
 
 ## Scares and sound
 
-There are two independent once-per-run corner encounters under `=== ENEMY ===`:
+The ghost patrols without hunting until the first artifact. Generic jump-scare triggers also require at least one artifact. There are two independent once-per-run corner encounters under `=== ENEMY ===`:
 
 - **Artifact 1 Corner Scare:** armed after one artifact; appears at (-56, 2, 44), exits at (-61, 2, 44), through `ARCH_Wall_Plaster.089`.
 - **Artifact 2 Corner Scare:** existing encounter, armed after two artifacts, through `ARCH_Wall_Plaster.054`.
@@ -39,9 +45,11 @@ python3 -m unittest discover -s Tests -v
 
 Unity 6000.5.4f1 Play Mode checks (not runnable in this sandbox):
 
-1. Import and compile. Collect 0–2 artifacts and visit the exit: no marker/transition. Collect the third: exact escape prompt and persistent objective. Inspect the marker from both approaches.
-2. Until Level2 is merged, approach both exit walls: one configuration error, no frozen gameplay. After merging and enabling Level2, test each wall in a fresh run: one full black fade and correct scene load, without a catch during the fade.
+1. Import and compile. Collect 0–2 artifacts and visit the exit: no marker/transition. Collect the third: named Archive A escape prompt and persistent objective. Check the overlay direction from both approaches and with the sign behind a wall.
+2. Until Level2 is merged, approach the .085 exit wall: one configuration error, no frozen gameplay. After merging and enabling Level2, test .085 in a fresh run, and confirm .084 (1) alone cannot trigger a transition: one full black fade and correct scene load, without a catch during the fade.
 3. Pick up multiple agimat items. Approach the ghost with a different slot selected: gold warning and E prompt. Press E just before contact: exactly one item removed, no catch for five seconds, ghost moves away. Repeat E during protection: no additional consumption. Test protection expiry and pause/resume.
 4. Test E on pickups and checkpoint maps with no threat; test defense priority while looking at a map with the ghost nearby. Verify slot selection, flashlight and full-inventory behavior after consuming.
 5. Activate each map: patrol moves to that checkpoint's area, away from the player, with a six-second grace period. Retry after a catch: patrol uses the saved checkpoint. Restart from the pause menu: checkpoint state resets.
 6. Trigger each corner after its required artifact count, also collecting all three before visiting either. Confirm each plays once, visibility gating works, the full scream is audible, and the visual copy cannot catch. Check pause/resume and retry resets.
+
+7. At 16:9, 4:3 and an ultrawide aspect, verify the first frame is entirely black, both blinks close completely and the final opening clears the screen. Pause during each phase and resume. Check the scene lighting/post-processing remains unchanged.

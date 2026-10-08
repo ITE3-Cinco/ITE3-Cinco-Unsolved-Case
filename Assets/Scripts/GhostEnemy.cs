@@ -16,6 +16,10 @@ public class GhostEnemy : MonoBehaviour
     private NavMeshAgent navAgent;
     private bool navigationReady;
     private Vector3 previousPosition;
+    private float nextWaypointRetry;
+    private bool waypointPathActive;
+    [Tooltip("Patrol peacefully until this many artifacts have been collected.")]
+    [Min(1)] public int artifactsBeforeHunt = 1;
     [Tooltip("Keep enabled for corridor enemies. A missing NavMesh stops movement instead of passing through walls.")]
     public bool requireNavigation = true;
     [Tooltip("Maximum distance used to place the ghost on the level NavMesh at startup.")]
@@ -157,6 +161,7 @@ public class GhostEnemy : MonoBehaviour
 
     private bool MoveTo(Vector3 destination, float speed)
     {
+        waypointPathActive = false;
         if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = speed;
@@ -253,13 +258,23 @@ public class GhostEnemy : MonoBehaviour
             return;
         }
 
+        bool huntUnlocked = ArtifactManager.Instance != null &&
+            ArtifactManager.Instance.artifactsCollected >= Mathf.Max(1, artifactsBeforeHunt);
+        if (!huntUnlocked)
+        {
+            isChasing = false;
+            losePlayerTimer = 0f;
+            intendedMoving = Patrol();
+            return;
+        }
+
         // Rigidbody-free catch system.
         // The detection radius only controls chasing. This separate, small
         // catch radius represents actual physical contact with the Ghost.
         if (catchCooldownTimer <= 0f &&
             !isCaught &&
             !IsPlayerInvisible() &&
-            sameFloor && distanceToPlayer <= GetCatchDistance())
+            sameFloor && distanceToPlayer <= GetCatchDistance() && HasLineOfSight())
         {
             TryCatchPlayerByDistance();
             if (isCaught)
@@ -322,14 +337,18 @@ public class GhostEnemy : MonoBehaviour
         if (playerTransform == null) return false;
 
         // Cast from the ghost's approximate eye level to the player's center.
-        Vector3 origin = transform.position + Vector3.up * (navAgent.height * 0.85f);
+        Vector3 origin = transform.position + Vector3.up * (navAgent.height * 0.85f - navAgent.baseOffset);
         Vector3 target = playerTransform.position + Vector3.up * 1f;
         Vector3 direction = target - origin;
 
-        // Exclude the ghost's own colliders from the cast.
-        int mask = lineOfSightMask & ~(1 << gameObject.layer);
-
-        return !Physics.Raycast(origin, direction.normalized, direction.magnitude, mask, QueryTriggerInteraction.Ignore);
+        // The ghost can share Default with walls; filter by hierarchy, not layer.
+        foreach (RaycastHit hit in Physics.RaycastAll(origin, direction.normalized,
+            direction.magnitude, lineOfSightMask, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.transform.IsChildOf(transform) || hit.transform.IsChildOf(playerTransform)) continue;
+            return false;
+        }
+        return true;
     }
 
     private bool IsPlayerInvisible()
@@ -367,16 +386,36 @@ public class GhostEnemy : MonoBehaviour
 
         if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
-            Transform wpNav = patrolWaypoints[currentWaypointIndex];
-            if (wpNav == null) return false;
+            if (navAgent.pathPending) return true;
+            if (navAgent.hasPath && navAgent.pathStatus == NavMeshPathStatus.PathComplete &&
+                navAgent.remainingDistance > Mathf.Max(navAgent.stoppingDistance + 0.1f, 0.3f) &&
+                !isChasing && waypointPathActive)
+                return true;
 
-            navAgent.speed = moveSpeed;
-            navAgent.SetDestination(wpNav.position);
-
-            if (!navAgent.pathPending && navAgent.remainingDistance <= Mathf.Max(navAgent.stoppingDistance + 0.1f, 0.3f))
+            if (waypointPathActive)
                 currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
+            waypointPathActive = false;
+            if (Time.time < nextWaypointRetry) return false;
 
-            return true;
+            NavMeshQueryFilter filter = new NavMeshQueryFilter
+            { agentTypeID = navAgent.agentTypeID, areaMask = navAgent.areaMask };
+            for (int attempt = 0; attempt < patrolWaypoints.Length; attempt++)
+            {
+                Transform waypoint = patrolWaypoints[currentWaypointIndex];
+                NavMeshPath path = new NavMeshPath();
+                if (waypoint != null && NavMesh.SamplePosition(waypoint.position,
+                    out NavMeshHit hit, 2f, filter) && navAgent.CalculatePath(hit.position, path) &&
+                    path.status == NavMeshPathStatus.PathComplete)
+                {
+                    navAgent.speed = moveSpeed;
+                    waypointPathActive = navAgent.SetPath(path);
+                    return waypointPathActive;
+                }
+                currentWaypointIndex = (currentWaypointIndex + 1) % patrolWaypoints.Length;
+            }
+            navAgent.ResetPath();
+            nextWaypointRetry = Time.time + 1f;
+            return false;
         }
 
         Transform wpFallback = patrolWaypoints[currentWaypointIndex];
@@ -406,6 +445,7 @@ public class GhostEnemy : MonoBehaviour
 
     private bool AutomaticPatrol()
     {
+        waypointPathActive = false;
         if (hasAutomaticPatrolTarget && checkpointPatrol && playerTransform != null &&
             Vector3.Distance(automaticPatrolTarget, playerTransform.position) < playerSafetyDistance)
             hasAutomaticPatrolTarget = false;
@@ -489,6 +529,7 @@ public class GhostEnemy : MonoBehaviour
 
     private bool ChasePlayer()
     {
+        waypointPathActive = false;
         if (playerTransform == null)
             return false;
 
@@ -523,9 +564,8 @@ public class GhostEnemy : MonoBehaviour
     private void LateUpdate()
     {
         if (Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
-        // Use the intended state set by Update rather than re-deriving from position delta,
-        // which would cause animation flicker when the agent is decelerating or stopped.
-        ApplyMovingAnimation(intendedMoving && !isCaught);
+        float speed = (transform.position - previousPosition).magnitude / Mathf.Max(Time.deltaTime, 0.001f);
+        ApplyMovingAnimation(intendedMoving && speed > 0.01f && !isCaught);
         previousPosition = transform.position;
     }
 

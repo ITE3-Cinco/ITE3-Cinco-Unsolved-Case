@@ -8,13 +8,14 @@ public class ScreenFadeController : MonoBehaviour
     public static ScreenFadeController Instance { get; private set; }
 
     [Header("Fade Settings")]
-    [Tooltip("Full-screen black Image used for fading.")]
+    [Tooltip("Legacy image reference. Transitions create a dedicated full-screen overlay above scene UI.")]
     public Image fadeImage;
 
     [Tooltip("Keep this controller alive between scenes. Usually leave this OFF for a scene-specific fade.")]
     public bool dontDestroyOnLoad = false;
 
     private Coroutine fadeCoroutine;
+    private bool overlayReady;
 
     private void Awake()
     {
@@ -45,7 +46,9 @@ public class ScreenFadeController : MonoBehaviour
 
     private void EnsureFadeImage()
     {
-        if (fadeImage != null) return;
+        // Always use a dedicated overlay so an assigned image under an inactive
+        // canvas, mask or CanvasGroup cannot hide the escape fade.
+        if (overlayReady && fadeImage != null) return;
         GameObject overlay = new GameObject("Screen fade", typeof(Canvas));
         overlay.transform.SetParent(transform, false);
         Canvas canvas = overlay.GetComponent<Canvas>();
@@ -59,13 +62,14 @@ public class ScreenFadeController : MonoBehaviour
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMin = rect.offsetMax = Vector2.zero;
+        overlayReady = true;
     }
 
     public void FadeToScene(string sceneName, float duration)
     {
-        if (string.IsNullOrEmpty(sceneName))
+        if (string.IsNullOrWhiteSpace(sceneName) || !Application.CanStreamedLevelBeLoaded(sceneName))
         {
-            Debug.LogWarning("[ScreenFade] No scene name was assigned.");
+            Debug.LogWarning("[ScreenFade] The destination scene is missing or is not enabled in Build Settings.");
             return;
         }
 
@@ -88,6 +92,8 @@ public class ScreenFadeController : MonoBehaviour
     private IEnumerator FadeAndLoad(string sceneName, float duration)
     {
         yield return FadeRoutine(duration, 1f);
+        // Give the fully opaque frame a render before loading, even for a zero duration.
+        yield return null;
         Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);
     }
