@@ -16,6 +16,8 @@ public class LoseSceneController : MonoBehaviour
     [Tooltip("The existing Lose Canvas/UI panel in the gameplay scene.")]
     public GameObject loseCanvas;
 
+    private bool isShowing;
+
     private void Awake()
     {
         // If this controller is placed directly on the Lose Canvas,
@@ -23,7 +25,7 @@ public class LoseSceneController : MonoBehaviour
         if (loseCanvas == null)
             loseCanvas = gameObject;
 
-        if (loseCanvas != null)
+        if (loseCanvas != null && !isShowing)
             loseCanvas.SetActive(false);
     }
 
@@ -58,6 +60,8 @@ public class LoseSceneController : MonoBehaviour
 
     public void ShowLoseScreen()
     {
+        // Set before activation: an initially inactive controller can Awake here.
+        isShowing = true;
         // If the controller is on the Canvas itself, use that Canvas.
         if (loseCanvas == null)
             loseCanvas = gameObject;

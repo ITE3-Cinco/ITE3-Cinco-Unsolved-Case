@@ -23,7 +23,7 @@ class EscapeAgimatAssetsTests(unittest.TestCase):
         escape = self.component('EscapeManager')
         self.assertEqual(field(escape, 'requireAllArtifacts'), '1')
         self.assertEqual(field(escape, 'requiredGroups'), '[]')
-        self.assertEqual(self.object_name(reference(escape, 'escapeSign')), 'SIGN_COLD_CASE_FILES')
+        self.assertIsNone(field(escape, 'escapeSign'))
         walls = re.search(r'  exitWalls:\n(.*?)  exitDistance:', escape, re.S)[1]
         wall_ids = re.findall(r'fileID: (\d+)', walls)
         self.assertCountEqual([self.object_name(i) for i in wall_ids],
@@ -76,8 +76,8 @@ class EscapeAgimatAssetsTests(unittest.TestCase):
         center = helper.world(tr, [0, 0, 0])
         self.assertGreater(spawn[0], center[0] + 1)
         self.assertLess(end[0], center[0] - 1)
-        self.assertAlmostEqual(spawn[1], 2)
-        self.assertAlmostEqual(spawn[2], 44)
+        self.assertAlmostEqual(spawn[1], .32)
+        self.assertAlmostEqual(spawn[2], 35)
         scare_tr = next(b for _, k, b in self.components[reference(scare, 'm_GameObject')] if k == 4)
         parent = self.docs[reference(scare_tr, 'm_Father')][1]
         self.assertIn('fileID: 8800000000000000012', parent)

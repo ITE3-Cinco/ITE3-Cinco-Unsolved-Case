@@ -10,7 +10,7 @@ public class GhostAnimation : MonoBehaviour
     public AnimationClip idleClip;
     public AnimationClip walkingClip;
     public AnimationClip screamClip;
-    public float visualFootOffset = -1.8f;
+    public float visualFootOffset = 0f;
     public float blendDuration = 0.15f;
     public Animator Animator { get; private set; }
 
@@ -30,21 +30,16 @@ public class GhostAnimation : MonoBehaviour
         if (walkingClip == null || !walkingClip.isHumanMotion) walkingClip = LoadClip("GhostWalk");
         if (screamClip == null || !screamClip.isHumanMotion) screamClip = LoadClip("GhostScream");
 
-        Transform existing = transform.Find("White Lady Animated Visual");
-        GameObject visual;
-        if (existing != null)
-            visual = existing.gameObject;
-        else
+        // Always build the Avatar from the resource's rest pose. A live ghost's
+        // skeleton may already be walking or screaming when a scare is created.
+        GameObject model = Resources.Load<GameObject>("WhiteLadyRig");
+        if (model == null)
         {
-            GameObject model = Resources.Load<GameObject>("WhiteLadyRig");
-            if (model == null)
-            {
-                Debug.LogError("[GhostAnimation] WhiteLadyRig is missing from Resources.", this);
-                return;
-            }
-            visual = Instantiate(model, transform, false);
-            visual.name = "White Lady Animated Visual";
+            Debug.LogError("[GhostAnimation] WhiteLadyRig is missing from Resources.", this);
+            return;
         }
+        GameObject visual = Instantiate(model, transform, false);
+        visual.name = "White Lady Animated Visual";
         visual.transform.localPosition = Vector3.up * visualFootOffset;
         visual.transform.localRotation = Quaternion.identity;
         visual.transform.localScale = Vector3.one;

@@ -8,7 +8,7 @@ The bake uses the existing Humanoid agent settings and a 0.25-unit voxel size. N
 
 `GhostEnemy.requireNavigation` is enabled for PoliceHQ. The enemy stops with a descriptive error if its spawn cannot bind to the surface. It does not use the old wall-crossing patrol fallback in this scene. Agimat retreat destinations must be reachable and farther from the player. Checkpoint patrols still use the saved checkpoint, minimum player spacing and grace period.
 
-The agent's base offset is 1.8; its visual uses a matching -1.8 foot offset. Catch distance now uses horizontal separation with a same-floor height check because the agent root and player feet have different heights.
+The agent and generated rig use a feet origin: base offset and visual offset are both zero. The capsule center is one metre above that origin with a two-metre height. This removes the legacy center-pivot offsets that submerged the replacement rig. Catch distance uses horizontal separation with a same-floor height check; the 1.2-metre range includes the ghost radius, player radius and controller skin. Sight lines target the player's controller center.
 
 ## Locally built rig
 
@@ -22,9 +22,9 @@ At runtime, `GhostAnimation` instantiates the rig, builds a Humanoid Avatar, and
 
 ## Initial patrol and artifact gating
 
-The old spawn at (-63, 2, 112) and first waypoint at (-47.74, .2, 95.68) were outside the corridor floor colliders. The initial spawn is now (-63, 2, 143), along the continuous northern corridor. The three existing waypoint objects retain their x coordinates and now sit at floor height (.32) along z=143. Patrol destinations are sampled onto the agent's surface and require complete paths. Unreachable/null waypoints are skipped; if all fail, the ghost retries once per second. Chase and retreat invalidate the patrol path so it resumes correctly afterward.
+The old spawn at (-63, 2, 112) and first waypoint at (-47.74, .2, 95.68) were outside the corridor floor colliders. The initial spawn is now (-63, .32, 143), along the continuous northern corridor. The three existing waypoint objects retain their x coordinates and now sit at floor height (.32) along z=143. Patrol destinations are sampled onto the agent's surface and require complete paths. Unreachable/null waypoints are skipped; if all fail, the ghost retries once per second. Chase and retreat invalidate the patrol path so it resumes correctly afterward.
 
-Patrol starts immediately at zero artifacts. Hunting and physical catches unlock after the first artifact (`artifactsBeforeHunt`); corner encounters retain their separate one- and two-artifact gates. Generic jump-scare triggers also require an artifact, including when the player collects it while already inside the trigger. Line-of-sight tests ignore the ghost/player hierarchies without excluding walls that share the Default layer.
+Patrol starts immediately at zero artifacts. Hunting unlocks after the first artifact (`artifactsBeforeHunt`); physical contact can catch the player at any artifact count, even if navigation could not initialize. Checkpoint grace, invisibility and repulsion still prevent catches; corner encounters retain their separate one- and two-artifact gates. Line-of-sight tests ignore the ghost/player hierarchies without excluding walls that share the Default layer.
 
 ## Validation and Unity checks
 
@@ -42,7 +42,7 @@ In Unity:
 
 - Import the moved FBXs and generated GLB; confirm no compile/import errors and a valid Humanoid Avatar at runtime.
 - Enter PoliceHQ. Confirm the original “Failed to create agent” warning is gone, and `Whitelady` has an enabled agent on the generated NavMesh. Inspect the navigation overlay at all three initial patrol waypoints, doors and four checkpoint areas.
-- At zero artifacts, approach the ghost and verify it continues its route without chasing/catching. Collect the first artifact and verify hunting begins only with line of sight. Observe idle and patrol walking, floor alignment, model facing and dress/shoulder deformation. Pause/resume should freeze/resume both navigation and animation.
+- At zero artifacts, approach the ghost and verify it continues its route without chasing. Contact must still show the Lose Canvas, stop player controls, play the scream and pause gameplay. Test Retry and Exit. Collect the first artifact and verify hunting begins only with line of sight. Observe idle and patrol walking, floor alignment, model facing and dress/shoulder deformation. Pause/resume should freeze/resume both navigation and animation.
 - Chase, use an agimat, save checkpoints and retry. Confirm wall collisions/pathfinding, retreat movement, safety spacing and checkpoint patrol regions.
 - With GhostScream imported, trigger both corner scares and a catch. Check full scream playback with the sound, transition to walking on wall exit, no active agent on visual copies, and continued scream animation over the paused lose screen.
 - Run a player build: runtime baking must work without readable model meshes. Bake time and navigation around closed doors still need an Editor/player measurement.
@@ -54,3 +54,17 @@ This work is based on **A HORROR GIRL CHARACTER CODE99/type101** by **yongtun**,
 - https://sketchfab.com/3d-models/a-horror-girl-character-code99type101-e4c599eff4c5449b83606da562c76afb
 - https://sketchfab.com/yongtun
 - https://creativecommons.org/licenses/by/4.0/
+
+## Regression checks added for gameplay fixes
+
+`Assets/Tests/Editor/GhostGameplayTests.cs` uses Unity's Edit Mode Test Runner to check the inactive-canvas lifecycle, close-range catches before hunting/navigation, checkpoint protection and exposure adjustments without accumulation. These tests require Unity and were not executed in the cloud sandbox. The Python suite checks both scare markers for corridor support, body clearance, capsule/catch spacing and lighting wiring.
+
+The lose controller records the show request before activating its canvas, so a delayed Awake cannot hide a requested loss screen. PoliceHQ currently uses a separate active controller; this also supports placing it on an inactive canvas.
+
+## Lighting and brightness
+
+PoliceHQ uses dim trilight ambient colors, reflection intensity 0.2, directional intensity 0.08 and corridor fixture intensity 4. The flashlight retains intensity 200 and its existing range. Camera post-processing is enabled. `SceneBrightness` is attached to the global volume so saved brightness applies when PoliceHQ is opened directly as well as through the menu.
+
+Brightness 5 preserves the authored exposure (-0.7 EV); 0 and 10 add -2 and +2 EV. The slider modifies the runtime volume profile, preserving the asset and avoiding cumulative offsets. Scene-local menu callbacks forward to the persistent settings controller.
+
+In Play Mode, compare flashlight off/on in a corridor at brightness 0, 5 and 10. Check menu → opening scene → PoliceHQ, direct PoliceHQ play, retry and returning to the menu. Confirm repeated slider changes do not accumulate. The selected light levels still require visual tuning in Unity; asset checks cannot establish final rendered visibility.
