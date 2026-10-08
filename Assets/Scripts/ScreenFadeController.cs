@@ -38,6 +38,29 @@ public class ScreenFadeController : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    private void EnsureFadeImage()
+    {
+        if (fadeImage != null) return;
+        GameObject overlay = new GameObject("Screen fade", typeof(Canvas));
+        overlay.transform.SetParent(transform, false);
+        Canvas canvas = overlay.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 32767;
+        GameObject panel = new GameObject("Black", typeof(RectTransform), typeof(Image));
+        panel.transform.SetParent(overlay.transform, false);
+        fadeImage = panel.GetComponent<Image>();
+        fadeImage.color = new Color(0f, 0f, 0f, 0f);
+        RectTransform rect = fadeImage.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+    }
+
     public void FadeToScene(string sceneName, float duration)
     {
         if (string.IsNullOrEmpty(sceneName))
@@ -46,6 +69,7 @@ public class ScreenFadeController : MonoBehaviour
             return;
         }
 
+        EnsureFadeImage();
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
 
@@ -54,6 +78,7 @@ public class ScreenFadeController : MonoBehaviour
 
     public void FadeToBlack(float duration)
     {
+        EnsureFadeImage();
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
 
@@ -62,14 +87,8 @@ public class ScreenFadeController : MonoBehaviour
 
     private IEnumerator FadeAndLoad(string sceneName, float duration)
     {
-        if (fadeImage == null)
-        {
-            Debug.LogWarning("[ScreenFade] No fade Image is assigned. Loading the scene directly.");
-            SceneManager.LoadScene(sceneName);
-            yield break;
-        }
-
         yield return FadeRoutine(duration, 1f);
+        Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName);
     }
 

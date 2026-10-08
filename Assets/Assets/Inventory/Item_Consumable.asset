@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c62090452df53842bc23cc3e3461a36, type: 3}
   m_Name: Item_Consumable
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  isAgimat: 1
   itemName: Agimat
   itemIcon: {fileID: 1936923533, guid: ecb6f93435b56e042982e8e1fa22a450, type: 3}

@@ -16,8 +16,30 @@ public class HotbarUI : MonoBehaviour
     public Color normalColor = new Color(0.3f, 0.3f, 0.3f, 1f); // Dim grey for unselected slots
     public Color activeColor = Color.white;                      // Bright white (#FFFFFF) for selected slot
 
+    private List<ItemData> displayedItems;
+    private int selectedSlot;
+
+    private void LateUpdate()
+    {
+        bool warning = InvisibilityConsumable.Instance != null && InvisibilityConsumable.Instance.GhostNearby;
+        float pulse = 0.5f + 0.5f * Mathf.Sin(Time.time * 7f);
+        for (int i = 0; i < slotBackgrounds.Count; i++)
+        {
+            if (slotBackgrounds[i] == null) continue;
+            bool glow = warning && displayedItems != null && i < displayedItems.Count &&
+                displayedItems[i] != null && displayedItems[i].isAgimat;
+            slotBackgrounds[i].color = glow
+                ? Color.Lerp(new Color(0.55f, 0.3f, 0.05f), new Color(1f, 0.85f, 0.25f), pulse)
+                : (i == selectedSlot ? activeColor : normalColor);
+            if (i < slotIcons.Count && slotIcons[i] != null)
+                slotIcons[i].color = glow ? Color.Lerp(Color.white, Color.yellow, pulse) : Color.white;
+        }
+    }
+
     public void RefreshUI(List<ItemData> items, int selectedIndex)
     {
+        displayedItems = items;
+        selectedSlot = selectedIndex;
         // 1. Update Icons
         for (int i = 0; i < slotIcons.Count; i++)
         {

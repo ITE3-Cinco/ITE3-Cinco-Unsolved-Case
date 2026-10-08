@@ -49,6 +49,82 @@ public class GhostEnemy : MonoBehaviour
     private bool isCaught = false;
     private bool hasStartedMoving = false;
 
+    [Header("Checkpoint Patrol / Agimat")]
+    [Min(1f)] public float checkpointPatrolRadius = 18f;
+    [Min(1f)] public float playerSafetyDistance = 12f;
+    [Min(0f)] public float checkpointGraceDuration = 6f;
+    private float safeUntil;
+    private float repelledUntil;
+    private bool checkpointPatrol;
+    private Vector3 retreatTarget;
+    private float patrolHeight;
+
+    private void OnEnable() => RespawnPoint.CheckpointSaved += UpdateCheckpointPatrol;
+    private void OnDisable() => RespawnPoint.CheckpointSaved -= UpdateCheckpointPatrol;
+
+    public void UpdateCheckpointPatrol(Vector3 checkpointPosition)
+    {
+        automaticPatrolCenter = checkpointPosition;
+        automaticPatrolCenter.y = patrolHeight;
+        checkpointPatrol = true;
+        hasStartedMoving = true;
+        hasAutomaticPatrolTarget = false;
+        safeUntil = Time.time + checkpointGraceDuration;
+        isChasing = false;
+        if (navAgent != null && navAgent.isOnNavMesh) navAgent.ResetPath();
+        SetNewAutomaticPatrolTarget();
+        // Move into the new patrol region without spawning beside the player.
+        if (hasAutomaticPatrolTarget)
+        {
+            if (navAgent != null && navAgent.isOnNavMesh)
+                navAgent.Warp(automaticPatrolTarget);
+            else
+                transform.position = automaticPatrolTarget;
+        }
+    }
+
+    public void Repel(float duration)
+    {
+        repelledUntil = Mathf.Max(repelledUntil, Time.time + duration);
+        isChasing = false;
+        PickRetreatTarget();
+    }
+
+    private void PickRetreatTarget()
+    {
+        if (playerTransform == null) return;
+        Vector3 away = transform.position - playerTransform.position;
+        away.y = 0f;
+        if (away.sqrMagnitude < 0.01f) away = -playerTransform.forward;
+        retreatTarget = transform.position + away.normalized * playerSafetyDistance;
+        if (navAgent != null && navAgent.isOnNavMesh &&
+            NavMesh.SamplePosition(retreatTarget, out NavMeshHit hit, 5f, navAgent.areaMask))
+            retreatTarget = hit.position;
+    }
+
+    private bool Retreat()
+    {
+        if (Vector3.Distance(transform.position, retreatTarget) < 1f ||
+            Vector3.Dot(retreatTarget - transform.position, transform.position - playerTransform.position) <= 0f)
+            PickRetreatTarget();
+        return MoveTo(retreatTarget, moveSpeed * 1.4f);
+    }
+
+    private bool MoveTo(Vector3 destination, float speed)
+    {
+        if (navAgent != null && navAgent.isOnNavMesh)
+        {
+            navAgent.speed = speed;
+            navAgent.SetDestination(destination);
+        }
+        else
+        {
+            destination.y = transform.position.y;
+            transform.position = Vector3.MoveTowards(transform.position, destination, speed * Time.deltaTime);
+        }
+        return true;
+    }
+
     private void Start()
     {
         if (playerTransform == null)
@@ -72,20 +148,36 @@ public class GhostEnemy : MonoBehaviour
         }
 
         automaticPatrolCenter = transform.position;
+        patrolHeight = transform.position.y;
         hasStartedMoving = !waitForPlayerBeforePatrolling;
         SetNewAutomaticPatrolTarget();
         SetMovingAnimation(false);
+        if (RespawnPoint.hasReachedCheckpoint)
+            UpdateCheckpointPatrol(RespawnPoint.activeCheckpointPosition);
     }
 
     private void Update()
     {
-        if (playerTransform == null || isCaught)
+        if (playerTransform == null || isCaught || Time.timeScale <= 0f || PauseManager.IsGamePaused)
             return;
 
         if (catchCooldownTimer > 0f)
             catchCooldownTimer -= Time.deltaTime;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (Time.time < repelledUntil || IsPlayerInvisible())
+        {
+            isChasing = false;
+            SetMovingAnimation(Retreat());
+            return;
+        }
+        if (Time.time < safeUntil)
+        {
+            isChasing = false;
+            SetMovingAnimation(distanceToPlayer < playerSafetyDistance ? Retreat() : AutomaticPatrol());
+            return;
+        }
 
         // Rigidbody-free catch system.
         // The detection radius only controls chasing. This separate, small
@@ -160,8 +252,8 @@ public class GhostEnemy : MonoBehaviour
 
     private bool Patrol()
     {
-        if (patrolWaypoints == null || patrolWaypoints.Length == 0)
-            return useAutomaticPatrol && AutomaticPatrol();
+        if (checkpointPatrol || patrolWaypoints == null || patrolWaypoints.Length == 0)
+            return (checkpointPatrol || useAutomaticPatrol) && AutomaticPatrol();
 
         if (navAgent != null && navAgent.isOnNavMesh)
         {
@@ -207,6 +299,8 @@ public class GhostEnemy : MonoBehaviour
         if (!hasAutomaticPatrolTarget)
             SetNewAutomaticPatrolTarget();
 
+        if (!hasAutomaticPatrolTarget) return false;
+
         if (navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = moveSpeed;
@@ -244,21 +338,36 @@ public class GhostEnemy : MonoBehaviour
 
     private void SetNewAutomaticPatrolTarget()
     {
-        float angle = Random.Range(0f, Mathf.PI * 2f);
-        float radius = Random.Range(automaticPatrolRadius * 0.55f, automaticPatrolRadius);
-
-        Vector3 candidate = automaticPatrolCenter + new Vector3(
-            Mathf.Cos(angle) * radius,
-            0f,
-            Mathf.Sin(angle) * radius
-        );
-
-        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, automaticPatrolRadius, NavMesh.AllAreas))
-            automaticPatrolTarget = hit.position;
-        else
+        hasAutomaticPatrolTarget = false;
+        float patrolRadius = checkpointPatrol ? checkpointPatrolRadius : automaticPatrolRadius;
+        for (int attempt = 0; attempt < 32; attempt++)
+        {
+            Vector2 offset = Random.insideUnitCircle.normalized * Random.Range(patrolRadius * 0.55f, patrolRadius);
+            Vector3 candidate = automaticPatrolCenter + new Vector3(offset.x, 0f, offset.y);
+            if (navAgent != null && navAgent.isOnNavMesh)
+            {
+                if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, navAgent.areaMask)) continue;
+                candidate = hit.position;
+                NavMeshPath path = new NavMeshPath();
+                if (!navAgent.CalculatePath(candidate, path) || path.status != NavMeshPathStatus.PathComplete) continue;
+            }
+            else if (checkpointPatrol)
+            {
+                // PoliceHQ has no baked NavMesh: only choose clear points above a floor.
+                if (!Physics.Raycast(candidate + Vector3.up, Vector3.down, out RaycastHit floor,
+                    5f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) || floor.normal.y < 0.7f)
+                    continue;
+                if (Physics.CheckSphere(candidate, 0.6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                    continue;
+            }
+            Vector3 playerPosition = playerTransform != null ? playerTransform.position : automaticPatrolCenter;
+            playerPosition.y = candidate.y;
+            if (checkpointPatrol && (Vector3.Distance(candidate, playerPosition) < playerSafetyDistance ||
+                Vector3.Distance(candidate, automaticPatrolCenter) < playerSafetyDistance)) continue;
             automaticPatrolTarget = candidate;
-
-        hasAutomaticPatrolTarget = true;
+            hasAutomaticPatrolTarget = true;
+            return;
+        }
     }
 
     private bool ChasePlayer()
@@ -300,7 +409,7 @@ public class GhostEnemy : MonoBehaviour
 
     private void CatchPlayer()
     {
-        if (isCaught)
+        if (isCaught || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
             return;
 
         isCaught = true;

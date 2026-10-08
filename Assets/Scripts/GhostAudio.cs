@@ -3,6 +3,19 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class GhostAudio : MonoBehaviour
 {
+    [Header("Jump Scares")]
+    public AudioClip screamClip;
+
+    public static void PlayScare(AudioClip clip, Vector3 position, float volume)
+    {
+        if (clip == null)
+        {
+            GhostAudio ghostAudio = FindAnyObjectByType<GhostAudio>();
+            if (ghostAudio != null) clip = ghostAudio.screamClip;
+        }
+        if (clip != null) AudioSource.PlayClipAtPoint(clip, position, volume);
+    }
+
     [Header("Humming")]
     public AudioClip hummingClip;
     [Range(0f, 1f)] public float maxVolume = 1f;

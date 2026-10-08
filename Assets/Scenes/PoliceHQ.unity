@@ -470,6 +470,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8800000000000000002}
+  - {fileID: 8800000000000000012}
   - {fileID: 596919798}
   - {fileID: 1186399118}
   m_Father: {fileID: 0}
@@ -2545,9 +2546,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b862ead320dae2408e6e689239740d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EscapeManager
-  requiredGroups:
-  - {fileID: 956517516}
+  requiredGroups: []
   requireAllArtifacts: 1
+  player: {fileID: 1231311386}
+  escapeSign: {fileID: 5254153760149207230}
+  exitWalls:
+  - {fileID: 4349834903599779306}
+  - {fileID: 5185628636123227833}
+  exitDistance: 1.8
+  nextSceneName: Level2
+  fadeDuration: 1.5
 --- !u!4 &582277615
 Transform:
   m_ObjectHideFlags: 0
@@ -5684,7 +5692,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5501a2e9ced42eb4ea315c6c0fd5d86c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostEnemy
-  moveSpeed: 6.12
+  moveSpeed: 4.5
   patrolWaypoints:
   - {fileID: 377456405}
   - {fileID: 967623085}
@@ -5697,6 +5705,9 @@ MonoBehaviour:
   automaticPatrolPointTolerance: 0.5
   waitForPlayerBeforePatrolling: 0
   spawnIdleDistance: 8
+  checkpointPatrolRadius: 18
+  playerSafetyDistance: 12
+  checkpointGraceDuration: 6
   animator: {fileID: 0}
   movingParameter: IsMoving
   catchRadius: 0.9
@@ -5715,6 +5726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ef8f44cedfcd3b459333f630bae4eb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostAudio
+  screamClip: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
   hummingClip: {fileID: 8300000, guid: a2acd4ea9e743a1459224301047d2448, type: 3}
   maxVolume: 1
   maxDistance: 50
@@ -6210,6 +6222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InvisibilityConsumable
   duration: 5
+  warningDistance: 16
   isInvisible: 0
   originalMaterial: {fileID: 0}
   invisibleMaterial: {fileID: 0}
@@ -6233,7 +6246,7 @@ MonoBehaviour:
   walkFootstepPitch: 1
   runFootstepPitch: 1.18
   preventFootstepOverlap: 1
-  caughtClip: {fileID: 8300000, guid: 4f0ebaf5cbdfc9d4ca5e62dc3949b2d3, type: 3}
+  caughtClip: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
   caughtVolume: 1
 --- !u!82 &1231311393
 AudioSource:
@@ -467825,7 +467838,7 @@ MonoBehaviour:
     m_Bits: 4294967291
   holdDuration: 1.2
   exitSpeed: 2.5
-  scareAudio: {fileID: 8300000, guid: a2acd4ea9e743a1459224301047d2448, type: 3}
+  scareAudio: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
   audioVolume: 0.8
 --- !u!1 &8800000000000000004
 GameObject:
@@ -467888,6 +467901,129 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8800000000000000002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8800000000000000011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8800000000000000012}
+  - component: {fileID: 8800000000000000013}
+  m_Layer: 0
+  m_Name: Artifact 1 Corner Scare
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8800000000000000012
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000000000011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8800000000000000015}
+  - {fileID: 8800000000000000017}
+  m_Father: {fileID: 41796415}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8800000000000000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000000000011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5fe57081e994d86b6341b0c983cd43a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ArtifactCornerScare
+  artifactManager: {fileID: 54701496}
+  ghost: {fileID: 1186399119}
+  player: {fileID: 1231311386}
+  playerCamera: {fileID: 13884628}
+  cornerSpawn: {fileID: 8800000000000000015}
+  wallExit: {fileID: 8800000000000000017}
+  requiredArtifacts: 1
+  activationDistance: 12
+  visibilityMask:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  holdDuration: 1.2
+  exitSpeed: 2.5
+  scareAudio: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
+  audioVolume: 0.8
+--- !u!1 &8800000000000000014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8800000000000000015}
+  m_Layer: 0
+  m_Name: Corner Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8800000000000000015
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000000000014}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8.25786, y: 1.8, z: -51.68}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8800000000000000012}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8800000000000000016
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8800000000000000017}
+  m_Layer: 0
+  m_Name: Wall Exit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8800000000000000017
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800000000000000016}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -13.25786, y: 1.8, z: -51.68}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8800000000000000012}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &8800668298540583351
 Transform:
