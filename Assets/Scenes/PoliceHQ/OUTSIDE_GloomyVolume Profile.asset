@@ -15,10 +15,10 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: -0.7
+    m_Value: -0.4
   contrast:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 10
   colorFilter:
     m_OverrideState: 1
     m_Value: {r: 0.7412246, g: 0.7684523, b: 0.8867924, a: 1}
