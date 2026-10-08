@@ -1008,7 +1008,7 @@ Transform:
   m_GameObject: {fileID: 146934704}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -80.7, y: 0.98, z: 47.1}
+  m_LocalPosition: {x: -80.7, y: 0.12, z: 47.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1687,7 +1687,7 @@ Transform:
   m_GameObject: {fileID: 377456404}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.12, z: 47.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1790,7 +1790,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 16.32
+      value: 47.32
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2556,7 +2556,6 @@ MonoBehaviour:
   escapeSign: {fileID: 5254153760149207230}
   exitWalls:
   - {fileID: 4349834903599779306}
-  - {fileID: 5185628636123227833}
   exitDistance: 1.8
   nextSceneName: Level2
   fadeDuration: 1.5
@@ -3092,9 +3091,9 @@ RectTransform:
   m_Father: {fileID: 1513529659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 50}
-  m_SizeDelta: {x: 0, y: 100}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &674584999
 MonoBehaviour:
@@ -4727,7 +4726,7 @@ Transform:
   m_GameObject: {fileID: 967623084}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18.98, y: 0.98, z: 48.94}
+  m_LocalPosition: {x: -18.98, y: 0.12, z: 47.32}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4898,10 +4897,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1513529659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: 0, y: 100}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &988547756
 MonoBehaviour:
@@ -5702,6 +5701,7 @@ MonoBehaviour:
   - {fileID: 377456405}
   - {fileID: 967623085}
   - {fileID: 146934705}
+  artifactsBeforeHunt: 1
   requireNavigation: 1
   navMeshPlacementDistance: 4
   detectionRadius: 12
@@ -7101,7 +7101,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   topLid: {fileID: 988547755}
   bottomLid: {fileID: 674584998}
-  delayBeforeBlink: 0.5
+  delayBeforeBlink: 0.8
+  blinkSpeedMultiplier: 1
 --- !u!114 &1513529656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7164,7 +7165,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: -1
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 3
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!224 &1513529659
 RectTransform:
@@ -468184,7 +468185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostAnimation
   idleClip: {fileID: 0}
-  walkingClip: {fileID: -203655887218126122, guid: cd5c073a5c10f624eaa98be7e8a4fa79, type: 3}
+  walkingClip: {fileID: 0}
   screamClip: {fileID: -203655887218126122, guid: 059465ca4b7d3e14ea2cc5c81e61bd63, type: 3}
   visualFootOffset: -1.8
   blendDuration: 0.15

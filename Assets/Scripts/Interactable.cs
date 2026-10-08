@@ -139,7 +139,7 @@ public class Interactable : MonoBehaviour
             {
                 bool complete = ArtifactManager.Instance != null &&
                     ArtifactManager.Instance.artifactsCollected >= ArtifactManager.Instance.totalArtifacts;
-                NotificationManager.Instance.ShowNotification(complete ? "Escape the corridors." : "Acquired an artifact!", 5f);
+                NotificationManager.Instance.ShowNotification(complete ? EscapeManager.EscapeObjective : "Acquired an artifact!", 5f);
             }
         }
 

@@ -1,9 +1,12 @@
 """Navigation scene wiring and structural skinning regressions (no Unity required)."""
+import itertools
+import re
 import json
 import struct
 import unittest
 from pathlib import Path
 import test_collision_assets as assets
+import test_ghost_corner_scare as scare_tests
 from test_collision_assets import field, reference
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +55,68 @@ class GhostNavigationRigTests(unittest.TestCase):
             meta = (ROOT / f'Assets/Resources/GhostAnimations/{name}.fbx.meta').read_text()
             self.assertIn('  animationType: 3', meta)
             self.assertIn('  avatarSetup: 1', meta)
+
+    def test_walk_and_scream_resolve_to_humanoid_imports(self):
+        animation = self.docs['8800000000000000022'][1]
+        # Walk uses the named Resources clip, not the unrelated Generic override.
+        self.assertEqual(reference(animation, 'walkingClip'), '0')
+        for name in ['GhostWalk', 'GhostIdle', 'GhostScream']:
+            meta = (ROOT / f'Assets/Resources/GhostAnimations/{name}.fbx.meta').read_text()
+            self.assertIn('  animationType: 3', meta)
+            self.assertIn('  avatarSetup: 1', meta)
+            self.assertIn('  importAnimation: 1', meta)
+            if name == 'GhostScream':
+                self.assertIn(re.search(r'guid: (\w+)', meta)[1], field(animation, 'screamClip'))
+
+    def test_initial_patrol_route_has_continuous_corridor_floor(self):
+        helper = scare_tests.GhostCornerScareTests()
+        helper.docs, helper.components = self.docs, self.components
+        ghost = self.docs['1186399119'][1]
+        self.assertEqual(field(ghost, 'waitForPlayerBeforePatrolling'), '0')
+        self.assertEqual(field(ghost, 'artifactsBeforeHunt'), '1')
+        floors = []
+        for go, (kind, body) in self.docs.items():
+            if kind != 1 or not (field(body, 'm_Name') or '').startswith('ARCH_CorridorFloor'):
+                continue
+            components = self.components[go]
+            transform = next(i for i, k, b in components if k == 4)
+            for _, k, box in components:
+                if k != 65 or field(box, 'm_Enabled') != '1':
+                    continue
+                center, size = helper.vector(box, 'm_Center'), helper.vector(box, 'm_Size')
+                corners = [helper.world(transform, [c+s*d/2 for c,s,d in zip(center,size,signs)])
+                           for signs in itertools.product([-1, 1], repeat=3)]
+                floors.append(([min(p[j] for p in corners) for j in range(3)],
+                               [max(p[j] for p in corners) for j in range(3)]))
+        waypoints = [helper.world(i, [0, 0, 0]) for i in ['377456405', '967623085', '146934705']]
+        prefab = self.docs['437939276'][1]
+        spawn = [float(re.search(r'propertyPath: m_LocalPosition.' + axis + r'\n      value: ([^\n]+)', prefab)[1])
+                 for axis in 'xyz']
+        spawn = helper.world('41796415', spawn)
+        spawn[1] -= float(field(self.docs['1186399122'][1], 'm_BaseOffset'))
+        points = [spawn] + waypoints + waypoints[:1]
+        # Sample the actual full patrol legs, including a 0.5m agent radius.
+        for start, end in zip(points, points[1:]):
+            steps = int(sum((a-b)**2 for a,b in zip(start,end))**0.5 * 4) + 1
+            for step in range(steps + 1):
+                point = [a+(b-a)*step/steps for a,b in zip(start,end)]
+                for dx, dz in [(0, 0), (.5, 0), (-.5, 0), (0, .5), (0, -.5)]:
+                    x, z = point[0]+dx, point[2]+dz
+                    self.assertTrue(any(lo[0] <= x <= hi[0] and lo[2] <= z <= hi[2]
+                                        and abs(point[1]-hi[1]) < .2 for lo,hi in floors),
+                                    f'Patrol leaves corridor floor at {point}, offset {(dx,dz)}')
+
+    def test_wake_lids_cover_canvas_before_first_frame(self):
+        top, bottom = self.docs['988547755'][1], self.docs['674584998'][1]
+        self.assertEqual(field(top, 'm_AnchorMin'), '{x: 0, y: 0.5}')
+        self.assertEqual(field(top, 'm_AnchorMax'), '{x: 1, y: 1}')
+        self.assertEqual(field(bottom, 'm_AnchorMin'), '{x: 0, y: 0}')
+        self.assertEqual(field(bottom, 'm_AnchorMax'), '{x: 1, y: 0.5}')
+        for lid in [top, bottom]:
+            self.assertEqual(field(lid, 'm_SizeDelta'), '{x: 0, y: 0}')
+            self.assertEqual(field(lid, 'm_AnchoredPosition'), '{x: 0, y: 0}')
+            self.assertEqual(reference(lid, 'm_Father'), '1513529659')
+        self.assertEqual(field(self.docs['1513529658'][1], 'm_RenderMode'), '0')
 
     def test_humanoid_hierarchy_and_inverse_bind_transforms(self):
         nodes = self.rig['nodes']

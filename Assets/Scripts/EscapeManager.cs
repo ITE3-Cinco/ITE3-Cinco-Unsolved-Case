@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class EscapeManager : MonoBehaviour
 {
@@ -23,7 +24,9 @@ public class EscapeManager : MonoBehaviour
     public float fadeDuration = 1.5f;
     private bool transitioning;
     private bool reportedMissingScene;
-    private TextMeshPro signMarker;
+    private TextMeshProUGUI escapeHint;
+    private Renderer signRenderer;
+    public const string EscapeObjective = "Escape via Cold Case Files in Archive A.";
     private ArtifactManager artifactManager;
 
     private void Awake()
@@ -41,15 +44,29 @@ public class EscapeManager : MonoBehaviour
         RefreshEscapeState();
         if (escapeSign != null)
         {
-            GameObject marker = new GameObject("Escape sign marker");
-            marker.transform.SetParent(transform, false);
-            signMarker = marker.AddComponent<TextMeshPro>();
-            signMarker.text = "ESCAPE\n▼";
-            signMarker.fontSize = 3f;
-            signMarker.alignment = TextAlignmentOptions.Center;
-            signMarker.rectTransform.sizeDelta = new Vector2(4f, 2f);
-            signMarker.color = new Color(1f, 0.85f, 0.25f);
-            marker.SetActive(IsEscapeUnlocked);
+            signRenderer = escapeSign.GetComponentInChildren<Renderer>();
+            GameObject guide = new GameObject("Escape guidance", typeof(Canvas), typeof(CanvasScaler));
+            guide.transform.SetParent(transform, false);
+            Canvas canvas = guide.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 10;
+            CanvasScaler scaler = guide.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+            GameObject label = new GameObject("Archive A exit hint", typeof(RectTransform));
+            label.transform.SetParent(guide.transform, false);
+            escapeHint = label.AddComponent<TextMeshProUGUI>();
+            escapeHint.fontSize = 26f;
+            escapeHint.alignment = TextAlignmentOptions.Center;
+            escapeHint.color = new Color(1f, 0.85f, 0.25f);
+            escapeHint.raycastTarget = false;
+            RectTransform rect = escapeHint.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -36f);
+            rect.sizeDelta = new Vector2(680f, 100f);
+            label.SetActive(IsEscapeUnlocked);
         }
     }
 
@@ -63,43 +80,60 @@ public class EscapeManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (signMarker != null)
+        if (escapeHint != null)
         {
-            signMarker.gameObject.SetActive(IsEscapeUnlocked);
-            signMarker.transform.position = escapeSign.position + Vector3.up * (0.8f + Mathf.Sin(Time.time * 3f) * 0.1f);
-            if (Camera.main != null) signMarker.transform.rotation = Camera.main.transform.rotation;
-        }
-        if (!IsEscapeUnlocked || transitioning || player == null || exitWalls == null ||
-            PauseManager.IsGamePaused || Time.timeScale <= 0f) return;
-        foreach (Collider wall in exitWalls)
-        {
-            if (wall == null || !wall.enabled) continue;
-            if (Vector3.Distance(player.position, wall.ClosestPoint(player.position)) <= exitDistance)
+            escapeHint.gameObject.SetActive(IsEscapeUnlocked && !transitioning &&
+                !PauseManager.IsGamePaused && Time.timeScale > 0f);
+            if (IsEscapeUnlocked && escapeSign != null && player != null)
             {
-                TryTransition();
-                break;
+                // Imported mesh pivots may be far from the visible room sign.
+                Vector3 target = signRenderer != null ? signRenderer.bounds.center : escapeSign.position;
+                Vector3 direction = target - player.position;
+                direction.y = 0f;
+                Transform view = Camera.main != null ? Camera.main.transform : player;
+                Vector3 forward = Vector3.ProjectOnPlane(view.forward, Vector3.up);
+                float angle = Vector3.SignedAngle(forward, direction, Vector3.up);
+                string bearing = Mathf.Abs(angle) > 135f ? "Turn around" :
+                    angle > 25f ? "Head right >" : angle < -25f ? "< Head left" : "Straight ahead";
+                escapeHint.text = $"EXIT — ARCHIVE A / COLD CASE FILES\n{bearing} · {direction.magnitude:0} m";
             }
         }
+        TryTransition();
     }
 
-    private void TryTransition()
+    public bool IsPlayerNearExit()
     {
+        if (player == null || exitWalls == null) return false;
+        foreach (Collider wall in exitWalls)
+        {
+            if (wall == null || !wall.enabled || !wall.gameObject.activeInHierarchy) continue;
+            if (Vector3.Distance(player.position, wall.ClosestPoint(player.position)) <= exitDistance)
+                return true;
+        }
+        return false;
+    }
+
+    public bool TryTransition()
+    {
+        // All callers, including EscapeDoor, must satisfy the same proximity gate.
+        if (!IsEscapeUnlocked || transitioning || !IsPlayerNearExit() ||
+            PauseManager.IsGamePaused || Time.timeScale <= 0f) return false;
         if (!Application.CanStreamedLevelBeLoaded(nextSceneName))
         {
             if (!reportedMissingScene)
                 Debug.LogError($"[EscapeManager] Add '{nextSceneName}' to the build scenes before escaping.", this);
             reportedMissingScene = true;
-            return;
+            return false;
         }
         transitioning = true;
         // Freeze gameplay while the unscaled fade runs so the ghost cannot catch the player.
         Time.timeScale = 0f;
-        // Fix: use FindObjectsByType without the deprecated FindObjectsSortMode parameter.
         foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsInactive.Exclude))
             pause.enabled = false;
         ScreenFadeController fade = ScreenFadeController.Instance;
         if (fade == null) fade = gameObject.AddComponent<ScreenFadeController>();
         fade.FadeToScene(nextSceneName, fadeDuration);
+        return true;
     }
 
     public void RefreshEscapeState()

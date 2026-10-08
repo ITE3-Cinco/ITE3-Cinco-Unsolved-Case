@@ -69,7 +69,7 @@ public class ArtifactCornerScare : MonoBehaviour
 
     private void OnArtifactCountChanged(int count)
     {
-        if (!HasPlayed && count >= requiredArtifacts)
+        if (!HasPlayed && count >= Mathf.Max(1, requiredArtifacts))
             IsArmed = true;
     }
 

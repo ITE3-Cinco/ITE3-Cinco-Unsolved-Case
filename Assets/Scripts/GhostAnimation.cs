@@ -26,9 +26,9 @@ public class GhostAnimation : MonoBehaviour
 
     private void Awake()
     {
-        if (idleClip == null) idleClip = LoadClip("GhostIdle");
-        if (walkingClip == null) walkingClip = LoadClip("GhostWalk");
-        if (screamClip == null) screamClip = LoadClip("GhostScream");
+        if (idleClip == null || !idleClip.isHumanMotion) idleClip = LoadClip("GhostIdle");
+        if (walkingClip == null || !walkingClip.isHumanMotion) walkingClip = LoadClip("GhostWalk");
+        if (screamClip == null || !screamClip.isHumanMotion) screamClip = LoadClip("GhostScream");
 
         Transform existing = transform.Find("White Lady Animated Visual");
         GameObject visual;
@@ -91,7 +91,7 @@ public class GhostAnimation : MonoBehaviour
     private static AnimationClip LoadClip(string name)
     {
         foreach (AnimationClip clip in Resources.LoadAll<AnimationClip>("GhostAnimations/" + name))
-            if (!clip.name.StartsWith("__preview__")) return clip;
+            if (clip.isHumanMotion && !clip.name.StartsWith("__preview__")) return clip;
         return null;
     }
 

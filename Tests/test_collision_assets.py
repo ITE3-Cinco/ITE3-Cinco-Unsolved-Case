@@ -57,7 +57,7 @@ class CollisionAssetsTests(unittest.TestCase):
                         with self.subTest(asset=path, object=name):
                             self.assertEqual(field(collider, "m_Enabled"), "0")
                         checked += 1
-            self.assertEqual(checked, 23, path)
+            self.assertEqual(checked, 24 if path == ASSETS[0] else 23, path)
 
     def test_markers_are_triggers(self):
         for path, (documents, components) in self.assets.items():

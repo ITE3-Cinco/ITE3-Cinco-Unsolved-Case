@@ -13,6 +13,9 @@ public class JumpscareTrigger : MonoBehaviour
     [Header("Optional")]
     public bool facePlayer = true;
 
+    [Header("Artifact Gate")]
+    [Min(1)] public int requiredArtifacts = 1;
+
     private bool triggered;
     private bool playing;
 
@@ -22,8 +25,15 @@ public class JumpscareTrigger : MonoBehaviour
             scareObject.SetActive(false);
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other) => TryPlay(other);
+    private void OnTriggerStay(Collider other) => TryPlay(other);
+
+    private void TryPlay(Collider other)
     {
+        if (Time.timeScale <= 0f || PauseManager.IsGamePaused ||
+            ArtifactManager.Instance == null ||
+            ArtifactManager.Instance.artifactsCollected < Mathf.Max(1, requiredArtifacts)) return;
+
         if (!other.CompareTag("Player"))
             return;
 

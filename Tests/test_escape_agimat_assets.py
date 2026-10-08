@@ -27,7 +27,7 @@ class EscapeAgimatAssetsTests(unittest.TestCase):
         walls = re.search(r'  exitWalls:\n(.*?)  exitDistance:', escape, re.S)[1]
         wall_ids = re.findall(r'fileID: (\d+)', walls)
         self.assertCountEqual([self.object_name(i) for i in wall_ids],
-                             ['ARCH_Wall_Plaster.085', 'ARCH_Wall_Plaster.084 (1)'])
+                             ['ARCH_Wall_Plaster.085'])
         self.assertTrue(all(self.docs[i][0] == 65 for i in wall_ids))
         self.assertEqual(field(escape, 'nextSceneName'), 'Level2')
         self.assertGreater(float(field(escape, 'fadeDuration')), 0)
