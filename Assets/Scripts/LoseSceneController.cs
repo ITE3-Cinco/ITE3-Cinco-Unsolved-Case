@@ -84,6 +84,10 @@ public class LoseSceneController : MonoBehaviour
             return;
         }
 
+        // Re-enable player controls before reloading so they are not
+        // permanently disabled if the scene is reloaded without domain reload.
+        RestorePlayerControls();
+
         Scene currentScene = SceneManager.GetActiveScene();
         if (retrySceneName == currentScene.name || retrySceneName == currentScene.path)
             RespawnPoint.PrepareForRetry(currentScene.path);
@@ -102,8 +106,25 @@ public class LoseSceneController : MonoBehaviour
             return;
         }
 
+        RestorePlayerControls();
         RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
         SceneManager.LoadScene(exitSceneName);
+    }
+
+    /// <summary>
+    /// Re-enables PlayerMovement and MouseLook that were disabled when the ghost caught the player,
+    /// so they are not left in a disabled state if the scene is reloaded without a full domain reload.
+    /// </summary>
+    private static void RestorePlayerControls()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null) return;
+
+        PlayerMovement movement = playerObj.GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = true;
+
+        MouseLook mouseLook = playerObj.GetComponentInChildren<MouseLook>(true);
+        if (mouseLook != null) mouseLook.enabled = true;
     }
 }

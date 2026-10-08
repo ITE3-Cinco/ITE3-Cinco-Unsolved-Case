@@ -6,6 +6,8 @@ public class GhostEnemy : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float moveSpeed = 3f;
+    [Tooltip("Speed used when actively chasing the player. Set higher than moveSpeed for a threatening pursuit.")]
+    public float chaseSpeed = 5f;
     public Transform[] patrolWaypoints;
     private int currentWaypointIndex = 0;
     private Vector3 automaticPatrolCenter;
@@ -21,6 +23,13 @@ public class GhostEnemy : MonoBehaviour
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
+    [Tooltip("When enabled, the ghost only begins chasing if it has a clear line of sight to the player (no walls in between).")]
+    public bool requireLineOfSight = true;
+    [Tooltip("Layer mask used for line-of-sight raycasts. Should include walls/environment but NOT the player or ghost.")]
+    public LayerMask lineOfSightMask = Physics.DefaultRaycastLayers;
+    [Tooltip("How many seconds the ghost keeps chasing after losing sight or detection range of the player.")]
+    [Min(0f)] public float losePlayerCooldown = 3f;
+    private float losePlayerTimer = 0f;
     [Tooltip("Visual reference only. Catching the player is handled by the Rigidbody-free catch check.")]
     public float catchDistance = 1.2f;
     public Transform playerTransform;
@@ -55,6 +64,8 @@ public class GhostEnemy : MonoBehaviour
 
     private bool isCaught = false;
     private bool hasStartedMoving = false;
+    // Tracks the intended moving state set in Update so LateUpdate does not override it.
+    private bool intendedMoving = false;
 
     [Header("Checkpoint Patrol / Agimat")]
     [Min(1f)] public float checkpointPatrolRadius = 18f;
@@ -81,6 +92,7 @@ public class GhostEnemy : MonoBehaviour
         if (requireNavigation && !navigationReady) return;
         safeUntil = Time.time + checkpointGraceDuration;
         isChasing = false;
+        losePlayerTimer = 0f;
         if (navigationReady && navAgent != null && navAgent.isOnNavMesh) navAgent.ResetPath();
         SetNewAutomaticPatrolTarget();
         // Move into the new patrol region without spawning beside the player.
@@ -97,6 +109,7 @@ public class GhostEnemy : MonoBehaviour
     {
         repelledUntil = Mathf.Max(repelledUntil, Time.time + duration);
         isChasing = false;
+        losePlayerTimer = 0f;
         PickRetreatTarget();
     }
 
@@ -196,6 +209,7 @@ public class GhostEnemy : MonoBehaviour
         if (!navigationReady)
             Debug.LogError("[Ghost] No walkable NavMesh near the ghost spawn. Check the environment surface and spawn placement.", this);
 
+        // Resolve the animator from GhostAnimation if present; fall back to any child Animator.
         GhostAnimation animations = GetComponent<GhostAnimation>();
         if (animations != null && animations.Animator != null) animator = animations.Animator;
         if (animator == null) animator = GetComponentInChildren<Animator>();
@@ -205,7 +219,7 @@ public class GhostEnemy : MonoBehaviour
         patrolHeight = transform.position.y;
         hasStartedMoving = !waitForPlayerBeforePatrolling;
         SetNewAutomaticPatrolTarget();
-        SetMovingAnimation(false);
+        ApplyMovingAnimation(false);
         if (RespawnPoint.hasReachedCheckpoint)
             UpdateCheckpointPatrol(RespawnPoint.activeCheckpointPosition);
     }
@@ -227,13 +241,15 @@ public class GhostEnemy : MonoBehaviour
         if (Time.time < repelledUntil || IsPlayerInvisible())
         {
             isChasing = false;
-            SetMovingAnimation(Retreat());
+            losePlayerTimer = 0f;
+            intendedMoving = Retreat();
             return;
         }
         if (Time.time < safeUntil)
         {
             isChasing = false;
-            SetMovingAnimation(distanceToPlayer < playerSafetyDistance ? Retreat() : AutomaticPatrol());
+            losePlayerTimer = 0f;
+            intendedMoving = distanceToPlayer < playerSafetyDistance ? Retreat() : AutomaticPatrol();
             return;
         }
 
@@ -253,7 +269,7 @@ public class GhostEnemy : MonoBehaviour
         if (!hasStartedMoving)
         {
             isChasing = false;
-            SetMovingAnimation(false);
+            intendedMoving = false;
 
             if (distanceToPlayer <= spawnIdleDistance)
                 hasStartedMoving = true;
@@ -263,9 +279,28 @@ public class GhostEnemy : MonoBehaviour
 
         bool isPlayerInvisible = IsPlayerInvisible();
 
-        // Detection radius only controls whether the ghost chases.
-        // Catching is handled separately by the small catch-radius check.
-        isChasing = sameFloor && !isPlayerInvisible && distanceToPlayer <= detectionRadius;
+        // Determine whether the ghost can currently detect the player.
+        bool playerDetected = sameFloor && !isPlayerInvisible && distanceToPlayer <= detectionRadius;
+
+        // Apply line-of-sight check: only start chasing if there is a clear sightline.
+        if (playerDetected && requireLineOfSight)
+            playerDetected = HasLineOfSight();
+
+        // Persist the chase for losePlayerCooldown seconds after losing detection.
+        if (playerDetected)
+        {
+            isChasing = true;
+            losePlayerTimer = losePlayerCooldown;
+        }
+        else if (isChasing)
+        {
+            losePlayerTimer -= Time.deltaTime;
+            if (losePlayerTimer <= 0f)
+            {
+                isChasing = false;
+                losePlayerTimer = 0f;
+            }
+        }
 
         bool isMoving;
 
@@ -274,10 +309,27 @@ public class GhostEnemy : MonoBehaviour
         else
             isMoving = Patrol();
 
-        SetMovingAnimation(isMoving);
+        intendedMoving = isMoving;
 
+        // Keep rotation flat — NavMeshAgent handles yaw; prevent pitch/roll drift.
         Vector3 euler = transform.eulerAngles;
         transform.eulerAngles = new Vector3(0f, euler.y, 0f);
+    }
+
+    /// <summary>Returns true when there is an unobstructed line of sight from the ghost to the player.</summary>
+    private bool HasLineOfSight()
+    {
+        if (playerTransform == null) return false;
+
+        // Cast from the ghost's approximate eye level to the player's center.
+        Vector3 origin = transform.position + Vector3.up * (navAgent.height * 0.85f);
+        Vector3 target = playerTransform.position + Vector3.up * 1f;
+        Vector3 direction = target - origin;
+
+        // Exclude the ghost's own colliders from the cast.
+        int mask = lineOfSightMask & ~(1 << gameObject.layer);
+
+        return !Physics.Raycast(origin, direction.normalized, direction.magnitude, mask, QueryTriggerInteraction.Ignore);
     }
 
     private bool IsPlayerInvisible()
@@ -440,9 +492,11 @@ public class GhostEnemy : MonoBehaviour
         if (playerTransform == null)
             return false;
 
+        float speed = chaseSpeed > moveSpeed ? chaseSpeed : moveSpeed;
+
         if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
-            navAgent.speed = moveSpeed;
+            navAgent.speed = speed;
             navAgent.SetDestination(playerTransform.position);
             return true;
         }
@@ -450,7 +504,7 @@ public class GhostEnemy : MonoBehaviour
         transform.position = Vector3.MoveTowards(
             transform.position,
             playerTransform.position,
-            moveSpeed * Time.deltaTime
+            speed * Time.deltaTime
         );
 
         Vector3 direction = (playerTransform.position - transform.position).normalized;
@@ -469,14 +523,22 @@ public class GhostEnemy : MonoBehaviour
     private void LateUpdate()
     {
         if (Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
-        bool moving = !isCaught && (transform.position - previousPosition).sqrMagnitude > 0.000001f;
+        // Use the intended state set by Update rather than re-deriving from position delta,
+        // which would cause animation flicker when the agent is decelerating or stopped.
+        ApplyMovingAnimation(intendedMoving && !isCaught);
         previousPosition = transform.position;
-        SetMovingAnimation(moving);
     }
 
-    private void SetMovingAnimation(bool moving)
+    private void ApplyMovingAnimation(bool moving)
     {
         GhostAnimation.SetMoving(animator, movingParameter, moving);
+    }
+
+    // Legacy name kept for external callers (e.g. ArtifactCornerScare).
+    private void SetMovingAnimation(bool moving)
+    {
+        intendedMoving = moving;
+        ApplyMovingAnimation(moving);
     }
 
     private void CatchPlayer()
@@ -486,17 +548,26 @@ public class GhostEnemy : MonoBehaviour
 
         isCaught = true;
         isChasing = false;
+        losePlayerTimer = 0f;
         catchCooldownTimer = catchCooldown;
 
         Debug.Log("<color=red>[Ghost]</color> Caught the player!");
 
-        SetMovingAnimation(false);
+        intendedMoving = false;
+        ApplyMovingAnimation(false);
         GhostAnimation.PlayScream(animator, screamParameter);
         if (animator != null) animator.updateMode = AnimatorUpdateMode.UnscaledTime;
         if (navigationReady) navAgent.ResetPath();
 
+        // Disable player controls so they cannot move or look during the lose screen.
         if (playerTransform != null)
         {
+            PlayerMovement movement = playerTransform.GetComponent<PlayerMovement>();
+            if (movement != null) movement.enabled = false;
+
+            MouseLook mouseLook = playerTransform.GetComponentInChildren<MouseLook>();
+            if (mouseLook != null) mouseLook.enabled = false;
+
             PlayerAudio playerAudio = playerTransform.GetComponent<PlayerAudio>();
             if (playerAudio != null)
                 playerAudio.PlayCaught();
@@ -522,5 +593,8 @@ public class GhostEnemy : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, GetCatchDistance());
+        // Draw chase speed indicator as a cyan ring.
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, chaseSpeed * 0.25f);
     }
 }

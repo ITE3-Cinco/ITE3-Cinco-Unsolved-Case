@@ -94,7 +94,8 @@ public class EscapeManager : MonoBehaviour
         transitioning = true;
         // Freeze gameplay while the unscaled fade runs so the ghost cannot catch the player.
         Time.timeScale = 0f;
-        foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsSortMode.None))
+        // Fix: use FindObjectsByType without the deprecated FindObjectsSortMode parameter.
+        foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsInactive.Exclude))
             pause.enabled = false;
         ScreenFadeController fade = ScreenFadeController.Instance;
         if (fade == null) fade = gameObject.AddComponent<ScreenFadeController>();

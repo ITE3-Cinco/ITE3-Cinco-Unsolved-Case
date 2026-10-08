@@ -1,12 +1,12 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class EscapeDoor : MonoBehaviour
 {
     [Header("Door Settings")]
     public string lockedMessage = "Find all the required evidence first.";
     public string unlockedMessage = "The way out is open.";
-    public string nextSceneName = "Level2";
+    [Tooltip("Overrides the scene name on EscapeManager when set. Leave empty to use EscapeManager's configured scene.")]
+    public string nextSceneName = "";
     public bool requirePlayerTrigger = true;
 
     [Header("Optional Door Visual")]
@@ -69,13 +69,40 @@ public class EscapeDoor : MonoBehaviour
 
         ShowMessage(unlockedMessage);
 
-        if (string.IsNullOrWhiteSpace(nextSceneName))
+        // Prefer the EscapeManager's transition (fade + timeScale freeze) over a
+        // raw SceneManager.LoadScene call so the experience is consistent.
+        if (EscapeManager.Instance != null)
         {
-            Debug.LogWarning("[EscapeDoor] Escape is unlocked, but no next scene name is assigned.");
-            return;
-        }
+            // Allow an optional per-door scene override.
+            if (!string.IsNullOrWhiteSpace(nextSceneName))
+                EscapeManager.Instance.nextSceneName = nextSceneName;
 
-        SceneManager.LoadScene(nextSceneName);
+            // Trigger the manager's own transition logic.
+            // The manager's LateUpdate proximity check handles the actual load;
+            // force it immediately by calling the internal method via the public API.
+            // Since EscapeManager.TryTransition is private, we replicate the intent:
+            // freeze time and start the fade here, delegating to the manager's fade path.
+            ScreenFadeController fade = ScreenFadeController.Instance;
+            if (fade == null) fade = gameObject.AddComponent<ScreenFadeController>();
+
+            string scene = string.IsNullOrWhiteSpace(nextSceneName)
+                ? EscapeManager.Instance.nextSceneName
+                : nextSceneName;
+
+            if (!string.IsNullOrWhiteSpace(scene))
+            {
+                Time.timeScale = 0f;
+                fade.FadeToScene(scene, EscapeManager.Instance.fadeDuration);
+            }
+            else
+            {
+                Debug.LogWarning("[EscapeDoor] Escape is unlocked, but no next scene name is configured.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[EscapeDoor] No EscapeManager found. Cannot transition to next scene.");
+        }
     }
 
     private void ShowMessage(string message)

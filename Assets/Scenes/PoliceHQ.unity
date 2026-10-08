@@ -5697,13 +5697,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostEnemy
   moveSpeed: 4.5
-  requireNavigation: 1
-  navMeshPlacementDistance: 4
+  chaseSpeed: 6.5
   patrolWaypoints:
   - {fileID: 377456405}
   - {fileID: 967623085}
   - {fileID: 146934705}
+  requireNavigation: 1
+  navMeshPlacementDistance: 4
   detectionRadius: 12
+  requireLineOfSight: 1
+  lineOfSightMask:
+    serializedVersion: 2
+    m_Bits: 4294967291
+  losePlayerCooldown: 3
   catchDistance: 8
   playerTransform: {fileID: 1231311386}
   useAutomaticPatrol: 1
@@ -5739,6 +5745,7 @@ MonoBehaviour:
   maxDistance: 50
   minDistance: 2
   playOnlyWhileChasing: 0
+  volumeFadeSpeed: 1.5
 --- !u!82 &1186399121
 AudioSource:
   m_ObjectHideFlags: 0
@@ -468149,6 +468156,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8800000000000000012}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8800000000000000021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 41796414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89a7143ebe1a4e929347636a5367a348, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GhostNavigation
+  environmentRoot: {fileID: 1149305370707150393}
+  agentTypeID: 0
+  voxelSize: 0.25
+--- !u!114 &8800000000000000022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1186399117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba3e0202fb844f99d96891a5e49943b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GhostAnimation
+  idleClip: {fileID: 0}
+  walkingClip: {fileID: -203655887218126122, guid: cd5c073a5c10f624eaa98be7e8a4fa79, type: 3}
+  screamClip: {fileID: -203655887218126122, guid: 059465ca4b7d3e14ea2cc5c81e61bd63, type: 3}
+  visualFootOffset: -1.8
+  blendDuration: 0.15
 --- !u!4 &8800668298540583351
 Transform:
   m_ObjectHideFlags: 0
@@ -490613,37 +490652,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0064999997, y: 0.00079999986, z: 0.0023999994}
   m_Center: {x: 0, y: 0, z: -9.313226e-10}
---- !u!114 &8800000000000000021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 41796414}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89a7143ebe1a4e929347636a5367a348, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::GhostNavigation
-  environmentRoot: {fileID: 1149305370707150393}
-  agentTypeID: 0
---- !u!114 &8800000000000000022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1186399117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba3e0202fb844f99d96891a5e49943b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::GhostAnimation
-  idleClip: {fileID: 0}
-  walkingClip: {fileID: 0}
-  screamClip: {fileID: 0}
-  visualFootOffset: -1.8
-  blendDuration: 0.15
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

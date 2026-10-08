@@ -18,13 +18,32 @@ public class InvisibilityConsumable : MonoBehaviour
     [Min(1f)] public float warningDistance = 16f;
     public bool GhostNearby { get; private set; }
     private Inventory inventory;
+    // Populated in Awake so UseInvisibility() called before Start still works.
     private GhostEnemy[] ghosts = System.Array.Empty<GhostEnemy>();
     private Coroutine invisibilityCoroutine;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
+        // Populate ghosts here so the array is ready before Start runs,
+        // ensuring UseInvisibility() works even if called very early.
+        // Fix: use FindObjectsByType without the deprecated FindObjectsSortMode parameter.
+        ghosts = FindObjectsByType<GhostEnemy>(FindObjectsInactive.Exclude);
+    }
 
     private void Start()
     {
         inventory = GetComponent<Inventory>();
-        ghosts = FindObjectsByType<GhostEnemy>(FindObjectsSortMode.None);
+
+        // Refresh in Start in case ghosts were added after Awake.
+        ghosts = FindObjectsByType<GhostEnemy>(FindObjectsInactive.Exclude);
     }
 
     private void Update()
@@ -50,17 +69,6 @@ public class InvisibilityConsumable : MonoBehaviour
         if (NotificationManager.Instance != null)
             NotificationManager.Instance.ShowNotification("Agimat protects you. The ghost retreats.", 3f);
         return true;
-    }
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
     }
 
     public void UseInvisibility()
@@ -97,6 +105,7 @@ public class InvisibilityConsumable : MonoBehaviour
         invisibilityCoroutine = null;
         Debug.Log("<color=purple>[Invisibility Expired]</color> Enemies can see you again!");
     }
+
     private void OnDestroy()
     {
         if (Instance == this)
