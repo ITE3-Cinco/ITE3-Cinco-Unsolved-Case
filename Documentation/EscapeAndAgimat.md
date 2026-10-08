@@ -18,7 +18,7 @@ Within 16 units of the real ghost, carried agimat icons and slot backgrounds pul
 
 Saving a map checkpoint replaces the original waypoint patrol with an automatic patrol centered at its spawn location, including when retrying from that checkpoint. The default patrol radius is 18 units. Candidate points must be at least 12 units from both the checkpoint and player. For six seconds, the ghost cannot chase or catch, and retreats if the player approaches within the safety distance.
 
-The current scene has no baked NavMesh. Candidate destinations are checked for floor support and clear space; the existing ghost movement fallback can pass through walls. If a NavMesh is supplied, sampled patrol points must have complete paths. When no safe point is found, the ghost keeps its current location and retries destination selection; checkpoint grace still applies. Play Mode must verify the available points around all four maps.
+PoliceHQ now builds its NavMesh at startup, and the ghost uses reachable paths for patrol and agimat retreat. It stops if navigation is unavailable. See [Navigation and animation](GhostNavigationAndAnimation.md) for geometry collection, the humanoid rig and required Unity checks.
 
 ## Scares and sound
 

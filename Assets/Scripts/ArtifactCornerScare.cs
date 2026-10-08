@@ -111,7 +111,7 @@ public class ArtifactCornerScare : MonoBehaviour
         visual.transform.localScale = ghost.transform.lossyScale;
 
         foreach (MonoBehaviour behaviour in visual.GetComponentsInChildren<MonoBehaviour>(true))
-            if (behaviour != null)
+            if (behaviour != null && !(behaviour is GhostAnimation))
                 behaviour.enabled = false;
         foreach (NavMeshAgent agent in visual.GetComponentsInChildren<NavMeshAgent>(true))
             agent.enabled = false;
@@ -130,8 +130,6 @@ public class ArtifactCornerScare : MonoBehaviour
         foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
         {
             animator.applyRootMotion = false;
-            // The current static model has no Animator. A rigged replacement
-            // can reuse the patrol controller's optional movement parameter.
             SetMoving(animator, false);
         }
         foreach (Transform child in visual.GetComponentsInChildren<Transform>(true))
@@ -140,10 +138,13 @@ public class ArtifactCornerScare : MonoBehaviour
         Face(player.position - cornerSpawn.position);
         visual.SetActive(true);
         apparition.SetActive(true);
+        float screamDuration = 0f;
+        foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
+            screamDuration = Mathf.Max(screamDuration, GhostAnimation.PlayScream(animator, ghost.screamParameter));
         // Keep the full scream alive after the visual disappears into the wall.
         GhostAudio.PlayScare(scareAudio, playerCamera.transform.position, audioVolume);
 
-        yield return new WaitForSeconds(Mathf.Max(0f, holdDuration));
+        yield return new WaitForSeconds(Mathf.Max(holdDuration, screamDuration));
 
         if (apparition == null || wallExit == null)
         {
@@ -167,13 +168,7 @@ public class ArtifactCornerScare : MonoBehaviour
 
     private void SetMoving(Animator animator, bool moving)
     {
-        if (ghost == null || animator.runtimeAnimatorController == null)
-            return;
-        foreach (AnimatorControllerParameter parameter in animator.parameters)
-        {
-            if (parameter.type == AnimatorControllerParameterType.Bool && parameter.name == ghost.movingParameter)
-                animator.SetBool(parameter.nameHash, moving);
-        }
+        if (ghost != null) GhostAnimation.SetMoving(animator, ghost.movingParameter, moving);
     }
 
     private void Face(Vector3 direction)

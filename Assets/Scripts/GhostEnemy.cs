@@ -12,6 +12,12 @@ public class GhostEnemy : MonoBehaviour
     private Vector3 automaticPatrolTarget;
     private bool hasAutomaticPatrolTarget = false;
     private NavMeshAgent navAgent;
+    private bool navigationReady;
+    private Vector3 previousPosition;
+    [Tooltip("Keep enabled for corridor enemies. A missing NavMesh stops movement instead of passing through walls.")]
+    public bool requireNavigation = true;
+    [Tooltip("Maximum distance used to place the ghost on the level NavMesh at startup.")]
+    public float navMeshPlacementDistance = 4f;
 
     [Header("Detection Settings")]
     public float detectionRadius = 8f;
@@ -32,6 +38,7 @@ public class GhostEnemy : MonoBehaviour
     public float spawnIdleDistance = 8f;
     public Animator animator;
     public string movingParameter = "IsMoving";
+    public string screamParameter = "Scream";
 
     [Header("Catch Settings")]
     [Tooltip("Distance used for the Rigidbody-free physical catch check.")]
@@ -57,6 +64,8 @@ public class GhostEnemy : MonoBehaviour
     private float repelledUntil;
     private bool checkpointPatrol;
     private Vector3 retreatTarget;
+    private bool hasRetreatTarget;
+    private float nextRetreatSelection;
     private float patrolHeight;
 
     private void OnEnable() => RespawnPoint.CheckpointSaved += UpdateCheckpointPatrol;
@@ -65,18 +74,19 @@ public class GhostEnemy : MonoBehaviour
     public void UpdateCheckpointPatrol(Vector3 checkpointPosition)
     {
         automaticPatrolCenter = checkpointPosition;
-        automaticPatrolCenter.y = patrolHeight;
+        automaticPatrolCenter.y = navigationReady ? checkpointPosition.y : patrolHeight;
         checkpointPatrol = true;
         hasStartedMoving = true;
         hasAutomaticPatrolTarget = false;
+        if (requireNavigation && !navigationReady) return;
         safeUntil = Time.time + checkpointGraceDuration;
         isChasing = false;
-        if (navAgent != null && navAgent.isOnNavMesh) navAgent.ResetPath();
+        if (navigationReady && navAgent != null && navAgent.isOnNavMesh) navAgent.ResetPath();
         SetNewAutomaticPatrolTarget();
         // Move into the new patrol region without spawning beside the player.
         if (hasAutomaticPatrolTarget)
         {
-            if (navAgent != null && navAgent.isOnNavMesh)
+            if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
                 navAgent.Warp(automaticPatrolTarget);
             else
                 transform.position = automaticPatrolTarget;
@@ -96,23 +106,45 @@ public class GhostEnemy : MonoBehaviour
         Vector3 away = transform.position - playerTransform.position;
         away.y = 0f;
         if (away.sqrMagnitude < 0.01f) away = -playerTransform.forward;
-        retreatTarget = transform.position + away.normalized * playerSafetyDistance;
-        if (navAgent != null && navAgent.isOnNavMesh &&
-            NavMesh.SamplePosition(retreatTarget, out NavMeshHit hit, 5f, navAgent.areaMask))
-            retreatTarget = hit.position;
+        hasRetreatTarget = false;
+        nextRetreatSelection = Time.time + 0.5f;
+        float bestDistance = away.magnitude;
+        for (int attempt = 0; attempt < 16; attempt++)
+        {
+            Vector3 direction = Quaternion.Euler(0f, attempt * 22.5f, 0f) * away.normalized;
+            Vector3 candidate = transform.position + direction * playerSafetyDistance;
+            if (navigationReady) candidate.y -= navAgent.baseOffset;
+            if (navigationReady && navAgent.isOnNavMesh)
+            {
+                NavMeshQueryFilter filter = new NavMeshQueryFilter
+                { agentTypeID = navAgent.agentTypeID, areaMask = navAgent.areaMask };
+                if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, filter)) continue;
+                candidate = hit.position;
+                NavMeshPath path = new NavMeshPath();
+                if (!navAgent.CalculatePath(candidate, path) || path.status != NavMeshPathStatus.PathComplete) continue;
+            }
+            else if (requireNavigation) return;
+            Vector3 offset = candidate - playerTransform.position;
+            offset.y = 0f;
+            if (offset.magnitude <= bestDistance) continue;
+            bestDistance = offset.magnitude;
+            retreatTarget = candidate;
+            hasRetreatTarget = true;
+        }
+        if (!hasRetreatTarget && navigationReady) navAgent.ResetPath();
     }
 
     private bool Retreat()
     {
-        if (Vector3.Distance(transform.position, retreatTarget) < 1f ||
-            Vector3.Dot(retreatTarget - transform.position, transform.position - playerTransform.position) <= 0f)
+        if (Time.time >= nextRetreatSelection && (!hasRetreatTarget ||
+            (navigationReady && !navAgent.pathPending && navAgent.remainingDistance < 1f)))
             PickRetreatTarget();
-        return MoveTo(retreatTarget, moveSpeed * 1.4f);
+        return hasRetreatTarget && MoveTo(retreatTarget, moveSpeed * 1.4f);
     }
 
     private bool MoveTo(Vector3 destination, float speed)
     {
-        if (navAgent != null && navAgent.isOnNavMesh)
+        if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = speed;
             navAgent.SetDestination(destination);
@@ -123,6 +155,13 @@ public class GhostEnemy : MonoBehaviour
             transform.position = Vector3.MoveTowards(transform.position, destination, speed * Time.deltaTime);
         }
         return true;
+    }
+
+    private void Awake()
+    {
+        navAgent = GetComponent<NavMeshAgent>();
+        // The scene serializes the agent disabled to avoid registration before the build.
+        navAgent.enabled = false;
     }
 
     private void Start()
@@ -137,17 +176,32 @@ public class GhostEnemy : MonoBehaviour
         if (loseSceneController == null)
             loseSceneController = FindAnyObjectByType<LoseSceneController>(FindObjectsInactive.Include);
 
-        navAgent = GetComponent<NavMeshAgent>();
-        if (navAgent != null)
+        navAgent.speed = moveSpeed;
+        navAgent.stoppingDistance = 0.1f;
+        navAgent.updateRotation = true;
+        navAgent.updateUpAxis = false;
+        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+        NavMeshQueryFilter filter = new NavMeshQueryFilter
         {
-            navAgent.speed = moveSpeed;
-            navAgent.stoppingDistance = 0.1f;
-            navAgent.updateRotation = true;
-            // Keep the ghost upright.
-            navAgent.updateUpAxis = false;
+            agentTypeID = navAgent.agentTypeID,
+            areaMask = navAgent.areaMask
+        };
+        Vector3 feet = transform.position - Vector3.up * navAgent.baseOffset;
+        if (NavMesh.SamplePosition(feet, out NavMeshHit spawn, navMeshPlacementDistance, filter))
+        {
+            transform.position = spawn.position + Vector3.up * navAgent.baseOffset;
+            navAgent.enabled = true;
+            navigationReady = navAgent.isOnNavMesh;
         }
+        if (!navigationReady)
+            Debug.LogError("[Ghost] No walkable NavMesh near the ghost spawn. Check the environment surface and spawn placement.", this);
 
-        automaticPatrolCenter = transform.position;
+        GhostAnimation animations = GetComponent<GhostAnimation>();
+        if (animations != null && animations.Animator != null) animator = animations.Animator;
+        if (animator == null) animator = GetComponentInChildren<Animator>();
+        if (animator != null) animator.applyRootMotion = false;
+        previousPosition = transform.position;
+        automaticPatrolCenter = navigationReady ? transform.position - Vector3.up * navAgent.baseOffset : transform.position;
         patrolHeight = transform.position.y;
         hasStartedMoving = !waitForPlayerBeforePatrolling;
         SetNewAutomaticPatrolTarget();
@@ -158,13 +212,17 @@ public class GhostEnemy : MonoBehaviour
 
     private void Update()
     {
-        if (playerTransform == null || isCaught || Time.timeScale <= 0f || PauseManager.IsGamePaused)
+        if (playerTransform == null || isCaught || (requireNavigation && !navigationReady) ||
+            Time.timeScale <= 0f || PauseManager.IsGamePaused)
             return;
 
         if (catchCooldownTimer > 0f)
             catchCooldownTimer -= Time.deltaTime;
 
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        Vector3 playerOffset = playerTransform.position - transform.position;
+        // The agent root follows its base offset while the player root is at their feet.
+        float distanceToPlayer = new Vector2(playerOffset.x, playerOffset.z).magnitude;
+        bool sameFloor = Mathf.Abs(playerOffset.y) <= navAgent.height;
 
         if (Time.time < repelledUntil || IsPlayerInvisible())
         {
@@ -185,7 +243,7 @@ public class GhostEnemy : MonoBehaviour
         if (catchCooldownTimer <= 0f &&
             !isCaught &&
             !IsPlayerInvisible() &&
-            distanceToPlayer <= GetCatchDistance())
+            sameFloor && distanceToPlayer <= GetCatchDistance())
         {
             TryCatchPlayerByDistance();
             if (isCaught)
@@ -207,7 +265,7 @@ public class GhostEnemy : MonoBehaviour
 
         // Detection radius only controls whether the ghost chases.
         // Catching is handled separately by the small catch-radius check.
-        isChasing = !isPlayerInvisible && distanceToPlayer <= detectionRadius;
+        isChasing = sameFloor && !isPlayerInvisible && distanceToPlayer <= detectionRadius;
 
         bool isMoving;
 
@@ -255,7 +313,7 @@ public class GhostEnemy : MonoBehaviour
         if (checkpointPatrol || patrolWaypoints == null || patrolWaypoints.Length == 0)
             return (checkpointPatrol || useAutomaticPatrol) && AutomaticPatrol();
 
-        if (navAgent != null && navAgent.isOnNavMesh)
+        if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             Transform wpNav = patrolWaypoints[currentWaypointIndex];
             if (wpNav == null) return false;
@@ -296,12 +354,15 @@ public class GhostEnemy : MonoBehaviour
 
     private bool AutomaticPatrol()
     {
+        if (hasAutomaticPatrolTarget && checkpointPatrol && playerTransform != null &&
+            Vector3.Distance(automaticPatrolTarget, playerTransform.position) < playerSafetyDistance)
+            hasAutomaticPatrolTarget = false;
         if (!hasAutomaticPatrolTarget)
             SetNewAutomaticPatrolTarget();
 
         if (!hasAutomaticPatrolTarget) return false;
 
-        if (navAgent != null && navAgent.isOnNavMesh)
+        if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = moveSpeed;
             navAgent.SetDestination(automaticPatrolTarget);
@@ -344,12 +405,16 @@ public class GhostEnemy : MonoBehaviour
         {
             Vector2 offset = Random.insideUnitCircle.normalized * Random.Range(patrolRadius * 0.55f, patrolRadius);
             Vector3 candidate = automaticPatrolCenter + new Vector3(offset.x, 0f, offset.y);
-            if (navAgent != null && navAgent.isOnNavMesh)
+            if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
             {
                 if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, navAgent.areaMask)) continue;
                 candidate = hit.position;
                 NavMeshPath path = new NavMeshPath();
                 if (!navAgent.CalculatePath(candidate, path) || path.status != NavMeshPathStatus.PathComplete) continue;
+            }
+            else if (requireNavigation)
+            {
+                return;
             }
             else if (checkpointPatrol)
             {
@@ -375,7 +440,7 @@ public class GhostEnemy : MonoBehaviour
         if (playerTransform == null)
             return false;
 
-        if (navAgent != null && navAgent.isOnNavMesh)
+        if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = moveSpeed;
             navAgent.SetDestination(playerTransform.position);
@@ -401,10 +466,17 @@ public class GhostEnemy : MonoBehaviour
         return true;
     }
 
+    private void LateUpdate()
+    {
+        if (Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
+        bool moving = !isCaught && (transform.position - previousPosition).sqrMagnitude > 0.000001f;
+        previousPosition = transform.position;
+        SetMovingAnimation(moving);
+    }
+
     private void SetMovingAnimation(bool moving)
     {
-        if (animator != null && !string.IsNullOrEmpty(movingParameter))
-            animator.SetBool(movingParameter, moving);
+        GhostAnimation.SetMoving(animator, movingParameter, moving);
     }
 
     private void CatchPlayer()
@@ -419,6 +491,9 @@ public class GhostEnemy : MonoBehaviour
         Debug.Log("<color=red>[Ghost]</color> Caught the player!");
 
         SetMovingAnimation(false);
+        GhostAnimation.PlayScream(animator, screamParameter);
+        if (animator != null) animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        if (navigationReady) navAgent.ResetPath();
 
         if (playerTransform != null)
         {

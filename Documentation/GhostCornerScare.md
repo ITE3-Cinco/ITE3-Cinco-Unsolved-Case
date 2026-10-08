@@ -12,7 +12,7 @@ PoliceHQ has **=== ENEMY === > Artifact 2 Corner Scare**, with editable **Corner
 
 The default corner is in the central corridor beside the interview room: spawn **(-92, 2, 83)**, exit **(-97, 2, 83)**. The route crosses `ARCH_Wall_Plaster.054`. These coordinates refer to the current PoliceHQ layout.
 
-The existing White Lady glTF is a static model with no skin or animation clips. The current exit is smooth ghost movement, not an animated walking cycle. A future rigged ghost can use its existing Animator boolean movement parameter; root motion is disabled on the apparition so the wall-exit route stays in control.
+The White Lady now has a locally generated humanoid rig and animation driver. See [Navigation and animation](GhostNavigationAndAnimation.md) for the walking setup, missing GhostScream clip, and Unity validation steps. Root motion stays disabled so the apparition route controls movement.
 
 ## Inspector controls
 
