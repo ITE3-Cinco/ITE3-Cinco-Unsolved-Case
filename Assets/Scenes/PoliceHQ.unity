@@ -1049,8 +1049,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -641.0377, y: 454.44446}
-  m_SizeDelta: {x: -1282.0754, y: -908.889}
+  m_AnchoredPosition: {x: -641.0377, y: 446.59216}
+  m_SizeDelta: {x: -1282.0754, y: -893.1846}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &148166321
 MonoBehaviour:
@@ -4366,8 +4366,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35.5
-  m_fontSizeBase: 35.5
+  m_fontSize: 32
+  m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5708,7 +5708,7 @@ MonoBehaviour:
   requireLineOfSight: 1
   lineOfSightMask:
     serializedVersion: 2
-    m_Bits: 4294967291
+    m_Bits: 251
   losePlayerCooldown: 3
   catchDistance: 8
   playerTransform: {fileID: 1231311386}
@@ -467966,7 +467966,7 @@ MonoBehaviour:
   activationDistance: 12
   visibilityMask:
     serializedVersion: 2
-    m_Bits: 4294967291
+    m_Bits: 251
   holdDuration: 1.2
   exitSpeed: 2.5
   scareAudio: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
@@ -468089,7 +468089,7 @@ MonoBehaviour:
   activationDistance: 12
   visibilityMask:
     serializedVersion: 2
-    m_Bits: 4294967291
+    m_Bits: 251
   holdDuration: 1.2
   exitSpeed: 2.5
   scareAudio: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
