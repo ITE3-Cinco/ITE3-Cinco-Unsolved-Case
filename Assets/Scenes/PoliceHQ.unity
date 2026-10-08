@@ -4560,7 +4560,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 956517514}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.00043444542, w: 0.99999994}
+  m_LocalRotation: {x: 0, y: 0, z: 0.00043444545, w: 0.99999994}
   m_LocalPosition: {x: -35.104263, y: 0.318, z: 98.930695}
   m_LocalScale: {x: 1, y: -0.019706, z: 1.3992}
   m_ConstrainProportionsScale: 0
@@ -5044,7 +5044,7 @@ Transform:
   m_GameObject: {fileID: 995691846}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.00043444542, w: 0.99999994}
-  m_LocalPosition: {x: -73.268, y: -49.3, z: -50.364}
+  m_LocalPosition: {x: -73.268, y: -43.6, z: -50.364}
   m_LocalScale: {x: 0.3154595, y: 0.22426756, z: 0.2969052}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5175,7 +5175,7 @@ Transform:
   m_GameObject: {fileID: 1028129535}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.00043444542, w: 0.99999994}
-  m_LocalPosition: {x: -108.9, y: -7.1, z: -26.39}
+  m_LocalPosition: {x: -106.243, y: -41.8, z: -22.863}
   m_LocalScale: {x: 0.4798533, y: 0.73005265, z: 0.27830756}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5705,15 +5705,15 @@ MonoBehaviour:
   automaticPatrolPointTolerance: 0.5
   waitForPlayerBeforePatrolling: 0
   spawnIdleDistance: 8
-  checkpointPatrolRadius: 18
-  playerSafetyDistance: 12
-  checkpointGraceDuration: 6
   animator: {fileID: 0}
   movingParameter: IsMoving
   catchRadius: 0.9
   catchCooldown: 1.5
   loseSceneController: {fileID: 1685782108}
   isChasing: 0
+  checkpointPatrolRadius: 18
+  playerSafetyDistance: 12
+  checkpointGraceDuration: 6
 --- !u!114 &1186399120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6222,11 +6222,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InvisibilityConsumable
   duration: 5
-  warningDistance: 16
   isInvisible: 0
   originalMaterial: {fileID: 0}
   invisibleMaterial: {fileID: 0}
   playerRenderer: {fileID: 1231311384}
+  warningDistance: 16
 --- !u!114 &1231311392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -467946,7 +467946,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5fe57081e994d86b6341b0c983cd43a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArtifactCornerScare
   artifactManager: {fileID: 54701496}
   ghost: {fileID: 1186399119}
