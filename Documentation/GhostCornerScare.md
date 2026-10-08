@@ -1,12 +1,12 @@
 # Second-artifact White Lady encounter
 
-PoliceHQ now has **=== ENEMY === > Artifact 2 Corner Scare**, with editable **Corner Spawn** and **Wall Exit** children.
+PoliceHQ has **=== ENEMY === > Artifact 2 Corner Scare**, with editable **Corner Spawn** and **Wall Exit** children. A second encounter is described in [Escape and agimat](EscapeAndAgimat.md).
 
 ## Behaviour
 
 1. Collecting the second of the three required artifacts arms the encounter. Flashlights, consumables, and map checkpoints do not count. Duplicate collection notifications do not increment progress.
 2. It waits until the player is within 12 metres and the corner appears within the middle 80% of the camera view, with no solid collider obstructing the sight line. The event stays armed if the player looks away or collects artifact three before reaching the corner.
-3. A visual copy of the White Lady appears facing the player, plays the existing White Lady sound, and holds for 1.2 seconds.
+3. A visual copy of the White Lady appears facing the player, plays WhiteLady-Scream, and holds for 1.2 seconds.
 4. It moves at 2.5 units/second to the exit point beyond the wall, then disappears. This copy has no active patrol, catch, navigation, or collision behaviour. The original ghost keeps patrolling/chasing normally.
 5. It plays once per level run. Retry reloads the level and resets artifact progress and the encounter. Pausing freezes the visual sequence; disabling its component removes the apparition.
 

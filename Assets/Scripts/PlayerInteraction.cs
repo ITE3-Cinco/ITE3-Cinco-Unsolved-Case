@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem;
 
+[DefaultExecutionOrder(-100)]
 public class PlayerInteraction : MonoBehaviour
 {
     [Header("Raycast Settings")]
@@ -12,10 +13,14 @@ public class PlayerInteraction : MonoBehaviour
     public TMP_Text interactionText;
 
     private Camera mainCam;
+    private InvisibilityConsumable agimat;
+    private Inventory inventory;
 
     private void Start()
     {
         FindMainCamera();
+        agimat = GetComponentInParent<InvisibilityConsumable>();
+        inventory = GetComponentInParent<Inventory>();
 
         if (interactionText != null)
             interactionText.gameObject.SetActive(false);
@@ -23,7 +28,7 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current == null || PauseManager.IsGamePaused)
+        if (Keyboard.current == null || PauseManager.IsGamePaused || Time.timeScale <= 0f)
             return;
 
         if (mainCam == null)
@@ -32,6 +37,21 @@ public class PlayerInteraction : MonoBehaviour
 
             if (mainCam == null)
                 return;
+        }
+
+        bool usePressed = Keyboard.current.eKey.wasPressedThisFrame;
+        ItemData selected = inventory != null ? inventory.GetSelectedItem() : null;
+        bool agimatReady = agimat != null && !agimat.isInvisible && inventory != null && inventory.HasAgimat;
+        // A warning or selected agimat gives defense priority over a nearby pickup.
+        if (agimatReady && (agimat.GhostNearby || (selected != null && selected.isAgimat)))
+        {
+            if (interactionText != null)
+            {
+                interactionText.text = "Press [E] to use Agimat";
+                interactionText.gameObject.SetActive(true);
+            }
+            if (usePressed && agimat.TryUseAgimat()) return;
+            return;
         }
 
         // Cast a ray from the center of the screen.
@@ -66,6 +86,8 @@ public class PlayerInteraction : MonoBehaviour
                 return;
             }
         }
+
+        if (usePressed && agimatReady) agimat.TryUseAgimat();
 
         if (interactionText != null && interactionText.gameObject.activeSelf)
             interactionText.gameObject.SetActive(false);

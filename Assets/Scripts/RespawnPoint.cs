@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class RespawnPoint : MonoBehaviour
 {
+    public static event System.Action<Vector3> CheckpointSaved;
     public static Vector3 activeCheckpointPosition;
     public static Quaternion activeCheckpointRotation;
     public static bool hasReachedCheckpoint = false;
@@ -13,6 +14,7 @@ public class RespawnPoint : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetSession()
     {
+        CheckpointSaved = null;
         ResetCheckpoint();
     }
 
@@ -50,6 +52,7 @@ public class RespawnPoint : MonoBehaviour
         activeCheckpointPosition = GetSpawnPosition();
         activeCheckpointRotation = GetSpawnRotation();
         hasReachedCheckpoint = true;
+        CheckpointSaved?.Invoke(activeCheckpointPosition);
 
         Debug.Log($"<color=green>[Checkpoint Activated]</color> Map checkpoint '{gameObject.name}' is now active. Respawn location: {activeCheckpointPosition}");
 

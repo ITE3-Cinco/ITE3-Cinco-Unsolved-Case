@@ -47,5 +47,6 @@ public class ObjectiveItem : MonoBehaviour
 
         // 3. Render list with permanent "Objectives:" header
         objectiveText.text = $"<color={activeColorHex}>Objectives:</color>\n{flashlightLine}\n{artifactsLine}";
+        if (artifactsCompleted) objectiveText.text += $"\n<color={activeColorHex}>• Escape the corridors.</color>";
     }
 }

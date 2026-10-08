@@ -14,6 +14,7 @@ public class JumpscareTrigger : MonoBehaviour
     public bool facePlayer = true;
 
     private bool triggered;
+    private bool playing;
 
     private void Start()
     {
@@ -26,10 +27,11 @@ public class JumpscareTrigger : MonoBehaviour
         if (!other.CompareTag("Player"))
             return;
 
-        if (onlyOnce && triggered)
+        if (playing || (onlyOnce && triggered))
             return;
 
         triggered = true;
+        playing = true;
         StartCoroutine(PlayJumpscare(other.transform));
     }
 
@@ -49,12 +51,12 @@ public class JumpscareTrigger : MonoBehaviour
             }
         }
 
-        if (scareAudio != null)
-            AudioSource.PlayClipAtPoint(scareAudio, player.position, audioVolume);
+        GhostAudio.PlayScare(scareAudio, player.position, audioVolume);
 
         yield return new WaitForSeconds(visibleDuration);
 
         if (scareObject != null)
             scareObject.SetActive(false);
+        playing = false;
     }
 }

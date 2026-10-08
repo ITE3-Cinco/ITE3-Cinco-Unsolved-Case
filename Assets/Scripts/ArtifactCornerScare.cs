@@ -140,15 +140,8 @@ public class ArtifactCornerScare : MonoBehaviour
         Face(player.position - cornerSpawn.position);
         visual.SetActive(true);
         apparition.SetActive(true);
-        if (scareAudio != null)
-        {
-            AudioSource source = apparition.AddComponent<AudioSource>();
-            source.playOnAwake = false;
-            source.spatialBlend = 1f;
-            source.volume = audioVolume;
-            source.clip = scareAudio;
-            source.Play();
-        }
+        // Keep the full scream alive after the visual disappears into the wall.
+        GhostAudio.PlayScare(scareAudio, playerCamera.transform.position, audioVolume);
 
         yield return new WaitForSeconds(Mathf.Max(0f, holdDuration));
 

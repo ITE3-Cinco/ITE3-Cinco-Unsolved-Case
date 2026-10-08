@@ -16,8 +16,8 @@ class GhostCornerScareTests(unittest.TestCase):
                       if k == 114 and 'Assembly-CSharp::ArtifactCornerScare' in b]
 
     def test_second_artifact_trigger_is_wired_to_existing_gameplay(self):
-        self.assertEqual(len(self.scares), 1)
-        _, scare = self.scares[0]
+        self.assertEqual(len(self.scares), 2)
+        _, scare = next((i, b) for i, b in self.scares if field(b, 'requiredArtifacts') == '2')
         for name, kind in [('artifactManager', 114), ('ghost', 114), ('player', 4),
                            ('playerCamera', 20), ('cornerSpawn', 4), ('wallExit', 4)]:
             self.assertEqual(self.docs[reference(scare, name)][0], kind, name)
@@ -73,7 +73,7 @@ class GhostCornerScareTests(unittest.TestCase):
         return point
 
     def test_exit_route_crosses_a_wall_with_spawn_in_corridor(self):
-        _, scare = self.scares[0]
+        _, scare = next((i, b) for i, b in self.scares if field(b, 'requiredArtifacts') == '2')
         spawn = self.world(reference(scare, 'cornerSpawn'), [0, 0, 0])
         end = self.world(reference(scare, 'wallExit'), [0, 0, 0])
         wall_go = next(i for i, (k, b) in self.docs.items()
