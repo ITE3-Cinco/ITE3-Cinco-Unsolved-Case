@@ -41,7 +41,7 @@ public class PlayerInteraction : MonoBehaviour
             ? Physics.DefaultRaycastLayers
             : interactableLayer.value;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, layerMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, layerMask, QueryTriggerInteraction.Collide))
         {
             // Allow the collider to be on a child object of the actual
             // interactable, which is common for detailed map/item models.
