@@ -6,6 +6,8 @@ public class ArtifactManager : MonoBehaviour
 {
     public static ArtifactManager Instance;
 
+    public event System.Action<int> ArtifactCountChanged;
+
     [Header("Artifact Tracker Settings")]
     public int artifactsCollected = 0;
     public int totalArtifacts = 3;
@@ -26,6 +28,12 @@ public class ArtifactManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     private void Start()
@@ -49,6 +57,7 @@ public class ArtifactManager : MonoBehaviour
 
         artifactsCollected = collectedArtifacts.Count;
         UpdateUI();
+        ArtifactCountChanged?.Invoke(artifactsCollected);
 
         Debug.Log($"Artifact Collected! Progress: {artifactsCollected}/{totalArtifacts}");
 

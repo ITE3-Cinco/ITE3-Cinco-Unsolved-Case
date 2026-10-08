@@ -60,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
         controller.stepOffset = stepOffset;
         controller.slopeLimit = slopeLimit;
         controller.skinWidth = skinWidth;
+        controller.minMoveDistance = 0f;
 
         currentStamina = maxStamina;
 
@@ -80,9 +81,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current == null) return;
+        if (Keyboard.current == null || PauseManager.IsGamePaused || !controller.enabled) return;
 
-        if (controller.isGrounded && velocity.y < 0)
+        bool wasGrounded = controller.isGrounded;
+        if (wasGrounded && velocity.y < 0)
             velocity.y = -2f;
 
         float x = 0f;
@@ -124,16 +126,10 @@ public class PlayerMovement : MonoBehaviour
             staminaSlider.value = currentStamina;
 
         Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
-        CollisionFlags horizontalFlags = controller.Move(move * currentSpeed * Time.deltaTime);
-
-        if ((horizontalFlags & CollisionFlags.Sides) != 0 && isMoving)
-        {
-            // Collision information is intentionally logged only when movement input
-            // is blocked. This makes hidden wall/mesh colliders easy to identify.
-            // Remove/disable this log after the offending collider is fixed.
-        }
-
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
+        // isGrounded describes the previous Move. Check it before moving and
+        // combine horizontal motion and gravity so floor contact is not lost
+        // between two separate Move calls.
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && wasGrounded)
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
         if (Keyboard.current.fKey.wasPressedThisFrame && flashlight != null && hasFlashlight)
@@ -149,7 +145,17 @@ public class PlayerMovement : MonoBehaviour
         }
 
         velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        CollisionFlags flags = controller.Move((move * currentSpeed + velocity) * Time.deltaTime);
+
+        if ((flags & CollisionFlags.Above) != 0 && velocity.y > 0f)
+            velocity.y = 0f;
+        else if ((flags & CollisionFlags.Below) != 0 && velocity.y < 0f)
+            velocity.y = -2f;
+    }
+
+    public void ResetVelocity()
+    {
+        velocity = Vector3.zero;
     }
 
     public void UpdateHeldItem(ItemData currentItem)

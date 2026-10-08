@@ -6,6 +6,33 @@ public class RespawnPoint : MonoBehaviour
     public static Quaternion activeCheckpointRotation;
     public static bool hasReachedCheckpoint = false;
 
+    private static string checkpointScenePath;
+    private static bool retryRequested;
+
+    // Also runs when entering Play Mode with domain reload disabled.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetSession()
+    {
+        ResetCheckpoint();
+    }
+
+    // Only an explicit Try Again can carry a checkpoint through a scene reload.
+    public static bool BeginRun(string scenePath)
+    {
+        bool resume = retryRequested && hasReachedCheckpoint && checkpointScenePath == scenePath;
+        retryRequested = false;
+        if (!resume)
+            ResetCheckpoint();
+        return resume;
+    }
+
+    public static void PrepareForRetry(string scenePath)
+    {
+        retryRequested = hasReachedCheckpoint && checkpointScenePath == scenePath;
+        if (!retryRequested)
+            ResetCheckpoint();
+    }
+
     [Header("Checkpoint Spawn")]
     [Tooltip("Optional child Transform where the player should respawn after interacting with this checkpoint map. If empty, this object's position and rotation are used.")]
     public Transform checkpointSpawnPoint;
@@ -14,18 +41,12 @@ public class RespawnPoint : MonoBehaviour
     [Tooltip("Use only for a scene's starting location. It is not activated by the player and does not count as a discovered checkpoint.")]
     public bool isInitialSpawn = false;
 
-    private void Awake()
-    {
-        // Initial spawn is only a fallback location. Maps must be interacted with
-        // before they become active checkpoints.
-        if (isInitialSpawn && !hasReachedCheckpoint)
-        {
-            SetActivePosition(GetSpawnPosition(), GetSpawnRotation());
-        }
-    }
-
     public void ActivateCheckpoint()
     {
+        if (isInitialSpawn)
+            return;
+
+        checkpointScenePath = gameObject.scene.path;
         activeCheckpointPosition = GetSpawnPosition();
         activeCheckpointRotation = GetSpawnRotation();
         hasReachedCheckpoint = true;
@@ -50,17 +71,13 @@ public class RespawnPoint : MonoBehaviour
             : transform.rotation;
     }
 
-    private static void SetActivePosition(Vector3 position, Quaternion rotation)
-    {
-        activeCheckpointPosition = position;
-        activeCheckpointRotation = rotation;
-    }
-
     public static void ResetCheckpoint()
     {
         activeCheckpointPosition = Vector3.zero;
         activeCheckpointRotation = Quaternion.identity;
         hasReachedCheckpoint = false;
+        checkpointScenePath = null;
+        retryRequested = false;
     }
 
     private void OnDrawGizmos()
