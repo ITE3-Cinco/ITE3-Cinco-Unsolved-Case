@@ -79,6 +79,17 @@ public class Inventory : MonoBehaviour
         return null; // Selected slot is currently empty
     }
 
+    public bool HasAgimat => items.Exists(item => item != null && item.isAgimat);
+
+    public bool ConsumeAgimat()
+    {
+        int index = items.FindIndex(item => item != null && item.isAgimat);
+        if (index < 0) return false;
+        items.RemoveAt(index);
+        SelectSlot(Mathf.Clamp(selectedIndex, 0, Mathf.Max(0, items.Count - 1)));
+        return true;
+    }
+
     public void UpdateHotbarUI()
     {
         if (hotbarUI != null)

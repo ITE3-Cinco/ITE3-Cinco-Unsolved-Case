@@ -1,8 +1,9 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal; // Use HDRP if your project uses High Def pipeline
+using UnityEngine.UI;
 
+/// <summary>Resolution-independent eyelids: black, two slow blinks, then fully open.</summary>
+[DefaultExecutionOrder(-100)]
 public class WakeUpBlinker : MonoBehaviour
 {
     [Header("Eyelid UI Rects")]
@@ -10,115 +11,85 @@ public class WakeUpBlinker : MonoBehaviour
     [SerializeField] private RectTransform bottomLid;
 
     [Header("Animation Settings")]
-    [SerializeField] private float delayBeforeBlink = 0.5f;
+    [Min(0f)] [SerializeField] private float delayBeforeBlink = 0.8f;
+    [Min(0.1f)] [SerializeField] private float blinkSpeedMultiplier = 1f;
+    private float openness;
+    private Canvas eyelidCanvas;
 
-    // Post processing blur parameters
-    private Volume sceneVolume;
-    private DepthOfField depthOfField;
-
-    private void Start()
+    private void Awake()
     {
-        // Find the Global Volume in the PoliceHQ scene to control eye blur
-        sceneVolume = FindAnyObjectByType<Volume>();
-        if (sceneVolume != null && sceneVolume.profile != null)
+        if (topLid == null || bottomLid == null)
         {
-            sceneVolume.profile.TryGet(out depthOfField);
+            Debug.LogError("[WakeUpBlinker] Assign both eyelid images.", this);
+            enabled = false;
+            return;
         }
-
-        // FORCE PITCH BLACK ON START: Ensure eyelids are completely meeting in the center immediately
-        topLid.anchoredPosition = new Vector2(topLid.anchoredPosition.x, 0f);
-        bottomLid.anchoredPosition = new Vector2(bottomLid.anchoredPosition.x, 0f);
-
-        // Start the wake up process immediately when scene loads
-        StartCoroutine(WakeUpRoutine());
+        eyelidCanvas = GetComponent<Canvas>();
+        if (eyelidCanvas != null)
+        {
+            eyelidCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            eyelidCanvas.sortingOrder = 100;
+        }
+        foreach (RectTransform lid in new[] { topLid, bottomLid })
+        {
+            lid.gameObject.SetActive(true);
+            lid.localRotation = Quaternion.identity;
+            lid.localScale = Vector3.one;
+            Image image = lid.GetComponent<Image>();
+            if (image == null) image = lid.gameObject.AddComponent<Image>();
+            image.enabled = true;
+            image.sprite = null;
+            image.color = Color.black;
+            image.raycastTarget = false;
+        }
+        SetOpenness(0f); // Cover the very first rendered frame.
     }
 
-    private IEnumerator WakeUpRoutine()
+    private void LateUpdate()
     {
-        // Force vision to be extremely blurry while eyes are closed/waking up
-        SetBlurAmount(0.1f); 
+        // Let the pause menu remain readable while the scaled blink is suspended.
+        if (eyelidCanvas != null) eyelidCanvas.enabled = !PauseManager.IsGamePaused;
+    }
 
-        // 1. Wait a moment in pitch blackness for a tense atmosphere
+    private IEnumerator Start()
+    {
         yield return new WaitForSeconds(delayBeforeBlink);
-
-        // 2. FIRST BLINK: Eyes open slightly, then shut heavy
-        yield return StartCoroutine(AnimateLidsAndBlur(200f, 0.1f, 0.5f)); // Open slightly, blur stays high
-        yield return StartCoroutine(AnimateLidsAndBlur(0f, 0.1f, 0.2f));   // Snap shut completely
-        yield return new WaitForSeconds(0.4f);
-
-        // 3. SECOND BLINK: Open wider, vision begins to slightly clear up
-        yield return StartCoroutine(AnimateLidsAndBlur(400f, 1.5f, 0.6f)); // Eyes open mid-way, blur starts lifting
-        yield return StartCoroutine(AnimateLidsAndBlur(150f, 0.8f, 0.3f)); // Heavy groop down, eyes focus drops again
-        yield return new WaitForSeconds(0.3f);
-
-        // 4. FINAL WAKE UP: Eyelids exit screen completely, vision clears to crystal sharp perfect focus
-        float screenHeight = Screen.height;
-        yield return StartCoroutine(AnimateLidsAndBlur(screenHeight, 10f, 1.2f)); // 10f focus distance means completely sharp vision
-
-        // Disable post-processing blur overrides completely so gameplay is completely unaffected
-        if (depthOfField != null)
-        {
-            depthOfField.focusDistance.overrideState = false;
-        }
-
-        // Disable the canvas to save runtime performance
+        yield return AnimateLids(0.22f, 1.1f);
+        yield return AnimateLids(0f, 0.55f);
+        yield return new WaitForSeconds(0.45f);
+        yield return AnimateLids(0.55f, 1.4f);
+        yield return AnimateLids(0f, 0.65f);
+        yield return new WaitForSeconds(0.35f);
+        yield return AnimateLids(1f, 2.4f);
         gameObject.SetActive(false);
     }
 
-    // Animate eyelids and blur focus distance over time
-    private IEnumerator AnimateLidsAndBlur(float targetOffset, float targetFocusDistance, float duration)
+    private IEnumerator AnimateLids(float target, float duration)
     {
-        // Store initial positions and focus distance
-        float time = 0;
-
-        // Store initial positions of the eyelids
-        Vector2 topStart = topLid.anchoredPosition;
-        Vector2 bottomStart = bottomLid.anchoredPosition;
-
-        // Calculate target positions for the eyelids based on the target offset
-        Vector2 topTarget = new Vector2(topStart.x, targetOffset);
-        Vector2 bottomTarget = new Vector2(bottomStart.x, -targetOffset);
-
-        // Store the initial focus distance of the depth of field effect
-        float startFocus = depthOfField != null ? depthOfField.focusDistance.value : 10f;
-
-        // Animate over the specified duration
-        while (time < duration)
+        float start = openness;
+        float elapsed = 0f;
+        while (elapsed < duration)
         {
-            // Increment time based on the frame's delta time
-            time += Time.deltaTime;
-            float t = Mathf.SmoothStep(0, 1, time / duration);
-            
-            // Move eyelids smoothly
-            topLid.anchoredPosition = Vector2.Lerp(topStart, topTarget, t);
-            bottomLid.anchoredPosition = Vector2.Lerp(bottomStart, bottomTarget, t);
-            
-            // Linear interpolate the blur focus distance smoothly
-            if (depthOfField != null)
-            {
-                // Ensure the Depth of Field effect is enabled and set to the desired focus distance
-                depthOfField.focusDistance.overrideState = true;
-                depthOfField.focusDistance.value = Mathf.Lerp(startFocus, targetFocusDistance, t);
-            }
-
-            // Wait for the next frame before continuing the loop
+            elapsed += Time.deltaTime * Mathf.Max(0.1f, blinkSpeedMultiplier);
+            SetOpenness(Mathf.Lerp(start, target, Mathf.SmoothStep(0f, 1f, elapsed / duration)));
             yield return null;
         }
-
-        // Ensure final positions and focus distance are set precisely
-        topLid.anchoredPosition = topTarget;
-        bottomLid.anchoredPosition = bottomTarget;
-        SetBlurAmount(targetFocusDistance); // Ensure final focus distance is set precisely
+        SetOpenness(target);
     }
 
-    // Helper method to set the blur focus distance
-    private void SetBlurAmount(float focusDistanceValue)
+    private void SetOpenness(float value)
     {
-        // Ensure the Depth of Field effect is enabled and set to the desired focus distance
-        if (depthOfField != null)
-        {
-            depthOfField.focusDistance.overrideState = true;
-            depthOfField.focusDistance.value = focusDistanceValue;
-        }
+        openness = Mathf.Clamp01(value);
+        // Anchors are fractions of the canvas, so CanvasScaler and aspect-ratio
+        // changes cannot leave the old 100-pixel strips at the screen edges.
+        float shift = openness * 0.51f;
+        topLid.anchorMin = new Vector2(0f, 0.5f + shift);
+        topLid.anchorMax = new Vector2(1f, 1f + shift);
+        bottomLid.anchorMin = new Vector2(0f, -shift);
+        bottomLid.anchorMax = new Vector2(1f, 0.5f - shift);
+        topLid.offsetMin = new Vector2(0f, -1f);
+        topLid.offsetMax = Vector2.zero;
+        bottomLid.offsetMin = Vector2.zero;
+        bottomLid.offsetMax = new Vector2(0f, 1f);
     }
 }

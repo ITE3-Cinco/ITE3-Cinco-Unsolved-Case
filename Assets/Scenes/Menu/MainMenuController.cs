@@ -3,7 +3,6 @@ using UnityEngine.SceneManagement; // Used to load scenes and detect scene chang
 using UnityEngine.UI; // Used for UI elements like sliders and buttons.
 using UnityEngine.Audio; // Used to control the audio mixer.
 using UnityEngine.Rendering; // Used for accessing the Volume component and its profile.
-using UnityEngine.Rendering.Universal; // Use HDRP if your project uses High Def pipeline
 
 
 public class MainMenuController : MonoBehaviour
@@ -48,7 +47,7 @@ public class MainMenuController : MonoBehaviour
 
     // Private fields to store the current volume and color adjustments for brightness control.
     private Volume currentVolume;
-    private ColorAdjustments colorAdjustments;
+    private SceneBrightness sceneBrightness;
     private bool isPersistentInstance;
 
     private void Awake()
@@ -138,7 +137,7 @@ public class MainMenuController : MonoBehaviour
     {
         // 1. Re-locate the Global Volume in the freshly loaded scene
         Volume newVolume = null;
-        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
+        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         foreach (Volume volume in sceneVolumes)
         {
             if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
@@ -166,12 +165,11 @@ public class MainMenuController : MonoBehaviour
     private void FetchVolumeProfile(Volume targetVolume)
     {
         currentVolume = targetVolume;
-
-        if (targetVolume != null && targetVolume.profile != null)
-        {
-            // Read the ColorAdjustments effect from the volume profile.
-            targetVolume.profile.TryGet(out colorAdjustments);
-        }
+        sceneBrightness = null;
+        if (targetVolume == null) return;
+        sceneBrightness = targetVolume.GetComponent<SceneBrightness>();
+        if (sceneBrightness == null)
+            sceneBrightness = targetVolume.gameObject.AddComponent<SceneBrightness>();
     }
 
     public void PlayGame()
@@ -269,21 +267,26 @@ public class MainMenuController : MonoBehaviour
     // Call this inside your ApplyLoadedSettingsToNewScene() method
     public void SetBrightness(float sliderValue)
     {
+        // Scene-local menu callbacks must adjust the persistent controller's volume.
+        if (Instance != null && Instance != this)
+        {
+            Instance.SetBrightness(sliderValue);
+            return;
+        }
+        if (currentVolume == null)
+        {
+            foreach (Volume volume in FindObjectsByType<Volume>(FindObjectsSortMode.None))
+                if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
+                {
+                    FetchVolumeProfile(volume);
+                    break;
+                }
+        }
         // Keep the selected brightness value for the next session.
         sliderValue = Mathf.Clamp(sliderValue, 0f, 10f);
         PlayerPrefs.SetFloat("Brightness", sliderValue);
 
-        // Convert the 0–10 UI slider into an exposure modifier (-2.0 to +2.0 eV).
-        float normalizedValue = Mathf.Clamp01(sliderValue / 10f);
-        float exposureOffset = Mathf.Lerp(-2f, 2f, normalizedValue);
-
-        if (currentVolume != null && currentVolume.profile != null)
-        {
-            if (currentVolume.profile.TryGet(out colorAdjustments))
-            {
-                colorAdjustments.postExposure.overrideState = true;
-                colorAdjustments.postExposure.value = exposureOffset;
-            }
-        }
+        if (sceneBrightness != null)
+            sceneBrightness.Apply(sliderValue);
     }
 }

@@ -13,21 +13,40 @@ public class LoseSceneController : MonoBehaviour
     public Button exitButton;
 
     [Header("References")]
+    [Tooltip("The existing Lose Canvas/UI panel in the gameplay scene.")]
     public GameObject loseCanvas;
+
+    private bool isShowing;
+
+    private void Awake()
+    {
+        // If this controller is placed directly on the Lose Canvas,
+        // use that object automatically.
+        if (loseCanvas == null)
+            loseCanvas = gameObject;
+
+        if (loseCanvas != null && !isShowing)
+            loseCanvas.SetActive(false);
+    }
 
     private void Start()
     {
-        // This is a dedicated Lose Scene, so the lose canvas should be visible by default.
-        if (loseCanvas != null)
-            loseCanvas.SetActive(true);
+        SetupButtons();
+    }
 
+    private void SetupButtons()
+    {
         if (tryAgainButton != null)
+        {
+            tryAgainButton.onClick.RemoveListener(TryAgain);
             tryAgainButton.onClick.AddListener(TryAgain);
+        }
 
         if (exitButton != null)
+        {
+            exitButton.onClick.RemoveListener(Exit);
             exitButton.onClick.AddListener(Exit);
-
-        Time.timeScale = 1f;
+        }
     }
 
     private void OnDestroy()
@@ -41,21 +60,75 @@ public class LoseSceneController : MonoBehaviour
 
     public void ShowLoseScreen()
     {
+        // Set before activation: an initially inactive controller can Awake here.
+        isShowing = true;
+        // If the controller is on the Canvas itself, use that Canvas.
+        if (loseCanvas == null)
+            loseCanvas = gameObject;
+
         if (loseCanvas != null)
             loseCanvas.SetActive(true);
 
+        // If the Canvas was inactive at scene start, make sure the
+        // buttons are wired now that the lose UI is being shown.
+        SetupButtons();
+
+        Debug.Log("[LoseSceneController] Lose Canvas activated.");
+
         Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void TryAgain()
     {
+        if (string.IsNullOrWhiteSpace(retrySceneName))
+        {
+            Debug.LogError("[LoseSceneController] Retry scene name is empty.");
+            return;
+        }
+
+        // Re-enable player controls before reloading so they are not
+        // permanently disabled if the scene is reloaded without domain reload.
+        RestorePlayerControls();
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        if (retrySceneName == currentScene.name || retrySceneName == currentScene.path)
+            RespawnPoint.PrepareForRetry(currentScene.path);
+        else
+            RespawnPoint.ResetCheckpoint();
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(retrySceneName);
     }
 
     public void Exit()
     {
+        if (string.IsNullOrWhiteSpace(exitSceneName))
+        {
+            Debug.LogError("[LoseSceneController] Exit scene name is empty.");
+            return;
+        }
+
+        RestorePlayerControls();
+        RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
         SceneManager.LoadScene(exitSceneName);
+    }
+
+    /// <summary>
+    /// Re-enables PlayerMovement and MouseLook that were disabled when the ghost caught the player,
+    /// so they are not left in a disabled state if the scene is reloaded without a full domain reload.
+    /// </summary>
+    private static void RestorePlayerControls()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null) return;
+
+        PlayerMovement movement = playerObj.GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = true;
+
+        MouseLook mouseLook = playerObj.GetComponentInChildren<MouseLook>(true);
+        if (mouseLook != null) mouseLook.enabled = true;
     }
 }

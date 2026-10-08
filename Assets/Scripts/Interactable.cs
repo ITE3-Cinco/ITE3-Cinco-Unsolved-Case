@@ -131,9 +131,15 @@ public class Interactable : MonoBehaviour
             {
                 NotificationManager.Instance.ShowNotification("Flashlight Acquired! Press [F] to toggle", 4.0f);
             }
-            else if (itemData != null)
+            else if (itemData != null && itemData.isAgimat)
             {
-                NotificationManager.Instance.ShowNotification("Acquired an artifact!", 3.0f);
+                NotificationManager.Instance.ShowNotification("Agimat acquired! Press [E] to use when it glows.", 4f);
+            }
+            else if (isArtifact)
+            {
+                bool complete = ArtifactManager.Instance != null &&
+                    ArtifactManager.Instance.artifactsCollected >= ArtifactManager.Instance.totalArtifacts;
+                NotificationManager.Instance.ShowNotification(complete ? EscapeManager.EscapeObjective : "Acquired an artifact!", 5f);
             }
         }
 

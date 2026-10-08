@@ -7,8 +7,12 @@ public class PlayerAudio : MonoBehaviour
     [Header("Footsteps")]
     public AudioClip footstepClip;
     public float walkStepInterval = 0.45f;
-    public float runStepInterval = 0.28f;
+    public float runStepInterval = 0.24f;
     [Range(0f, 1f)] public float footstepVolume = 0.65f;
+    [Tooltip("Playback speed of footsteps while walking.")]
+    public float walkFootstepPitch = 1f;
+    [Tooltip("Playback speed of footsteps while running/sprinting.")]
+    public float runFootstepPitch = 1.18f;
 
     [Tooltip("Prevents a new footstep from starting while the previous one is still playing.")]
     public bool preventFootstepOverlap = true;
