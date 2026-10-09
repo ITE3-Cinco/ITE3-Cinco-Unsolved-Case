@@ -13,6 +13,10 @@ public class GhostNavigation : MonoBehaviour
     [Tooltip("Voxel size used for the runtime NavMesh bake. Smaller values are more accurate but significantly slower. 0.25 is a good balance for corridor-scale levels.")]
     [Min(0.05f)] public float voxelSize = 0.25f;
 
+    [Tooltip("Optional scene-specific clearance. Zero preserves the project's agent settings.")]
+    [Min(0f)] public float agentRadiusOverride;
+    [Min(0f)] public float agentHeightOverride;
+
     private NavMeshData data;
     private NavMeshDataInstance instance;
 
@@ -58,6 +62,8 @@ public class GhostNavigation : MonoBehaviour
         }
         bounds.Expand(2f);
         NavMeshBuildSettings settings = NavMesh.GetSettingsByID(agentTypeID);
+        if (agentRadiusOverride > 0f) settings.agentRadius = agentRadiusOverride;
+        if (agentHeightOverride > 0f) settings.agentHeight = agentHeightOverride;
         settings.overrideVoxelSize = true;
         // Use the configurable voxelSize instead of the previous hard-coded 0.1f,
         // which was unnecessarily fine and caused slow bake times.
