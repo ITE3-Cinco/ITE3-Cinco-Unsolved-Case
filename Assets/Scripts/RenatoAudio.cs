@@ -69,7 +69,9 @@ public class RenatoAudio : MonoBehaviour
         // without using sound or tracking the player's hidden position.
         bool chasing = active && enemy.State == RenatoEnemy.BehaviourState.Chase;
         float step = deltaTime / Mathf.Max(0.1f, fadeDuration);
-        FadeLoop(whistleSource, active && !chasing ? whistleVolume : 0f, whistleVolume * step);
+        bool walking = active && !chasing && enemy.animations != null &&
+            enemy.animations.isActiveAndEnabled && enemy.animations.IsWalking;
+        FadeLoop(whistleSource, walking ? whistleVolume : 0f, whistleVolume * step);
         FadeLoop(chaseSource, chasing ? chaseVolume : 0f, chaseVolume * step);
         if (ambienceSource != null)
         {

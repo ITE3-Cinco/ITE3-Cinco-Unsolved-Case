@@ -75,6 +75,7 @@ public class Level3GameplayTests
             AnimationClip clip = (AnimationClip)Get(animation, field);
             Assert.That(clip, Is.Not.Null, field);
             Assert.That(clip.isHumanMotion, Is.True, field);
+            Assert.That(clip.length, Is.GreaterThan(0f), field);
         }
     }
 
@@ -168,6 +169,11 @@ public class Level3GameplayTests
         Assert.That(chase.outputAudioMixerGroup.name, Is.EqualTo("MusicVolume"));
         MethodInfo mix = audio.GetType().GetMethod("UpdateMix", BindingFlags.Instance | BindingFlags.NonPublic);
         Action<float> tick = dt => mix.Invoke(audio, new object[] { dt });
+        Component animation = Find("RenatoAnimation");
+        PropertyInfo walking = animation.GetType().GetProperty("IsWalking");
+        tick(2f);
+        Assert.That(whistle.volume, Is.Zero, "Stationary Renato must not whistle.");
+        walking.GetSetMethod(true).Invoke(animation, new object[] { true });
         tick(2f);
         Assert.That(whistle.volume, Is.EqualTo(0.7f).Within(0.001f));
         Assert.That(chase.volume, Is.Zero);
@@ -186,6 +192,13 @@ public class Level3GameplayTests
         tick(1f);
         Assert.That(chase.volume, Is.Zero);
         Assert.That(whistle.volume, Is.EqualTo(0.7f).Within(0.001f));
+        walking.GetSetMethod(true).Invoke(animation, new object[] { false });
+        foreach (string roomState in new[] { "Crouch", "Search", "Stand" })
+        {
+            state.SetValue(enemy, Enum.Parse(state.FieldType, roomState));
+            tick(2f);
+            Assert.That(whistle.volume, Is.Zero, roomState);
+        }
         Call(Find("PlayerAudio"), "Awake");
         Call(Find("Level3Flow"), "Caught");
         Assert.That(Time.timeScale, Is.Zero);

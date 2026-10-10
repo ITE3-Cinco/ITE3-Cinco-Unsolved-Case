@@ -2,7 +2,10 @@ fileFormatVersion: 2
 guid: 3c6dcc1eac128cd4a90036a6c88b2f38
 ModelImporter:
   serializedVersion: 24501
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      74: 7400000
+    second: mixamo.com
   externalObjects: {}
   materials:
     materialImportMode: 2
@@ -102,9 +105,9 @@ ModelImporter:
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   autoGenerateAvatarMappingIfUnspecified: 1
-  animationType: 2
+  animationType: 3
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0
