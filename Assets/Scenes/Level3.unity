@@ -11900,6 +11900,7 @@ MonoBehaviour:
   pauseButton: {fileID: 51655871}
   fade: {fileID: 2200000004}
   endingFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  endingTypewriterFont: {fileID: 12800000, guid: 9ee14ceff7cb4c41aff64583cc5c291a, type: 3}
   endingClip: {fileID: 32900000, guid: 08bd4e725285e224a9c7c67c16f45216, type: 3}
   endingAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   fadeDuration: 1.5
