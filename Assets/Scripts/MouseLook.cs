@@ -51,7 +51,8 @@ public class MouseLook : MonoBehaviour
 
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (hasFocus && !PauseManager.IsGamePaused)
+        if (hasFocus && isActiveAndEnabled && Time.timeScale > 0f &&
+            !PauseManager.IsGamePaused && !SceneTransition.IsLoading)
             LockCursor();
     }
 
