@@ -243,6 +243,13 @@ MonoBehaviour:
   tryAgainButton: {fileID: 866469883}
   exitButton: {fileID: 1624933367}
   loseCanvas: {fileID: 884894203}
+  gameplayUIToHide:
+  - {fileID: 818519417}
+  - {fileID: 1354073604}
+  - {fileID: 944600238}
+  - {fileID: 146216778}
+  - {fileID: 789907161}
+  - {fileID: 1926446773}
 --- !u!1 &26380762
 GameObject:
   m_ObjectHideFlags: 0
@@ -11887,6 +11894,8 @@ MonoBehaviour:
   caughtCamera: {fileID: 762294954}
   caughtFaceDistance: 0.65
   caughtFieldOfView: 40
+  caughtLightIntensity: 5
+  caughtLightOffset: {x: -0.25, y: 0.15, z: 0}
   pauseManager: {fileID: 1151497367}
   pauseButton: {fileID: 51655871}
   fade: {fileID: 2200000004}
