@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(100)]
 public class PlayerRespawn : MonoBehaviour
 {
     [Header("Fallback Spawn")]
@@ -23,12 +24,24 @@ public class PlayerRespawn : MonoBehaviour
         startingPosition = transform.position;
         startingRotation = transform.rotation;
         resumeCheckpoint = RespawnPoint.BeginRun(gameObject.scene.path);
+        // Inactive pickups also need identities before any sibling is removed.
+        foreach (GameObject root in gameObject.scene.GetRootGameObjects())
+        foreach (Interactable item in root.GetComponentsInChildren<Interactable>(true))
+            _ = item.CollectionId;
     }
 
     private void Start()
     {
         if (resumeCheckpoint)
+        {
+            CollectionProgress.Restore(gameObject.scene);
             Respawn();
+        }
+        else
+        {
+            // The level entrance is the retry baseline, including carried history.
+            CollectionProgress.Save(gameObject.scene);
+        }
     }
 
     private void Update()

@@ -2,6 +2,28 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
+    private string collectionId;
+    public string CollectionId
+    {
+        get
+        {
+            if (collectionId == null) CacheCollectionId();
+            return collectionId;
+        }
+    }
+
+    protected virtual void Awake() => CacheCollectionId();
+
+    private void CacheCollectionId()
+    {
+        if (collectionId != null) return;
+        // Cache before pickups are destroyed and sibling indices can change.
+        string path = "";
+        for (Transform node = transform; node != null; node = node.parent)
+            path = "/" + node.GetSiblingIndex() + ":" + node.name + path;
+        collectionId = gameObject.scene.path + path;
+    }
+
     public string promptMessage = "Press [E] to pick up";
 
     [Header("Inventory Integration")]
@@ -161,6 +183,8 @@ public class Interactable : MonoBehaviour
         // ---------------------------------------------------------------
         // 8. REMOVE 3D WORLD OBJECT
         // ---------------------------------------------------------------
+        CollectionProgress.Record(this);
+        gameObject.SetActive(false);
         Destroy(gameObject);
     }
 }
