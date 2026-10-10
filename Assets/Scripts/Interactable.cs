@@ -21,7 +21,7 @@ public class Interactable : MonoBehaviour
     [Tooltip("Optional: Drag the ObjectiveItem for the flashlight task here. If left empty, the script will find it automatically.")]
     public ObjectiveItem flashlightObjective;
 
-    public void Interact(GameObject playerObject)
+    public virtual void Interact(GameObject playerObject)
     {
         Debug.Log($"[Interactable] Interact called on '{gameObject.name}'. isArtifact={isArtifact}, isCheckpoint={isCheckpoint}");
 
@@ -139,7 +139,11 @@ public class Interactable : MonoBehaviour
             {
                 bool complete = ArtifactManager.Instance != null &&
                     ArtifactManager.Instance.artifactsCollected >= ArtifactManager.Instance.totalArtifacts;
-                NotificationManager.Instance.ShowNotification(complete ? EscapeManager.EscapeObjective : "Acquired an artifact!", 5f);
+                ArtifactManager tracker = ArtifactManager.Instance;
+                string message = tracker != null
+                    ? (complete ? tracker.completedMessage : tracker.collectedMessage)
+                    : "Acquired an artifact!";
+                NotificationManager.Instance.ShowNotification(message, 5f);
             }
         }
 

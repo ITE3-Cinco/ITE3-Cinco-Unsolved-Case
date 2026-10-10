@@ -243,6 +243,13 @@ MonoBehaviour:
   tryAgainButton: {fileID: 866469883}
   exitButton: {fileID: 1624933367}
   loseCanvas: {fileID: 884894203}
+  gameplayUIToHide:
+  - {fileID: 818519417}
+  - {fileID: 1354073604}
+  - {fileID: 944600238}
+  - {fileID: 146216778}
+  - {fileID: 789907161}
+  - {fileID: 1926446773}
 --- !u!1 &26380762
 GameObject:
   m_ObjectHideFlags: 0
@@ -1687,7 +1694,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   walkSpeed: 3
-  runSpeed: 5.5
+  runSpeed: 5
   gravity: -9.81
   jumpHeight: 2
   stepOffset: 0.3
@@ -1696,6 +1703,9 @@ MonoBehaviour:
   maxStamina: 100
   staminaDrainRate: 25
   staminaRegenRate: 10
+  useLowStaminaSprintBoost: 1
+  sprintBoostThreshold: 45
+  lowStaminaRunSpeed: 5.5
   currentStamina: 100
   staminaSlider: {fileID: 990109463}
   flashlight: {fileID: 147553526}
@@ -5111,6 +5121,114 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 949764017}
   m_CullTransparentMesh: 1
+--- !u!1001 &979779111
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 29.636
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.573
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.598
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      propertyPath: m_Name
+      value: Key
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 979779113}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 979779114}
+  m_SourcePrefab: {fileID: 100100000, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+--- !u!1 &979779112 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: de4ea431851dffb4f8aacd7fc5128ec5, type: 3}
+  m_PrefabInstance: {fileID: 979779111}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &979779113
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979779112}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.15, y: 0.026294708, z: 0.15}
+  m_Center: {x: 0, y: -0.0010733604, z: 0}
+--- !u!114 &979779114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979779112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a264ac1ca7d4a639d8e121b41fd09a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Level3Key
+  promptMessage: Press [E] to collect the main door key
+  itemData: {fileID: 11400000, guid: d0283b50f3e94d898a6f8adb286759a1, type: 2}
+  isCheckpoint: 0
+  checkpoint: {fileID: 0}
+  isArtifact: 0
+  flashlightObjective: {fileID: 1769037160}
+  flow: {fileID: 2200000002}
 --- !u!1 &990109461
 GameObject:
   m_ObjectHideFlags: 0
@@ -9497,7 +9615,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.5}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10109,7 +10227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectiveItem
   objectiveText: {fileID: 1769037161}
-  primaryObjective: Escape the asylum.
+  primaryObjective: Find the key, then escape through the main door.
   flashlightPickedUp: 0
   artifactsCompleted: 0
   activeColorHex: '#FFFFFF'
@@ -11771,13 +11889,22 @@ MonoBehaviour:
   renato: {fileID: 2200000012}
   loseController: {fileID: 13603252}
   mainExit: {fileID: 2200000022}
+  objective: {fileID: 1769037160}
+  keyItem: {fileID: 11400000, guid: d0283b50f3e94d898a6f8adb286759a1, type: 2}
+  caughtCamera: {fileID: 762294954}
+  caughtFaceDistance: 0.65
+  caughtFieldOfView: 40
+  caughtLightIntensity: 5
+  caughtLightOffset: {x: -0.25, y: 0.15, z: 0}
   pauseManager: {fileID: 1151497367}
   pauseButton: {fileID: 51655871}
   fade: {fileID: 2200000004}
   endingFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  endingTypewriterFont: {fileID: 12800000, guid: 9ee14ceff7cb4c41aff64583cc5c291a, type: 3}
   endingClip: {fileID: 32900000, guid: 08bd4e725285e224a9c7c67c16f45216, type: 3}
   endingAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   fadeDuration: 1.5
+  successMessageDuration: 3
 --- !u!114 &2200000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12774,7 +12901,7 @@ MonoBehaviour:
   priority: 10
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 0}
+  sharedProfile: {fileID: 11400000, guid: 77d630cf92b2ae940af973ed097fb7fd, type: 2}
 --- !u!114 &2200000403
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12794,11 +12921,12 @@ SceneRoots:
   - {fileID: 664003325}
   - {fileID: 1703976379}
   - {fileID: 1056893394}
+  - {fileID: 2200000401}
   - {fileID: 2136695090}
   - {fileID: 1862841237}
   - {fileID: 801471926}
+  - {fileID: 979779111}
   - {fileID: 72852679}
   - {fileID: 1579389038}
   - {fileID: 2200000011}
   - {fileID: 2200000001}
-  - {fileID: 2200000401}

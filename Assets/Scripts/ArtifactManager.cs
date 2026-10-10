@@ -12,6 +12,10 @@ public class ArtifactManager : MonoBehaviour
     public int artifactsCollected = 0;
     public int totalArtifacts = 3;
 
+    [Header("Pickup Messages")]
+    public string collectedMessage = "Acquired an artifact!";
+    public string completedMessage = EscapeManager.EscapeObjective;
+
     [Header("UI References")]
     public TextMeshProUGUI artifactCounterText; // Option icon counter (e.g., 0/3)
     public ObjectiveItem artifactObjective;    // Drag your ObjectiveItem script here

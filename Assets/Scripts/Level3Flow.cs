@@ -13,17 +13,34 @@ public class Level3Flow : MonoBehaviour
     public RenatoEnemy renato;
     public LoseSceneController loseController;
     public BoxCollider mainExit;
+    public ObjectiveItem objective;
+    public ItemData keyItem;
+    public bool HasKey { get; private set; }
+    public const string ExitObjective = "Escape through the main door.";
+    [Header("Caught camera")]
+    public Camera caughtCamera;
+    [Min(0.2f)] public float caughtFaceDistance = 0.65f;
+    [Range(20f, 90f)] public float caughtFieldOfView = 40f;
+    [Header("Caught face spotlight")]
+    [Min(0f)] public float caughtLightIntensity = 5f;
+    [Tooltip("Offset from the caught camera, giving the face light a slight side angle.")]
+    public Vector3 caughtLightOffset = new Vector3(-0.25f, 0.15f, 0f);
+    [Header("Outcome controls and ending")]
     public PauseManager pauseManager;
     public Button pauseButton;
     public ScreenFadeController fade;
     public TMP_FontAsset endingFont;
+    public Font endingTypewriterFont;
     public VideoClip endingClip;
     public AudioMixerGroup endingAudioMixerGroup;
     public float fadeDuration = 1.5f;
     [Min(1f)] public float successMessageDuration = 3f;
-    public const string SuccessMessage = "You escape along with the truth...";
+    public const string SuccessMessage = "NAKALIGTAS KA. NAGSISIMULA NA ANG HUSTISYA.";
+    private const float EndingPlaybackSpeed = 0.85f;
+    private const float EndingTransitionDuration = 0.8f;
     public bool Finished { get; private set; }
 
+    private TMP_FontAsset runtimeEndingFont;
     private VideoPlayer endingPlayer;
     private RenderTexture endingTexture;
     private GameObject endingScreen;
@@ -45,12 +62,61 @@ public class Level3Flow : MonoBehaviour
         Finish();
         PlayerAudio audio = player.GetComponent<PlayerAudio>();
         if (audio != null) audio.PlayCaught();
+        FocusCaughtCamera();
         loseController.ShowLoseScreen();
+    }
+
+    public bool CollectKey(PlayerMovement collector)
+    {
+        if (Finished || HasKey || collector == null || collector != player ||
+            Time.timeScale <= 0f || PauseManager.IsGamePaused) return false;
+        // Commit the escape permission only after the key is visible in inventory.
+        Inventory inventory = collector.GetComponent<Inventory>();
+        if (keyItem == null || inventory == null || !inventory.AddItem(keyItem)) return false;
+        HasKey = true;
+        if (objective != null)
+        {
+            objective.primaryObjective = ExitObjective;
+            objective.UpdateUI();
+        }
+        if (NotificationManager.Instance != null)
+            NotificationManager.Instance.ShowNotification("Key acquired! " + ExitObjective, 4f);
+        return true;
+    }
+
+    private void FocusCaughtCamera()
+    {
+        if (renato == null) return;
+        if (caughtCamera == null) caughtCamera = player.GetComponentInChildren<Camera>();
+        if (caughtCamera == null) return;
+        Animator animator = renato.GetComponentInChildren<Animator>();
+        Transform head = animator != null && animator.isHuman && animator.avatar != null && animator.avatar.isValid
+            ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
+        Vector3 face = head != null ? head.position : renato.transform.position + Vector3.up * 1.6f;
+        // Approach from the front of the model even when Dwight was caught from behind.
+        Vector3 forward = animator != null ? animator.transform.forward : renato.transform.forward;
+        caughtCamera.transform.position = face + forward * Mathf.Max(0.2f, caughtFaceDistance);
+        caughtCamera.transform.rotation = Quaternion.LookRotation(face - caughtCamera.transform.position, Vector3.up);
+        caughtCamera.fieldOfView = caughtFieldOfView;
+        caughtCamera.nearClipPlane = 0.03f;
+        // Replace the broad gameplay flashlight with a short, angled beam on the face.
+        if (player.flashlight != null) player.flashlight.enabled = false;
+        GameObject lightObject = new GameObject("Caught face spotlight", typeof(Light));
+        lightObject.transform.SetParent(caughtCamera.transform, false);
+        lightObject.transform.localPosition = caughtLightOffset;
+        lightObject.transform.rotation = Quaternion.LookRotation(face - lightObject.transform.position, Vector3.up);
+        Light faceLight = lightObject.GetComponent<Light>();
+        faceLight.type = LightType.Spot;
+        faceLight.intensity = caughtLightIntensity;
+        faceLight.range = Mathf.Max(2f, caughtFaceDistance + caughtLightOffset.magnitude + 0.5f);
+        faceLight.spotAngle = 60f;
+        faceLight.innerSpotAngle = 35f;
+        faceLight.shadows = LightShadows.Soft;
     }
 
     public void Escape()
     {
-        if (Finished || player == null || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
+        if (Finished || !HasKey || player == null || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
         Finish();
         StartCoroutine(ShowEnding());
     }
@@ -82,13 +148,21 @@ public class Level3Flow : MonoBehaviour
         yield return new WaitUntil(() => fade.fadeImage != null && fade.fadeImage.color.a >= 1f);
         // Reuse the fade's black panel as the ending background. No second canvas is needed.
         Canvas canvas = fade.fadeImage.canvas;
+        CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+        if (scaler == null) scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
         if (canvas.GetComponent<GraphicRaycaster>() == null) canvas.gameObject.AddComponent<GraphicRaycaster>();
         foreach (Canvas other in FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
             if (other != canvas && !other.transform.IsChildOf(canvas.transform)) other.enabled = false;
 
-        TextMeshProUGUI success = CreateText("Escape success", fade.fadeImage.transform, SuccessMessage);
-        Place(success.rectTransform, new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.65f));
+        TextMeshProUGUI success = CreateSuccessText("Escape success");
+        success.alpha = 0f;
+        yield return FadeGraphic(success, 0f, 1f);
         yield return new WaitForSecondsRealtime(Mathf.Max(1f, successMessageDuration));
+        yield return FadeGraphic(success, 1f, 0f);
         Destroy(success.gameObject);
 
         // The game stays frozen throughout the movie; decoding uses an unscaled clock.
@@ -118,6 +192,7 @@ public class Level3Flow : MonoBehaviour
         RawImage screen = endingScreen.GetComponent<RawImage>();
         screen.raycastTarget = false;
         screen.enabled = false;
+        screen.color = new Color(1f, 1f, 1f, 0f);
 
         AudioSource audio = endingScreen.GetComponent<AudioSource>();
         audio.playOnAwake = false;
@@ -155,12 +230,20 @@ public class Level3Flow : MonoBehaviour
             videoError = "Preparation timed out.";
             yield break;
         }
+        endingPlayer.playbackSpeed = EndingPlaybackSpeed;
         endingPlayer.Play();
         // Avoid displaying an uninitialized texture before the first decoded frame.
         deadline = Time.realtimeSinceStartup + 30f;
+        float revealTime = 0f;
         while (!videoEnded && videoError == null)
         {
-            if (endingPlayer.frame >= 0) screen.enabled = true;
+            if (endingPlayer.frame >= 0)
+            {
+                screen.enabled = true;
+                revealTime += Time.unscaledDeltaTime;
+                screen.color = new Color(1f, 1f, 1f,
+                    Mathf.SmoothStep(0f, 1f, revealTime / EndingTransitionDuration));
+            }
             else if (Time.realtimeSinceStartup >= deadline)
             {
                 videoError = "Playback did not start.";
@@ -193,15 +276,24 @@ public class Level3Flow : MonoBehaviour
         endingTexture = null;
     }
 
-    private void OnDestroy() => ReleaseEndingVideo();
+    private void OnDestroy()
+    {
+        ReleaseEndingVideo();
+        if (runtimeEndingFont != null)
+        {
+            foreach (Texture2D atlas in runtimeEndingFont.atlasTextures)
+                if (atlas != null) Destroy(atlas);
+            if (runtimeEndingFont.material != null) Destroy(runtimeEndingFont.material);
+            Destroy(runtimeEndingFont);
+        }
+    }
 
     private void ShowEndingFallback()
     {
-        TextMeshProUGUI title = CreateText("Escape ending", fade.fadeImage.transform, SuccessMessage);
-        Place(title.rectTransform, new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.7f));
+        CreateSuccessText("Escape ending");
         GameObject buttonObject = new GameObject("Main Menu", typeof(RectTransform), typeof(Image), typeof(Button));
         buttonObject.transform.SetParent(fade.fadeImage.transform, false);
-        Place((RectTransform)buttonObject.transform, new Vector2(0.35f, 0.3f), new Vector2(0.65f, 0.42f));
+        Place((RectTransform)buttonObject.transform, new Vector2(0.35f, 0.2f), new Vector2(0.65f, 0.3f));
         Image background = buttonObject.GetComponent<Image>();
         background.color = new Color(0.15f, 0.15f, 0.15f, 1f);
         Button button = buttonObject.GetComponent<Button>();
@@ -210,6 +302,34 @@ public class Level3Flow : MonoBehaviour
         TextMeshProUGUI label = CreateText("Label", buttonObject.transform, "Main Menu");
         Place(label.rectTransform, Vector2.zero, Vector2.one);
         button.Select();
+    }
+
+    private TextMeshProUGUI CreateSuccessText(string objectName)
+    {
+        TextMeshProUGUI title = CreateText(objectName, fade.fadeImage.transform,
+            SuccessMessage.Replace(". ", ".\n"));
+        if (runtimeEndingFont == null && endingTypewriterFont != null)
+            runtimeEndingFont = TMP_FontAsset.CreateFontAsset(endingTypewriterFont);
+        if (runtimeEndingFont != null) title.font = runtimeEndingFont;
+        title.color = Color.white;
+        title.fontSize = 72f;
+        title.fontSizeMin = 40f;
+        title.fontSizeMax = 72f;
+        Place(title.rectTransform, new Vector2(0.08f, 0.35f), new Vector2(0.92f, 0.65f));
+        return title;
+    }
+
+    private static IEnumerator FadeGraphic(Graphic graphic, float from, float to)
+    {
+        float elapsed = 0f;
+        while (elapsed < EndingTransitionDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            Color color = graphic.color;
+            color.a = Mathf.SmoothStep(from, to, elapsed / EndingTransitionDuration);
+            graphic.color = color;
+            yield return null;
+        }
     }
 
     private TextMeshProUGUI CreateText(string objectName, Transform parent, string text)
