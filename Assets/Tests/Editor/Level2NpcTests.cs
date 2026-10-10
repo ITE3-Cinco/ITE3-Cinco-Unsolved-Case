@@ -97,7 +97,7 @@ public class Level2NpcTests
         Assert.That(State, Is.EqualTo("FindingClues"));
         Assert.That(returns, Is.Zero);
         Collect(notes[2]);
-        Assert.That(State, Is.EqualTo("FindingClues"), "Collection alone must not finish the story gate.");
+        Assert.That(State, Is.EqualTo("CluesCollected"), "Collection must make the return safe without finishing the story gate.");
         Assert.That(Get(Find("ObjectiveItem"), "primaryObjective"), Is.EqualTo("All clues found. Return to the frightened woman."));
         Talk();
         Assert.That(State, Is.EqualTo("Returned"));
@@ -116,7 +116,7 @@ public class Level2NpcTests
         PrepareConversation();
         foreach (Component note in Notes) Collect(note);
         Talk();
-        Assert.That(State, Is.EqualTo("FindingClues"));
+        Assert.That(State, Is.EqualTo("CluesCollected"));
         Assert.That(Get(Find("ObjectiveItem"), "primaryObjective"), Is.EqualTo("All clues found. Return to the frightened woman."));
         Talk();
         Assert.That(State, Is.EqualTo("Returned"));
@@ -138,6 +138,86 @@ public class Level2NpcTests
         Assert.That(State, Is.EqualTo("NotStarted"));
         Assert.That(Get(artifacts, "artifactsCollected"), Is.EqualTo(0));
         Assert.That(Notes.Length, Is.EqualTo(3));
+        Time.timeScale = 1f;
+        PrepareConversation();
+        Talk();
+        Assert.That(Hostile(Find("GhostEnemy")), Is.True, "Retry must restore the hunt.");
+    }
+
+    private bool Hostile(Component ghost) => (bool)ghost.GetType().GetProperty("IsHostile").GetValue(ghost);
+
+    [Test]
+    public void HuntStartsWithQuestAndFinalClueImmediatelyStopsEveryCatchPathThroughReveal()
+    {
+        PrepareConversation();
+        Component ghost = Find("GhostEnemy");
+        Assert.That(Get(npc, "whiteLady"), Is.SameAs(ghost));
+        Assert.That(Get(ghost, "clueStory"), Is.SameAs(npc));
+        Assert.That(Hostile(ghost), Is.False);
+        Call(ghost, "Awake");
+        Talk();
+        Assert.That(Hostile(ghost), Is.True);
+        // Exercise chasing before even the first Note; navigation is covered separately.
+        Set(ghost, "requireNavigation", false);
+        Set(ghost, "requireLineOfSight", false);
+        Transform player = (Transform)Get(ghost, "playerTransform");
+        ghost.transform.position = player.position + Vector3.right * 3f;
+        Call(ghost, "Update");
+        Assert.That(Get(ghost, "isChasing"), Is.True);
+        Component[] notes = Notes;
+        Collect(notes[0]);
+        Collect(notes[1]);
+        Assert.That(Hostile(ghost), Is.True);
+        Collect(notes[2]);
+        // Assert immediately, without giving Update a chance to repair the state.
+        Assert.That(Hostile(ghost), Is.False);
+        Assert.That(Get(ghost, "isChasing"), Is.False);
+        Assert.That(ghost.GetComponent<NavMeshAgent>().enabled, Is.False);
+        Assert.That(ghost.gameObject.activeSelf, Is.True, "The existing enemy is retained.");
+        Assert.That(ghost.GetComponentsInChildren<Renderer>(true).All(r => !r.enabled), Is.True);
+        Assert.That(ghost.GetComponentsInChildren<Collider>(true).All(c => !c.enabled), Is.True);
+        Assert.That(Get(Find("ObjectiveItem"), "artifactsCompleted"), Is.True);
+
+        ghost.transform.position = player.position;
+        Vector3 stoppedPosition = ghost.transform.position;
+        Call(ghost, "UpdateCheckpointPatrol", player.position + Vector3.right * 20f);
+        Call(ghost, "Repel", 5f);
+        Call(ghost, "OnDisable");
+        Call(ghost, "OnEnable");
+        Call(npc, "OnDisable");
+        Call(npc, "OnEnable");
+        string[] pages = (string[])Get(npc, "revealDialogue");
+        for (int page = 0; page <= pages.Length; page++)
+        {
+            Call(ghost, "Update");
+            Call(ghost, "TryCatchPlayerByDistance");
+            Call(ghost, "CatchPlayer");
+            Assert.That(Hostile(ghost), Is.False);
+            Assert.That(ghost.transform.position, Is.EqualTo(stoppedPosition));
+            Assert.That(((GameObject)Get(Find("LoseSceneController"), "loseCanvas")).activeSelf, Is.False);
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            Assert.That(((Behaviour)Find("PlayerMovement")).enabled, Is.True);
+            Talk();
+        }
+        Assert.That(State, Is.EqualTo("ReadyToLeave"));
+        Assert.That((string)Get(npc, "nextSceneName"), Is.EqualTo("Level3"));
+        Assert.That(EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/Level3.unity"), Is.True);
+    }
+
+    [Test]
+    public void RevealOrdersReassuranceCulpritDangerWarningIdentityAndVictim()
+    {
+        Assert.That((string)Get(npc, "returnedDialogue"), Does.Contain("She's not going to hurt you anymore"));
+        string[] pages = (string[])Get(npc, "revealDialogue");
+        Assert.That(pages.Length, Is.EqualTo(7));
+        Assert.That(pages[0], Does.Contain("Renato").And.Contain("serial killer"));
+        Assert.That(pages[1], Does.Contain("dangerous").And.Contain("target"));
+        Assert.That(pages[2], Does.Contain("woman in white"));
+        Assert.That(pages[3], Is.EqualTo("The White Lady wasn't trying to kill you."));
+        Assert.That(pages[4], Does.Contain("warn you").And.Contain("expose him").And.Contain("justice"));
+        Assert.That(pages[5], Does.Contain("Because I am the White Lady."));
+        Assert.That(pages[6], Does.Contain("Renato's victims").And.Contain("before you came here").And.Contain("these halls"));
+        Assert.That(string.Join(" ", pages.Take(5)), Does.Not.Contain("I am the White Lady"));
     }
 
     [Test]

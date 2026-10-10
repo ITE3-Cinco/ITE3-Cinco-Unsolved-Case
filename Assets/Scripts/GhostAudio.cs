@@ -83,7 +83,8 @@ public class GhostAudio : MonoBehaviour
 
         float distance = Vector3.Distance(transform.position, player.position);
         bool inRange = distance <= maxDistance;
-        bool allowed = !playOnlyWhileChasing || (ghost != null && ghost.isChasing);
+        bool allowed = (ghost == null || ghost.IsHostile) &&
+            (!playOnlyWhileChasing || (ghost != null && ghost.isChasing));
 
         float targetVolume;
         if (!inRange || !allowed)

@@ -195,6 +195,7 @@ MonoBehaviour:
   checkpoint: {fileID: 0}
   isArtifact: 0
   flashlightObjective: {fileID: 0}
+  whiteLady: {fileID: 1186399119}
   artifacts: {fileID: 226000010}
   objective: {fileID: 8800000000000000100}
   notifications: {fileID: 226000011}
@@ -206,15 +207,15 @@ MonoBehaviour:
   initialDialogue: Please... I'm scared. Something terrible happened here. There
     are Notes scattered around this place. Please find ALL of them, then come back
     to me. I can't explain everything yet... Be careful out there.
-  returnedDialogue: You found everything... Thank you. These clues can finally bring
-    the truth to light. Please, listen. There's something I need to tell you.
+  returnedDialogue: "You found everything... She's not going to hurt you anymore. You don't need to be afraid of her now. This is what she's been waiting for. Please, listen."
   revealDialogue:
-  - Renato... the coworker you met before coming here. He is the serial killer behind
-    this cold case. These Notes are the evidence of what he did.
-  - I was one of his victims. The woman you've seen in white... that's me. I am the
-    White Lady.
-  - I was trying to reach you, to warn you about Renato. I need the truth exposed.
-    I need justice for all of us. Take this evidence and survive.
+  - "Renato... the coworker you met before coming here. He is the serial killer behind this cold case. These Notes are the evidence of what he did."
+  - "Renato is dangerous. Now that you know the truth, you are a target. Keep the evidence close, and don't let him find you."
+  - "The woman in white... I know why she followed you. She needed you to listen, but fear kept getting in the way."
+  - "The White Lady wasn't trying to kill you."
+  - "She was trying to reach you, to warn you about Renato. She wanted you to expose him and seek justice for the people he silenced."
+  - "How do I know what she wanted? Because I am the White Lady."
+  - "I was one of Renato's victims. It was me you encountered before you came here, and me you saw in these halls. I couldn't make you understand then. Now you have the truth. Take this evidence and survive."
 --- !u!114 &226000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -891,6 +892,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5501a2e9ced42eb4ea315c6c0fd5d86c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostEnemy
+  clueStory: {fileID: 226000003}
   moveSpeed: 4.5
   chaseSpeed: 6.5
   patrolWaypoints: []
