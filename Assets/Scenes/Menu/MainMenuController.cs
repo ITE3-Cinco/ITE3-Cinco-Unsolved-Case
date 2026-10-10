@@ -137,7 +137,7 @@ public class MainMenuController : MonoBehaviour
     {
         // 1. Re-locate the Global Volume in the freshly loaded scene
         Volume newVolume = null;
-        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
         foreach (Volume volume in sceneVolumes)
         {
             if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
@@ -275,7 +275,7 @@ public class MainMenuController : MonoBehaviour
         }
         if (currentVolume == null)
         {
-            foreach (Volume volume in FindObjectsByType<Volume>(FindObjectsSortMode.None))
+            foreach (Volume volume in FindObjectsByType<Volume>(FindObjectsInactive.Exclude))
                 if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
                 {
                     FetchVolumeProfile(volume);

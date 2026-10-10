@@ -17,7 +17,9 @@ public class RenatoAnimation : MonoBehaviour
     private PlayableGraph graph;
     private AnimationMixerPlayable baseMixer;
     private AnimationLayerMixerPlayable layers;
+    // Clips: 0=walk, 1=run, 2=stand/crouch, 3=look
     private readonly AnimationClipPlayable[] clips = new AnimationClipPlayable[4];
+    // Weights for the three base-mixer inputs: 0=walk, 1=run, 2=stand
     private readonly float[] weights = new float[3];
     private AvatarMask upperBody;
     private CharacterController body;
@@ -62,7 +64,9 @@ public class RenatoAnimation : MonoBehaviour
                 i == (int)AvatarMaskBodyPart.LeftFingers || i == (int)AvatarMaskBodyPart.RightFingers);
         layers.SetLayerMaskFromAvatarMask(1, upperBody);
         AnimationPlayableOutput.Create(graph, "Renato", animator).SetSourcePlayable(layers);
+        // Start fully in the stand/idle pose (index 2).
         weights[2] = 1f;
+        baseMixer.SetInputWeight(2, 1f);
         graph.Play();
     }
 
@@ -77,8 +81,24 @@ public class RenatoAnimation : MonoBehaviour
         velocity.y = 0f;
         bool moving = velocity.sqrMagnitude > 0.02f;
         motionTime += moving ? Time.deltaTime : 0f;
-        bool crouched = state == RenatoEnemy.BehaviourState.Crouch || state == RenatoEnemy.BehaviourState.Search || state == RenatoEnemy.BehaviourState.Stand;
-        int desired = crouched || !moving ? 2 : state == RenatoEnemy.BehaviourState.Chase ? 1 : 0;
+
+        bool crouched = state == RenatoEnemy.BehaviourState.Crouch ||
+                        state == RenatoEnemy.BehaviourState.Search ||
+                        state == RenatoEnemy.BehaviourState.Stand;
+
+        // Fix: when stationary and NOT crouched, blend to the stand/idle pose (index 2)
+        // rather than forcing the crouch animation. Only use walk (0) or run (1) when
+        // actually moving.
+        int desired;
+        if (crouched)
+            desired = 2;
+        else if (!moving)
+            desired = 2;   // stand/idle pose while stationary in patrol or investigate
+        else if (state == RenatoEnemy.BehaviourState.Chase)
+            desired = 1;   // run clip
+        else
+            desired = 0;   // walk clip
+
         for (int i = 0; i < 3; i++)
         {
             weights[i] = Mathf.MoveTowards(weights[i], i == desired ? 1f : 0f, Time.deltaTime * 6f);
@@ -86,13 +106,21 @@ public class RenatoAnimation : MonoBehaviour
         }
         clips[0].SetTime(motionTime % walkingClip.length);
         clips[1].SetTime(motionTime % runningClip.length);
+
+        // Stand clip: sample backwards for crouch-down, hold at 0 for search, play forward for stand-up.
         float standTime = StandDuration;
-        if (state == RenatoEnemy.BehaviourState.Crouch) standTime = Mathf.Max(0f, StandDuration - stateTime);
-        else if (state == RenatoEnemy.BehaviourState.Search) standTime = 0f;
-        else if (state == RenatoEnemy.BehaviourState.Stand) standTime = Mathf.Min(stateTime, StandDuration);
+        if (state == RenatoEnemy.BehaviourState.Crouch)
+            standTime = Mathf.Max(0f, StandDuration - stateTime);
+        else if (state == RenatoEnemy.BehaviourState.Search)
+            standTime = 0f;
+        else if (state == RenatoEnemy.BehaviourState.Stand)
+            standTime = Mathf.Min(stateTime, StandDuration);
+        // For all other states (patrol, chase, investigate) hold the clip at its end (standing pose).
         clips[2].SetTime(standTime);
+
         clips[3].SetTime(stateTime % lookClip.length);
-        float lookWeight = Mathf.MoveTowards(layers.GetInputWeight(1), state == RenatoEnemy.BehaviourState.Search ? 1f : 0f, Time.deltaTime * 6f);
+        float lookWeight = Mathf.MoveTowards(layers.GetInputWeight(1),
+            state == RenatoEnemy.BehaviourState.Search ? 1f : 0f, Time.deltaTime * 6f);
         layers.SetInputWeight(1, lookWeight);
         graph.Evaluate(0f);
     }

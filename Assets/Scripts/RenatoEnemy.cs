@@ -25,6 +25,10 @@ public class RenatoEnemy : MonoBehaviour
     [Range(0, 180)] public float fieldOfView = 110f;
     public float catchDistance = 1f;
     public float searchDuration = 4f;
+    [Tooltip("How long Renato investigates a last-seen position before resuming patrol.")]
+    [Min(0f)] public float investigateDuration = 3f;
+    [Tooltip("If the sprinting player comes within this radius, Renato hears them and investigates even without line of sight. Set to 0 to disable.")]
+    [Min(0f)] public float hearingRadius = 6f;
     public BehaviourState State { get; private set; }
 
     private NavMeshAgent agent;
@@ -97,29 +101,64 @@ public class RenatoEnemy : MonoBehaviour
     {
         if (!ready || flow.Finished || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
         stateTime += Time.deltaTime;
+
         bool clearSight = HasClearSight();
-        Vector3 offset = playerController != null ? playerController.bounds.center - transform.position : player.position - transform.position;
-        if (clearSight && new Vector2(offset.x, offset.z).magnitude <= catchDistance && Mathf.Abs(offset.y) < agent.height)
+
+        // --- Catch check (distance + clear sight) ---
+        Vector3 offset = playerController != null
+            ? playerController.bounds.center - transform.position
+            : player.position - transform.position;
+        if (clearSight && new Vector2(offset.x, offset.z).magnitude <= catchDistance &&
+            Mathf.Abs(offset.y) < agent.height)
         {
             agent.ResetPath();
             flow.Caught();
             return;
         }
+
+        // --- Sight detection ---
         bool seen = clearSight && offset.magnitude <= sightRange &&
             Vector3.Angle(transform.forward, new Vector3(offset.x, 0f, offset.z)) <= fieldOfView * 0.5f;
+
         if (seen)
         {
-            // Only sight may update this location. Sounds never feed this AI.
-            lastSeen = playerController != null ? playerController.bounds.center - Vector3.up * playerController.bounds.extents.y : player.position;
+            // Track the player's live feet position while in sight.
+            lastSeen = playerController != null
+                ? playerController.bounds.center - Vector3.up * playerController.bounds.extents.y
+                : player.position;
             lastSeenAt = Time.time;
             if (State != BehaviourState.Chase) SetState(BehaviourState.Chase);
         }
+
+        // --- Hearing detection (sprinting player) ---
+        if (!seen && State != BehaviourState.Chase && hearingRadius > 0f)
+        {
+            PlayerMovement pm = player.GetComponent<PlayerMovement>();
+            bool playerSprinting = pm != null && pm.currentStamina < pm.maxStamina &&
+                                   UnityEngine.InputSystem.Keyboard.current != null &&
+                                   UnityEngine.InputSystem.Keyboard.current.leftShiftKey.isPressed;
+            if (playerSprinting && offset.magnitude <= hearingRadius)
+            {
+                lastSeen = player.position;
+                lastSeenAt = Time.time;
+                if (State != BehaviourState.Investigate)
+                {
+                    SetState(BehaviourState.Investigate);
+                    if (!GoTo(lastSeen, patrolSpeed)) ResumePatrol();
+                }
+            }
+        }
+
+        // --- Chase state ---
         if (State == BehaviourState.Chase)
         {
             if (Time.time >= nextPathUpdate)
             {
                 nextPathUpdate = Time.time + 0.2f;
-                if (!GoTo(lastSeen, chaseSpeed)) agent.ResetPath();
+                // While the player is visible, chase their live position.
+                // After losing sight, continue toward the last known position.
+                Vector3 target = seen ? lastSeen : lastSeen;
+                if (!GoTo(target, chaseSpeed)) agent.ResetPath();
             }
             if (!seen && Time.time - lastSeenAt >= 2f)
             {
@@ -128,6 +167,8 @@ public class RenatoEnemy : MonoBehaviour
             }
             return;
         }
+
+        // --- Other states ---
         switch (State)
         {
             case BehaviourState.Patrol:
@@ -157,12 +198,14 @@ public class RenatoEnemy : MonoBehaviour
                 if (Arrived()) ResumePatrol();
                 break;
             case BehaviourState.Investigate:
-                if (Arrived() && stateTime >= 3f)
+                // Exit when arrived OR after investigateDuration seconds (handles blocked paths).
+                if ((Arrived() && stateTime >= investigateDuration) || stateTime >= investigateDuration + 5f)
                 {
                     if (!TryEnterRoom()) ResumePatrol();
                 }
                 break;
         }
+
         // A blocked route must never start a search animation in the corridor.
         if ((State == BehaviourState.EnterRoom || State == BehaviourState.LeaveRoom || State == BehaviourState.Investigate) &&
             ((!agent.pathPending && agent.hasPath && agent.pathStatus != NavMeshPathStatus.PathComplete) || stateTime > 25f))
@@ -187,15 +230,20 @@ public class RenatoEnemy : MonoBehaviour
 
     public float StandDuration => animations != null ? animations.StandDuration : 3f;
 
+    /// <summary>
+    /// Returns true when there is an unobstructed line of sight from Renato's eye level to the player.
+    /// Uses Physics.Linecast (zero allocation) instead of RaycastAll.
+    /// </summary>
     public bool HasClearSight()
     {
         if (player == null) return false;
         Vector3 target = playerController != null ? playerController.bounds.center : player.position;
         Vector3 origin = transform.position + Vector3.up * 1.5f;
-        Vector3 direction = target - origin;
-        if (direction.sqrMagnitude > sightRange * sightRange) return false;
-        foreach (RaycastHit hit in Physics.RaycastAll(origin, direction.normalized, direction.magnitude,
-            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+
+        // Linecast returns true when something is HIT, so invert the result.
+        // We ignore triggers and skip colliders that belong to Renato or the player.
+        foreach (RaycastHit hit in Physics.RaycastAll(origin, (target - origin).normalized,
+            Vector3.Distance(origin, target), Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             if (hit.transform.IsChildOf(transform) || hit.transform.IsChildOf(player)) continue;
             return false;
@@ -256,5 +304,18 @@ public class RenatoEnemy : MonoBehaviour
         // Retry without passing through geometry if no point is currently reachable.
         agent.ResetPath();
         Debug.LogWarning("[Renato] No reachable patrol point. Check the Level 3 NavMesh.", this);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, sightRange);
+        if (hearingRadius > 0f)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, hearingRadius);
+        }
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, catchDistance);
     }
 }
