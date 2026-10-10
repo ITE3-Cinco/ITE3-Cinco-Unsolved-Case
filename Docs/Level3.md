@@ -32,7 +32,7 @@ Renato follows complete NavMesh paths. After two patrol stops he chooses a reach
 
 Detection uses range, field of view, and solid-collider line of sight. Sound is never queried. Losing sight preserves the last **seen** position, investigates it, then searches a reachable room or resumes patrol. The AI never updates the hidden player's location by sound or through a wall. Contact also requires a clear sight ray.
 
-Catch and escape share one outcome guard. Catch stops navigation/controls and shows the existing Lose Canvas. Escape stops navigation/controls, uses the existing unscaled `ScreenFadeController.FadeToBlack`, waits for black, then uses that same black panel for **“You escaped with the truth...”** and a Main Menu button. No evidence/inventory/objective condition gates escape. No additional Lose Canvas, scene, EventSystem, inventory, or cinematic is created.
+Catch and escape share one outcome guard. Catch stops navigation/controls and shows the existing Lose Canvas. Escape stops navigation/controls, uses the existing unscaled `ScreenFadeController.FadeToBlack`, waits for black, then plays `Assets/Assets/ENDING CLIP/final ending.mp4` over that same black panel. The clip plays once with audio through MusicVolume, fits the screen without stretching, and automatically loads MainMenu on completion. The video uses unscaled time while gameplay remains frozen. Missing clips, decoder errors or startup timeouts show **“You escaped with the truth...”** and a Main Menu button as a fallback. No evidence/inventory/objective condition gates escape. No additional Lose Canvas, scene, EventSystem, or inventory is created.
 
 ## Material repair
 
@@ -51,7 +51,7 @@ In Play Mode, verify:
 3. Renato's foot alignment, scale, walk/run and crouch/look/stand blend; search starts inside rooms, can miss Dwight, and is interrupted by sight.
 4. Walls block detection; moving unseen does not update last-known position; footsteps do not attract Renato.
 5. Catch opens the existing Lose Canvas once. Pause/hotbar/movement/look cannot resume gameplay behind it. Retry reloads Level3; Exit loads MainMenu.
-6. Main-door trigger works while walking and sprinting; escape freezes Renato and the player, fades fully to black, shows the exact ending text, and Main Menu works. Catch and escape cannot both finish the run.
+6. Main-door trigger works while walking and sprinting; escape freezes Renato and the player, fades fully to black, plays the complete final ending with audio while gameplay stays frozen, and automatically returns to MainMenu with normal time restored. Check the movie at 16:9, 4:3 and ultrawide aspect ratios; also check the fallback Main Menu button with the clip temporarily unassigned. Catch and escape cannot both finish the run.
 7. Asylum materials display correctly, including cutout/transparent props. Check Console for import/shader/missing-reference/NavMesh errors.
 
 No original MainMenu, OpeningCutscene or PoliceHQ scene was edited. Shared ObjectiveItem and GhostNavigation additions default to their original behavior in other scenes. LoseSceneController, player controllers and ScreenFadeController source are unchanged.
@@ -83,3 +83,19 @@ Level 3 assigns the existing `Player/player-scream.mp3` to PlayerAudio’s caugh
 Dwight and the fallback spawn marker are both at `(-21, 4.75, -28)`, in the upstairs bedroom’s central aisle, facing its doorway. The right door leaf and its glass are opened 90 degrees together around the outer hinge as scene overrides. The route to the ground-floor main exit now includes the upstairs hall and stairs. Imported geometry places the bedroom floor at about Y=3.82; the existing centered 1.8 m controller starts just above it. Runtime clearance and stair connectivity still require the existing NavMesh test in Unity.
 
 The six tiled wall materials now use URP Lit with their existing albedo, normal and metallic textures, a muted gray tint `(0.5, 0.51, 0.52)` and smoothness 0.2. These nested materials still referenced the missing legacy shader after the earlier material repair. Flat ambient color is lifted to `(0.025, 0.027, 0.03)` to soften black gaps toward dark gray; lamp, moon and flashlight strengths are unchanged. Check the final perceived balance with the flashlight both off and on in Unity.
+
+## Floor tiles and final ending follow-up
+
+All 13 nested `Materials/Tiled/Tiles` materials now use URP Lit, preserving their albedo tiling, normal maps and metallic maps. They receive shadows, have no emission, and use the same muted gray tint and 0.2 smoothness as the repaired walls. This repairs the remaining missing legacy shader references in the tile set.
+
+Level 3 now explicitly selects **Flat** ambient lighting (`m_AmbientMode: 3`); the checked-in scene had still selected Skybox at intensity 8, so the authored ambient gray was not being applied. Ambient gray is now `(0.055, 0.057, 0.06)`, with intensity 1 and environment reflections 0.1. This is intended to make nearby geometry readable with the flashlight off while keeping the night atmosphere. Level 3 still starts with its flashlight equipped; other scenes' pickup behavior is unchanged. Verify the gray balance and flashlight visibility in both Scene view (scene lighting enabled) and Play Mode at default brightness.
+
+The final clip is assigned directly on Level3Flow so it is included in builds. The existing fade hides the HUD before playback, and the video/audio objects and render texture are released after playback or scene destruction. Run `python3 -m unittest discover -s Tests -v` for serialized regressions, then Unity EditMode tests (including the imported ending reference check). Unity compilation, playback/audio, menu transition and perceived lighting require Unity 6000.5.4f1; static validation alone does not verify them.
+
+## Saved brightness across scenes
+
+All four enabled build scenes (MainMenu, OpeningCutscene, PoliceHQ and Level3) have an enabled SceneBrightness component on a global volume visible to their camera. OpeningCutscene now enables camera post-processing. Level3 has a dedicated volume with a runtime exposure-only profile; its default slider value 5 preserves the authored night lighting. Each component reads PlayerPrefs in OnEnable, including when opening a gameplay scene directly, before a menu controller has run. The slider range 0–10 supplies an exposure offset of -2 to +2 stops relative to each scene's authored exposure; repeated updates do not accumulate or mutate shared profiles.
+
+The menu applies settings on scene load without a scaled-time delay. Slider initialization uses SetValueWithoutNotify so loading settings cannot overwrite another saved value through a callback. Preferences are saved when closing Settings, starting gameplay or leaving the intro. Camera exposure affects rendered scene content; screen-space overlay UI and video retain their original colors.
+
+Validation: the serialized lighting suite checks every enabled build scene for a linked active brightness component, global volume and camera post-processing/layer mask. Unity tests cover saved min/default/max values without a menu, timeScale zero and preserving unrelated grading. In Unity, set brightness to 0, 5 and 10, close Settings, start the game, move through all levels, retry and return to MainMenu; confirm scene brightness and the restored slider value. Also restart the application and open each gameplay scene directly. These runtime checks remain outstanding in the sandbox.

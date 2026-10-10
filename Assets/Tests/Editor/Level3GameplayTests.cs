@@ -3,11 +3,13 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class Level3GameplayTests
 {
@@ -74,6 +76,19 @@ public class Level3GameplayTests
             Assert.That(clip, Is.Not.Null, field);
             Assert.That(clip.isHumanMotion, Is.True, field);
         }
+    }
+
+    [Test]
+    public void EscapeUsesTheImportedFinalEndingAndAnEnabledMainMenu()
+    {
+        Component flow = Find("Level3Flow");
+        VideoClip clip = (VideoClip)Get(flow, "endingClip");
+        Assert.That(clip, Is.Not.Null);
+        Assert.That(AssetDatabase.GetAssetPath(clip), Is.EqualTo("Assets/Assets/ENDING CLIP/final ending.mp4"));
+        Assert.That(clip.frameCount, Is.GreaterThan(0));
+        Assert.That(clip.width, Is.GreaterThan(0));
+        Assert.That(Get(flow, "endingAudioMixerGroup"), Is.Not.Null);
+        Assert.That(EditorBuildSettings.scenes.Any(s => s.enabled && s.path == "Assets/Scenes/MainMenu.unity"), Is.True);
     }
 
     [Test]

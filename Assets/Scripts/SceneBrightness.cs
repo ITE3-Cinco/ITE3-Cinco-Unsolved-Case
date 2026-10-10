@@ -24,7 +24,7 @@ public class SceneBrightness : MonoBehaviour
                 volume.sharedProfile.TryGet(out ColorAdjustments authored))
                 baseExposure = authored.postExposure.value;
             if (!volume.profile.TryGet(out adjustments))
-                adjustments = volume.profile.Add<ColorAdjustments>(true);
+                adjustments = volume.profile.Add<ColorAdjustments>(false);
         }
         adjustments.active = true;
         adjustments.postExposure.overrideState = true;
