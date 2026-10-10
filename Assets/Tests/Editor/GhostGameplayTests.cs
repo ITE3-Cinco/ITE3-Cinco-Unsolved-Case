@@ -63,9 +63,11 @@ public class GhostGameplayTests
         Assert.That(Time.timeScale, Is.Zero);
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
-    public void ClosePlayerIsCaughtBeforeArtifactGateEvenWithoutNavigation(bool protectedByCheckpoint)
+    [TestCase(false, false, false)]
+    [TestCase(true, false, false)]
+    [TestCase(false, true, false)]
+    [TestCase(false, true, true)]
+    public void CloseContactRespectsCheckpointAndCompletedStory(bool protectedByCheckpoint, bool level2Quest, bool completed)
     {
         GameObject canvas = Create("Lose Canvas");
         Component lose = canvas.AddComponent(Gameplay("LoseSceneController"));
@@ -85,10 +87,24 @@ public class GhostGameplayTests
             enemy.GetType().GetField("safeUntil", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(enemy, Time.time + 100f);
         Call(enemy, "Awake");
+        if (level2Quest)
+        {
+            Component tracker = Create("Notes").AddComponent(Gameplay("ArtifactManager"));
+            Component npc = Create("Woman").AddComponent(Gameplay("Level2NoteNpc"));
+            Set(npc, "artifacts", tracker);
+            Set(npc, "whiteLady", enemy);
+            Set(enemy, "clueStory", npc);
+            Call(npc, "OnEnable");
+            Call(npc, "Interact", new object[] { null });
+            int count = completed ? 3 : 2;
+            for (int i = 0; i < count; i++)
+                Call(tracker, "CollectArtifact", Create("Note " + i).AddComponent(Gameplay("Interactable")));
+        }
         Physics.SyncTransforms();
         Call(enemy, "Update");
-        Assert.That(canvas.activeSelf, Is.EqualTo(!protectedByCheckpoint));
-        Assert.That(Time.timeScale, Is.EqualTo(protectedByCheckpoint ? 1f : 0f));
+        bool safe = protectedByCheckpoint || completed;
+        Assert.That(canvas.activeSelf, Is.EqualTo(!safe));
+        Assert.That(Time.timeScale, Is.EqualTo(safe ? 1f : 0f));
     }
 
     [Test]

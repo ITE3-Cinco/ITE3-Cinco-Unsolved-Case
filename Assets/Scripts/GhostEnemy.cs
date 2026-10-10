@@ -63,6 +63,38 @@ public class GhostEnemy : MonoBehaviour
     [Tooltip("Controller for the existing Lose Canvas shown when the ghost catches the player. If empty, one is found automatically, including inactive UI objects.")]
     public LoseSceneController loseSceneController;
 
+    [Header("Optional Level 2 Story")]
+    public Level2NoteNpc clueStory;
+    private bool storyCompleted;
+    public bool IsHostile => !storyCompleted && (clueStory == null ||
+        (clueStory.State == Level2NoteNpc.StoryState.FindingClues && !clueStory.AllCluesCollected));
+
+    /// <summary>Permanent for this scene run; only a fresh scene can restore the hunt.</summary>
+    public void BecomeNonHostile()
+    {
+        storyCompleted = true;
+        StopPursuit();
+        if (navAgent != null) navAgent.enabled = false;
+        navigationReady = false;
+        // Disappear without destroying the existing enemy or creating another woman.
+        // This also prevents her appearing beside the NPC during the identity reveal.
+        foreach (Renderer visual in GetComponentsInChildren<Renderer>(true)) visual.enabled = false;
+        foreach (Collider body in GetComponentsInChildren<Collider>(true)) body.enabled = false;
+    }
+
+    private void StopPursuit()
+    {
+        isChasing = false;
+        losePlayerTimer = 0f;
+        intendedMoving = false;
+        if (navAgent != null && navAgent.enabled && navAgent.isOnNavMesh)
+        {
+            navAgent.ResetPath();
+            navAgent.velocity = Vector3.zero;
+        }
+        ApplyMovingAnimation(false);
+    }
+
     [Header("State")]
     public bool isChasing = false;
 
@@ -88,6 +120,7 @@ public class GhostEnemy : MonoBehaviour
 
     public void UpdateCheckpointPatrol(Vector3 checkpointPosition)
     {
+        if (!IsHostile) return;
         automaticPatrolCenter = checkpointPosition;
         automaticPatrolCenter.y = navigationReady ? checkpointPosition.y : patrolHeight;
         checkpointPatrol = true;
@@ -111,6 +144,7 @@ public class GhostEnemy : MonoBehaviour
 
     public void Repel(float duration)
     {
+        if (!IsHostile) return;
         repelledUntil = Mathf.Max(repelledUntil, Time.time + duration);
         isChasing = false;
         losePlayerTimer = 0f;
@@ -184,6 +218,11 @@ public class GhostEnemy : MonoBehaviour
 
     private void Start()
     {
+        if (storyCompleted || (clueStory != null && clueStory.AllCluesCollected))
+        {
+            BecomeNonHostile();
+            return;
+        }
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -231,6 +270,13 @@ public class GhostEnemy : MonoBehaviour
 
     private void Update()
     {
+        if (!IsHostile)
+        {
+            if (!storyCompleted && clueStory != null && clueStory.AllCluesCollected)
+                BecomeNonHostile();
+            else StopPursuit();
+            return;
+        }
         if (playerTransform == null || isCaught ||
             Time.timeScale <= 0f || PauseManager.IsGamePaused)
             return;
@@ -267,8 +313,8 @@ public class GhostEnemy : MonoBehaviour
             return;
         }
 
-        bool huntUnlocked = ArtifactManager.Instance != null &&
-            ArtifactManager.Instance.artifactsCollected >= Mathf.Max(1, artifactsBeforeHunt);
+        bool huntUnlocked = clueStory != null || (ArtifactManager.Instance != null &&
+            ArtifactManager.Instance.artifactsCollected >= Mathf.Max(1, artifactsBeforeHunt));
         if (!huntUnlocked)
         {
             isChasing = false;
@@ -370,7 +416,7 @@ public class GhostEnemy : MonoBehaviour
 
     private void TryCatchPlayerByDistance()
     {
-        if (playerTransform == null || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
+        if (!IsHostile || playerTransform == null || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
             return;
 
         CharacterController playerController = playerTransform.GetComponent<CharacterController>();
@@ -595,7 +641,7 @@ public class GhostEnemy : MonoBehaviour
 
     private void CatchPlayer()
     {
-        if (isCaught || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
+        if (!IsHostile || isCaught || IsPlayerInvisible() || Time.time < safeUntil || Time.time < repelledUntil)
             return;
 
         isCaught = true;

@@ -5,8 +5,9 @@ using UnityEngine.Events;
 /// A lose-screen retry reloads both together; an in-scene respawn retains both.</summary>
 public class Level2NoteNpc : Interactable
 {
-    public enum StoryState { NotStarted, FindingClues, Returned, Revealing, ReadyToLeave }
+    public enum StoryState { NotStarted, FindingClues, Returned, Revealing, ReadyToLeave, CluesCollected }
 
+    public GhostEnemy whiteLady;
     public ArtifactManager artifacts;
     public ObjectiveItem objective;
     public NotificationManager notifications;
@@ -16,12 +17,16 @@ public class Level2NoteNpc : Interactable
 
     [Header("Dialogue (advance by interacting again)")]
     [TextArea(3, 6)] public string initialDialogue = "Please... I'm scared. Something terrible happened here. There are Notes scattered around this place. Please find ALL of them, then come back to me. I can't explain everything yet... Be careful out there.";
-    [TextArea(3, 6)] public string returnedDialogue = "You found everything... Thank you. These clues can finally bring the truth to light. Please, listen. There's something I need to tell you.";
+    [TextArea(3, 6)] public string returnedDialogue = "You found everything... She's not going to hurt you anymore. You don't need to be afraid of her now. This is what she's been waiting for. Please, listen.";
     [TextArea(3, 6)] public string[] revealDialogue =
     {
         "Renato... the coworker you met before coming here. He is the serial killer behind this cold case. These Notes are the evidence of what he did.",
-        "I was one of his victims. The woman you've seen in white... that's me. I am the White Lady.",
-        "I was trying to reach you, to warn you about Renato. I need the truth exposed. I need justice for all of us. Take this evidence and survive."
+        "Renato is dangerous. Now that you know the truth, you are a target. Keep the evidence close, and don't let him find you.",
+        "The woman in white... I know why she followed you. She needed you to listen, but fear kept getting in the way.",
+        "The White Lady wasn't trying to kill you.",
+        "She was trying to reach you, to warn you about Renato. She wanted you to expose him and seek justice for the people he silenced.",
+        "How do I know what she wanted? Because I am the White Lady.",
+        "I was one of Renato's victims. It was me you encountered before you came here, and me you saw in these halls. I couldn't make you understand then. Now you have the truth. Take this evidence and survive."
     };
 
     public StoryState State { get; private set; }
@@ -33,6 +38,7 @@ public class Level2NoteNpc : Interactable
     private void OnEnable()
     {
         if (artifacts != null) artifacts.ArtifactCountChanged += OnClueCollected;
+        RefreshClueState();
     }
 
     private void OnDisable()
@@ -40,9 +46,21 @@ public class Level2NoteNpc : Interactable
         if (artifacts != null) artifacts.ArtifactCountChanged -= OnClueCollected;
     }
 
-    private void Start() => UpdateObjective();
+    private void Start() => RefreshClueState();
 
-    private void OnClueCollected(int count) => UpdateObjective();
+    private void OnClueCollected(int count) => RefreshClueState();
+
+    private void RefreshClueState()
+    {
+        if (AllCluesCollected)
+        {
+            // Synchronous with the final successful pickup, before the next AI tick.
+            // Keep the enemy object for the story; this cannot be undone by a respawn.
+            if (whiteLady != null) whiteLady.BecomeNonHostile();
+            if (State == StoryState.FindingClues) State = StoryState.CluesCollected;
+        }
+        UpdateObjective();
+    }
 
     public override void Interact(GameObject playerObject)
     {
@@ -55,15 +73,17 @@ public class Level2NoteNpc : Interactable
         switch (State)
         {
             case StoryState.NotStarted:
-                State = StoryState.FindingClues;
+                State = AllCluesCollected ? StoryState.CluesCollected : StoryState.FindingClues;
                 Say(initialDialogue);
                 break;
             case StoryState.FindingClues:
+            case StoryState.CluesCollected:
                 if (!AllCluesCollected)
                 {
                     Say($"Please keep looking... {artifacts.totalArtifacts - artifacts.artifactsCollected} Notes are still missing. Bring them all back to me.");
                     break;
                 }
+                if (whiteLady != null) whiteLady.BecomeNonHostile();
                 State = StoryState.Returned;
                 Say(returnedDialogue);
                 UpdateObjective();
@@ -94,7 +114,7 @@ public class Level2NoteNpc : Interactable
     {
         string message;
         if (State == StoryState.NotStarted) message = "Talk to the frightened woman.";
-        else if (State == StoryState.FindingClues)
+        else if (State == StoryState.FindingClues || State == StoryState.CluesCollected)
             message = AllCluesCollected ? "All clues found. Return to the frightened woman." : "Find all the clues and return to her.";
         else if (State == StoryState.ReadyToLeave) message = "Take the evidence onward. Talk to her to continue.";
         else message = "Listen to what the frightened woman has to tell you.";
@@ -115,8 +135,7 @@ public class Level2NoteNpc : Interactable
             return;
         }
         transitioning = true;
-        // The pursuit remains active through collection and the return conversation.
-        // Freeze only when committing to the existing scene transition.
+        // The White Lady is already harmless. Freeze controls during the scene fade.
         Time.timeScale = 0f;
         foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsInactive.Exclude))
             pause.enabled = false;

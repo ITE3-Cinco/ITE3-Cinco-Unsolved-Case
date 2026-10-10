@@ -52,7 +52,7 @@ public class InvisibilityConsumable : MonoBehaviour
         if (isInvisible || inventory == null || !inventory.HasAgimat) return;
         foreach (GhostEnemy ghost in ghosts)
         {
-            if (ghost != null && ghost.isActiveAndEnabled &&
+            if (ghost != null && ghost.isActiveAndEnabled && ghost.IsHostile &&
                 Vector3.Distance(transform.position, ghost.transform.position) <= warningDistance)
             {
                 GhostNearby = true;

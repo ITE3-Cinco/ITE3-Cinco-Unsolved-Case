@@ -1,6 +1,7 @@
 """Serialized Level 2 integration checks; runtime behavior uses Level2NpcTests."""
 from pathlib import Path
 import hashlib
+import json
 import re
 import unittest
 from test_level2_ghost import documents
@@ -16,6 +17,8 @@ class Level2NpcAssets(unittest.TestCase):
 
     def test_npc_wiring_and_fixed_root(self):
         npc = self.scene['226000003'][1]
+        ghost = self.scene[reference(npc, 'whiteLady')][1]
+        self.assertEqual(reference(ghost, 'clueStory'), '226000003')
         idle = self.scene[reference(npc, 'nervousIdle')][1]
         self.assertEqual(reference(npc, 'm_GameObject'), reference(idle, 'm_GameObject'))
         self.assertEqual(reference(idle, 'environmentRoot'), '8800000000000000033')
@@ -98,7 +101,25 @@ class Level2NpcAssets(unittest.TestCase):
          '8800000000000000112': 'dac8f6207e7668b1556eb1384a4339f793085b2c21b74deb29b6faf934e4e9c1',
          '978205674': '6fa3e5b270df54bed24dc5eec572a7ac2b9d67ffe02f127ef76b4861fddd59c7'}
         for key, digest in expected.items():
-            self.assertEqual(hashlib.sha256(self.scene[key][1].encode()).hexdigest(), digest, key)
+            body = self.scene[key][1]
+            if key == '1186399119':
+                body = body.replace('  clueStory: {fileID: 226000003}\n', '')
+            self.assertEqual(hashlib.sha256(body.encode()).hexdigest(), digest, key)
+
+    def test_scene_dialogue_matches_defaults_and_reveal_order(self):
+        npc = self.scene['226000003'][1]
+        source = (ROOT / 'Assets/Scripts/Level2NoteNpc.cs').read_text()
+        returned = json.loads(field(npc, 'returnedDialogue'))
+        self.assertIn("She's not going to hurt you anymore", returned)
+        self.assertIn('public string returnedDialogue = ' + json.dumps(returned) + ';', source)
+        pages = [json.loads(line) for line in re.findall(r'^  - (".*")$', npc, re.M)]
+        defaults = re.findall(r'^        "(.*)"[,]?$', source, re.M)
+        self.assertEqual(pages, defaults)
+        self.assertEqual(len(pages), 7)
+        for page, phrase in zip(pages, ['serial killer', 'target', 'woman in white',
+                "The White Lady wasn't trying to kill you.", 'justice',
+                'Because I am the White Lady.', "Renato's victims"]):
+            self.assertIn(phrase, page)
 
 
 if __name__ == '__main__':
