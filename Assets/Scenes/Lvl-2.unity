@@ -612,6 +612,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: -5645937942226959685, guid: aa1af663a18182e45bdf2fb698e3c43e, type: 3}
+--- !u!4 &8800000000000000033 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2774220344278030320, guid: aa1af663a18182e45bdf2fb698e3c43e, type: 3}
+  m_PrefabInstance: {fileID: 978205674}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1186399117 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6689036041284674117, guid: fe58aac67ab72e347a00bbb0f3d92269, type: 3}
@@ -1093,9 +1098,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89a7143ebe1a4e929347636a5367a348, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostNavigation
-  environmentRoot: {fileID: 0}
+  environmentRoot: {fileID: 8800000000000000033}
   agentTypeID: 0
-  voxelSize: 0.25
+  addMissingMeshColliders: 1
+  voxelSize: 0.1
   agentRadiusOverride: 0
   agentHeightOverride: 0
 --- !u!114 &8800000000000000100 stripped
