@@ -18,6 +18,7 @@ public class Level2NoteNpc : Interactable
     [Header("Speaker names")]
     public string npcName = "Frightened woman";
     public string playerName = "Player";
+    public Font dialogueTypewriterFont;
 
     [Header("Dialogue (advance by interacting again)")]
     [TextArea(3, 6)] public string initialDialogue = "Please... I'm scared. Something terrible happened here. There are Notes scattered around this place. Please find ALL of them, then come back to me. I can't explain everything yet... Be careful out there.";
@@ -147,7 +148,7 @@ public class Level2NoteNpc : Interactable
     private void ShowDialogue(string speaker, string line, string hint)
     {
         if (dialogueBox == null) dialogueBox = gameObject.AddComponent<DialogueBox>();
-        dialogueBox.Show(speaker, line, hint);
+        dialogueBox.Show(speaker, line, hint, dialogueTypewriterFont);
     }
 
     private void UpdateObjective()

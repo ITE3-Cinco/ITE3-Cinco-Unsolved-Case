@@ -49,7 +49,7 @@ public class PlayerInteraction : MonoBehaviour
             if (interactionText != null)
             {
                 interactionText.text = "Press [E] to use Agimat";
-                interactionText.gameObject.SetActive(true);
+                interactionText.gameObject.SetActive(!DialogueBox.IsOpen);
             }
             if (usePressed && agimat.TryUseAgimat()) return;
             return;
@@ -73,7 +73,7 @@ public class PlayerInteraction : MonoBehaviour
                 if (interactionText != null)
                 {
                     interactionText.text = interactable.promptMessage;
-                    interactionText.gameObject.SetActive(true);
+                    interactionText.gameObject.SetActive(!DialogueBox.IsOpen);
                 }
 
                 if (Keyboard.current.eKey.wasPressedThisFrame)
