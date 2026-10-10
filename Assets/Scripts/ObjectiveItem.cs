@@ -6,6 +6,9 @@ public class ObjectiveItem : MonoBehaviour
     [Header("UI Reference")]
     public TextMeshProUGUI objectiveText;
 
+    [Tooltip("Optional single goal for scenes without collectible objectives.")]
+    public string primaryObjective;
+
     [Header("Objectives State")]
     public bool flashlightPickedUp = false;
     public bool artifactsCompleted = false;
@@ -34,6 +37,12 @@ public class ObjectiveItem : MonoBehaviour
     public void UpdateUI()
     {
         if (objectiveText == null) return;
+
+        if (!string.IsNullOrWhiteSpace(primaryObjective))
+        {
+            objectiveText.text = $"<color={activeColorHex}>Objectives:</color>\n<color={activeColorHex}>• {primaryObjective}</color>";
+            return;
+        }
 
         // Once evidence is complete, show the single remaining task in the holder.
         if (artifactsCompleted)

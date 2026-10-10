@@ -21,7 +21,7 @@ public class Interactable : MonoBehaviour
     [Tooltip("Optional: Drag the ObjectiveItem for the flashlight task here. If left empty, the script will find it automatically.")]
     public ObjectiveItem flashlightObjective;
 
-    public void Interact(GameObject playerObject)
+    public virtual void Interact(GameObject playerObject)
     {
         Debug.Log($"[Interactable] Interact called on '{gameObject.name}'. isArtifact={isArtifact}, isCheckpoint={isCheckpoint}");
 

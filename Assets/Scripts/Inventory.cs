@@ -18,6 +18,7 @@ public class Inventory : MonoBehaviour
 
     private void Update()
     {
+        if (SceneTransition.IsLoading) return;
         // Hotbar Slot Selection (1-5)
 #if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null)

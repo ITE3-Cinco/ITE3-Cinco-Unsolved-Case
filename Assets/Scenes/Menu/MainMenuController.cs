@@ -98,17 +98,17 @@ public class MainMenuController : MonoBehaviour
         // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
         if (musicSlider != null) 
         {
-            musicSlider.value = savedMusic;
+            musicSlider.SetValueWithoutNotify(savedMusic);
         }
 
         if (sfxSlider != null) 
         {
-            sfxSlider.value = savedSFX;
+            sfxSlider.SetValueWithoutNotify(savedSFX);
         }
 
         if (brightnessSlider != null) 
         {
-            brightnessSlider.value = savedBrightness;
+            brightnessSlider.SetValueWithoutNotify(savedBrightness);
         }
 
         // Loaded values to the Mixer and global lighting engine
@@ -127,9 +127,8 @@ public class MainMenuController : MonoBehaviour
     //  This method is called whenever a new scene is loaded, allowing the menu controller to reapply settings and configurations.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Force a robust background delay callback for cinematic/intro scenes
-        CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
-        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
+        // Apply before rendering, including scene loads while timeScale is zero.
+        ApplyLoadedSettingsToNewScene();
     }
 
 
@@ -137,7 +136,7 @@ public class MainMenuController : MonoBehaviour
     {
         // 1. Re-locate the Global Volume in the freshly loaded scene
         Volume newVolume = null;
-        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        Volume[] sceneVolumes = FindObjectsByType<Volume>(FindObjectsInactive.Exclude);
         foreach (Volume volume in sceneVolumes)
         {
             if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
@@ -182,7 +181,7 @@ public class MainMenuController : MonoBehaviour
         SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 8f));
 
         // Load your cutscene
-        SceneManager.LoadScene(gameSceneName);
+        SceneTransition.Load(gameSceneName);
     }
 
 
@@ -195,7 +194,7 @@ public class MainMenuController : MonoBehaviour
         PlayerPrefs.Save();
 
         // Load your Level 1 scene
-        SceneManager.LoadScene("PoliceHQ");
+        SceneTransition.Load("PoliceHQ");
     }
 
 
@@ -275,7 +274,7 @@ public class MainMenuController : MonoBehaviour
         }
         if (currentVolume == null)
         {
-            foreach (Volume volume in FindObjectsByType<Volume>(FindObjectsSortMode.None))
+            foreach (Volume volume in FindObjectsByType<Volume>(FindObjectsInactive.Exclude))
                 if (volume.isGlobal && volume.gameObject.scene == SceneManager.GetActiveScene())
                 {
                     FetchVolumeProfile(volume);

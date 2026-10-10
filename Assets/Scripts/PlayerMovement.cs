@@ -25,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
     public float maxStamina = 100f;
     public float staminaDrainRate = 15f;
     public float staminaRegenRate = 14.28f;
+    public bool useLowStaminaSprintBoost = false;
+    public float sprintBoostThreshold = 45f;
+    public float lowStaminaRunSpeed = 5.5f;
 
     [Header("Stamina State")]
     public float currentStamina;
@@ -81,6 +84,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (SceneTransition.IsLoading) return;
         if (Keyboard.current == null || PauseManager.IsGamePaused || !controller.enabled) return;
 
         bool wasGrounded = controller.isGrounded;
@@ -104,7 +108,6 @@ public class PlayerMovement : MonoBehaviour
             isExhausted = false;
 
         bool canSprint = shiftPressed && isMoving && currentStamina > 0 && !isExhausted;
-        float currentSpeed = canSprint ? runSpeed : walkSpeed;
 
         if (canSprint)
         {
@@ -124,6 +127,8 @@ public class PlayerMovement : MonoBehaviour
 
         if (staminaSlider != null)
             staminaSlider.value = currentStamina;
+
+        float currentSpeed = GetMovementSpeed(canSprint);
 
         Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.z;
         // isGrounded describes the previous Move. Check it before moving and
@@ -151,6 +156,13 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = 0f;
         else if ((flags & CollisionFlags.Below) != 0 && velocity.y < 0f)
             velocity.y = -2f;
+    }
+
+    public float GetMovementSpeed(bool sprinting)
+    {
+        if (!sprinting) return walkSpeed;
+        return useLowStaminaSprintBoost && currentStamina < sprintBoostThreshold
+            ? lowStaminaRunSpeed : runSpeed;
     }
 
     public void ResetVelocity()

@@ -16,6 +16,9 @@ public class LoseSceneController : MonoBehaviour
     [Tooltip("The existing Lose Canvas/UI panel in the gameplay scene.")]
     public GameObject loseCanvas;
 
+    [Tooltip("Gameplay UI roots to hide when showing the lose screen.")]
+    public GameObject[] gameplayUIToHide = new GameObject[0];
+
     private bool isShowing;
 
     private void Awake()
@@ -66,6 +69,13 @@ public class LoseSceneController : MonoBehaviour
         if (loseCanvas == null)
             loseCanvas = gameObject;
 
+        foreach (GameObject ui in gameplayUIToHide)
+        {
+            // Keep the lose canvas and its ancestors active so its buttons remain usable.
+            if (ui != null && !loseCanvas.transform.IsChildOf(ui.transform))
+                ui.SetActive(false);
+        }
+
         if (loseCanvas != null)
             loseCanvas.SetActive(true);
 
@@ -99,7 +109,7 @@ public class LoseSceneController : MonoBehaviour
             RespawnPoint.ResetCheckpoint();
 
         Time.timeScale = 1f;
-        SceneManager.LoadScene(retrySceneName);
+        SceneTransition.Load(retrySceneName);
     }
 
     public void Exit()
@@ -113,7 +123,7 @@ public class LoseSceneController : MonoBehaviour
         RestorePlayerControls();
         RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
-        SceneManager.LoadScene(exitSceneName);
+        SceneTransition.Load(exitSceneName);
     }
 
     /// <summary>
