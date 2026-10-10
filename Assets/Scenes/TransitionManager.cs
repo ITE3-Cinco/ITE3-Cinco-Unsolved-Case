@@ -147,7 +147,7 @@ public class TransitionManager : MonoBehaviour
         float timer = 0f;
         while (timer < fadeOutSplashTime)
         {
-            timer += Time.deltaTime; // Increment the timer based on the time elapsed since the last frame.
+            timer += Time.unscaledDeltaTime; // Increment the timer based on the time elapsed since the last frame.
 
             // Gradually reduce the alpha of the splash canvas group to create a fade-out effect.
             if (splashCanvasGroup != null)
@@ -171,7 +171,7 @@ public class TransitionManager : MonoBehaviour
         timer = 0f;
         while (timer < fadeOutBlackTime)
         {
-            timer += Time.deltaTime; // Increment the timer based on the time elapsed since the last frame.
+            timer += Time.unscaledDeltaTime; // Increment the timer based on the time elapsed since the last frame.
 
             // Gradually reduce the alpha of the black screen canvas group to create a fade-out effect.
             if (blackScreenCanvasGroup != null)

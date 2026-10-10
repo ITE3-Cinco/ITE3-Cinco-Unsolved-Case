@@ -28,6 +28,7 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Update()
     {
+        if (SceneTransition.IsLoading) return;
         if (Keyboard.current == null || PauseManager.IsGamePaused || Time.timeScale <= 0f)
             return;
 

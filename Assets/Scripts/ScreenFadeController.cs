@@ -67,17 +67,7 @@ public class ScreenFadeController : MonoBehaviour
 
     public void FadeToScene(string sceneName, float duration)
     {
-        if (string.IsNullOrWhiteSpace(sceneName) || !Application.CanStreamedLevelBeLoaded(sceneName))
-        {
-            Debug.LogWarning("[ScreenFade] The destination scene is missing or is not enabled in Build Settings.");
-            return;
-        }
-
-        EnsureFadeImage();
-        if (fadeCoroutine != null)
-            StopCoroutine(fadeCoroutine);
-
-        fadeCoroutine = StartCoroutine(FadeAndLoad(sceneName, duration));
+        SceneTransition.Load(sceneName, duration);
     }
 
     public void FadeToBlack(float duration)
@@ -87,15 +77,6 @@ public class ScreenFadeController : MonoBehaviour
             StopCoroutine(fadeCoroutine);
 
         fadeCoroutine = StartCoroutine(FadeRoutine(duration, 1f));
-    }
-
-    private IEnumerator FadeAndLoad(string sceneName, float duration)
-    {
-        yield return FadeRoutine(duration, 1f);
-        // Give the fully opaque frame a render before loading, even for a zero duration.
-        yield return null;
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(sceneName);
     }
 
     private IEnumerator FadeRoutine(float duration, float targetAlpha)

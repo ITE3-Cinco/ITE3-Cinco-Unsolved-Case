@@ -25,6 +25,7 @@ public class RenatoEnemy : MonoBehaviour
     [Range(0, 180)] public float fieldOfView = 110f;
     public float catchDistance = 1f;
     public float searchDuration = 4f;
+    [Min(1)] public int patrolStopsBeforeSearch = 6;
     [Tooltip("How long Renato investigates a last-seen position before resuming patrol.")]
     [Min(0f)] public float investigateDuration = 3f;
     [Tooltip("If the sprinting player comes within this radius, Renato hears them and investigates even without line of sight. Set to 0 to disable.")]
@@ -34,6 +35,8 @@ public class RenatoEnemy : MonoBehaviour
     private NavMeshAgent agent;
     private CharacterController playerController;
     private CharacterController body;
+    private PlayerMovement playerMovement;
+    private readonly RaycastHit[] sightHits = new RaycastHit[32];
     private float verticalSpeed;
     private Vector3 lastSeen;
     private float lastSeenAt;
@@ -67,6 +70,7 @@ public class RenatoEnemy : MonoBehaviour
             return;
         }
         playerController = player.GetComponent<CharacterController>();
+        playerMovement = player.GetComponent<PlayerMovement>();
         if (!NavMesh.SamplePosition(transform.position, out NavMeshHit spawn, 1.5f, Filter()))
         {
             Debug.LogError("[Renato] No NavMesh at the assigned spawn.", this);
@@ -102,12 +106,12 @@ public class RenatoEnemy : MonoBehaviour
         if (!ready || flow.Finished || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
         stateTime += Time.deltaTime;
 
-        bool clearSight = HasClearSight();
-
         // --- Catch check (distance + clear sight) ---
         Vector3 offset = playerController != null
             ? playerController.bounds.center - transform.position
             : player.position - transform.position;
+        bool clearSight = offset.sqrMagnitude <= Mathf.Max(sightRange, catchDistance + agent.height) *
+            Mathf.Max(sightRange, catchDistance + agent.height) && HasClearSight();
         if (clearSight && new Vector2(offset.x, offset.z).magnitude <= catchDistance &&
             Mathf.Abs(offset.y) < agent.height)
         {
@@ -133,7 +137,7 @@ public class RenatoEnemy : MonoBehaviour
         // --- Hearing detection (sprinting player) ---
         if (!seen && State != BehaviourState.Chase && hearingRadius > 0f)
         {
-            PlayerMovement pm = player.GetComponent<PlayerMovement>();
+            PlayerMovement pm = playerMovement;
             bool playerSprinting = pm != null && pm.currentStamina < pm.maxStamina &&
                                    UnityEngine.InputSystem.Keyboard.current != null &&
                                    UnityEngine.InputSystem.Keyboard.current.leftShiftKey.isPressed;
@@ -157,7 +161,7 @@ public class RenatoEnemy : MonoBehaviour
                 nextPathUpdate = Time.time + 0.2f;
                 // While the player is visible, chase their live position.
                 // After losing sight, continue toward the last known position.
-                Vector3 target = seen ? lastSeen : lastSeen;
+                Vector3 target = lastSeen;
                 if (!GoTo(target, chaseSpeed)) agent.ResetPath();
             }
             if (!seen && Time.time - lastSeenAt >= 2f)
@@ -174,7 +178,7 @@ public class RenatoEnemy : MonoBehaviour
             case BehaviourState.Patrol:
                 if ((Arrived() || !agent.hasPath || stateTime > 25f) && Time.time >= nextPatrolAttempt)
                 {
-                    if (++patrolStops % 2 == 0 && TryEnterRoom()) break;
+                    if (++patrolStops % Mathf.Max(1, patrolStopsBeforeSearch) == 0 && TryEnterRoom()) break;
                     PickPatrol();
                 }
                 break;
@@ -232,7 +236,7 @@ public class RenatoEnemy : MonoBehaviour
 
     /// <summary>
     /// Returns true when there is an unobstructed line of sight from Renato's eye level to the player.
-    /// Uses Physics.Linecast (zero allocation) instead of RaycastAll.
+    /// Reuses a hit buffer; a saturated query conservatively blocks sight.
     /// </summary>
     public bool HasClearSight()
     {
@@ -240,11 +244,12 @@ public class RenatoEnemy : MonoBehaviour
         Vector3 target = playerController != null ? playerController.bounds.center : player.position;
         Vector3 origin = transform.position + Vector3.up * 1.5f;
 
-        // Linecast returns true when something is HIT, so invert the result.
-        // We ignore triggers and skip colliders that belong to Renato or the player.
-        foreach (RaycastHit hit in Physics.RaycastAll(origin, (target - origin).normalized,
-            Vector3.Distance(origin, target), Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        int count = Physics.RaycastNonAlloc(origin, (target - origin).normalized, sightHits,
+            Vector3.Distance(origin, target), Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        if (count == sightHits.Length) return false;
+        for (int i = 0; i < count; i++)
         {
+            RaycastHit hit = sightHits[i];
             if (hit.transform.IsChildOf(transform) || hit.transform.IsChildOf(player)) continue;
             return false;
         }

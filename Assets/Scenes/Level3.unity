@@ -11863,7 +11863,9 @@ MonoBehaviour:
   player: {fileID: 251823774}
   patrolPoints:
   - {fileID: 2200000101}
+  - {fileID: 2200000131}
   - {fileID: 2200000111}
+  - {fileID: 2200000131}
   - {fileID: 2200000121}
   - {fileID: 2200000131}
   rooms:
@@ -11877,12 +11879,13 @@ MonoBehaviour:
     searchPosition: {fileID: 2200000211}
   flow: {fileID: 2200000002}
   animations: {fileID: 2200000014}
-  patrolSpeed: 2.6
+  patrolSpeed: 3.2
   chaseSpeed: 6
   sightRange: 16
-  fieldOfView: 100
+  fieldOfView: 120
   catchDistance: 1
-  searchDuration: 4
+  searchDuration: 2
+  patrolStopsBeforeSearch: 6
   investigateDuration: 3
   hearingRadius: 6
 --- !u!195 &2200000013
