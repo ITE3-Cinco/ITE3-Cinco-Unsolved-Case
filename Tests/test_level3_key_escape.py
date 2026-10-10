@@ -82,7 +82,7 @@ class Level3KeyEscapeTests(unittest.TestCase):
                              if k == 224 and reference(b, 'm_Father') == canvas_transform
                              and field(self.docs[reference(b, 'm_GameObject')][1], 'm_Name') == 'Background')
         image = next(b for k, b in self.docs.values() if k == 114 and reference(b, 'm_GameObject') == background_go)
-        self.assertEqual(field(image, 'm_Color'), '{r: 1, g: 1, b: 1, a: 0.2}')
+        self.assertEqual(field(image, 'm_Color'), '{r: 1, g: 1, b: 1, a: 0.5}')
 
     def test_lose_hides_all_gameplay_canvases_without_hiding_its_own_ui(self):
         lose = self.docs[reference(self.flow, 'loseController')][1]

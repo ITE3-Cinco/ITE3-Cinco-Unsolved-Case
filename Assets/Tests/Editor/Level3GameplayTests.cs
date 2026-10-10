@@ -339,7 +339,7 @@ public class Level3GameplayTests
         Assert.That(Vector3.Dot(faceLight.transform.forward, lightToFace.normalized), Is.GreaterThan(0.999f));
         Component player = (Component)Get(flow, "player");
         Assert.That(((Light)Get(player, "flashlight")).enabled, Is.False);
-        Assert.That(canvas.transform.Find("Background").GetComponent<Image>().color.a, Is.EqualTo(0.2f));
+        Assert.That(canvas.transform.Find("Background").GetComponent<Image>().color.a, Is.EqualTo(0.5f));
         Assert.That(flow.GetType().GetMethod("CollectKey").Invoke(flow, new object[] { Get(flow, "player") }), Is.EqualTo(false));
         canvas.SetActive(false);
         Call(flow, "Caught");
