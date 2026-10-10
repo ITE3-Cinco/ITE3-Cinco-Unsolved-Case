@@ -12050,10 +12050,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RenatoAnimation
   animator: {fileID: 2200000015}
-  walkingClip: {fileID: -203655887218126122, guid: 473db02c0d1b9874da77984d872c91eb, type: 3}
-  runningClip: {fileID: -203655887218126122, guid: 48b415323675d7c4989af0fb64c2a6bf, type: 3}
-  standClip: {fileID: -203655887218126122, guid: 738428345200e0f47929e5a00116fc8c, type: 3}
-  lookClip: {fileID: -203655887218126122, guid: db8b46cfee79fc549aaf3ecdcbfe6557, type: 3}
+  walkingClip: {fileID: 7400000, guid: 3c6dcc1eac128cd4a90036a6c88b2f38, type: 3}
+  runningClip: {fileID: 7400000, guid: 6052097cd6caf024eb174c3d7ec6c5c2, type: 3}
+  standClip: {fileID: 7400000, guid: 87fc4ee5bb4d92d4f98acecdb9823def, type: 3}
+  lookClip: {fileID: 7400000, guid: 47580382c2e13b44a9285cb15ae00787, type: 3}
 --- !u!95 &2200000015 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: c13321f0eeb70314abc4f2ee0fe814c4, type: 3}

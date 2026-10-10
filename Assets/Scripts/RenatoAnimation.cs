@@ -12,6 +12,7 @@ public class RenatoAnimation : MonoBehaviour
     public AnimationClip runningClip;
     public AnimationClip standClip;
     public AnimationClip lookClip;
+    public bool IsWalking { get; private set; }
     public float StandDuration => standClip != null ? standClip.length : 3f;
 
     private PlayableGraph graph;
@@ -32,6 +33,7 @@ public class RenatoAnimation : MonoBehaviour
         body = GetComponent<CharacterController>();
         if (animator == null || animator.avatar == null || !animator.avatar.isHuman || !animator.avatar.isValid ||
             walkingClip == null || runningClip == null || standClip == null || lookClip == null ||
+            walkingClip.length <= 0f || runningClip.length <= 0f || standClip.length <= 0f || lookClip.length <= 0f ||
             !walkingClip.isHumanMotion || !runningClip.isHumanMotion || !standClip.isHumanMotion || !lookClip.isHumanMotion)
         {
             Debug.LogError("[Renato] Assign the existing Humanoid avatar and all four Renato clips.", this);
@@ -67,14 +69,17 @@ public class RenatoAnimation : MonoBehaviour
         // Start fully in the stand/idle pose (index 2).
         weights[2] = 1f;
         baseMixer.SetInputWeight(2, 1f);
+        clips[2].SetTime(StandDuration);
         graph.Play();
+        graph.Evaluate(0f);
     }
 
     public void SetState(RenatoEnemy.BehaviourState next) { state = next; stateTime = 0f; }
 
     private void LateUpdate()
     {
-        if (!graph.IsValid() || Time.timeScale <= 0f) return;
+        IsWalking = false;
+        if (!graph.IsValid() || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
         stateTime += Time.deltaTime;
         // Runs after RenatoEnemy.LateUpdate has moved the solid controller.
         Vector3 velocity = body != null && body.enabled ? body.velocity : Vector3.zero;
@@ -98,6 +103,8 @@ public class RenatoAnimation : MonoBehaviour
             desired = 1;   // run clip
         else
             desired = 0;   // walk clip
+
+        IsWalking = desired == 0;
 
         for (int i = 0; i < 3; i++)
         {
