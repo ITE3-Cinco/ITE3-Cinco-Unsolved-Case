@@ -15,6 +15,10 @@ public class Level2NoteNpc : Interactable
     public string nextSceneName = "Level3";
     public UnityEvent onCluesReturned = new UnityEvent();
 
+    [Header("Speaker names")]
+    public string npcName = "Frightened woman";
+    public string playerName = "Player";
+
     [Header("Dialogue (advance by interacting again)")]
     [TextArea(3, 6)] public string initialDialogue = "Please... I'm scared. Something terrible happened here. There are Notes scattered around this place. Please find ALL of them, then come back to me. I can't explain everything yet... Be careful out there.";
     [TextArea(3, 6)] public string returnedDialogue = "You found everything... She's not going to hurt you anymore. You don't need to be afraid of her now. This is what she's been waiting for. Please, listen.";
@@ -34,6 +38,17 @@ public class Level2NoteNpc : Interactable
         artifacts.artifactsCollected >= artifacts.totalArtifacts;
     private int revealPage;
     private bool transitioning;
+    private DialogueBox dialogueBox;
+    private Transform conversationPlayer;
+    private string pendingPlayerReply;
+    private bool closeOnNextInteraction;
+
+    private void LateUpdate()
+    {
+        if (dialogueBox != null)
+            dialogueBox.SetVisible(!PauseManager.IsGamePaused && !SceneTransition.IsLoading &&
+                conversationPlayer != null && Vector3.Distance(transform.position, conversationPlayer.position) <= 4f);
+    }
 
     private void OnEnable()
     {
@@ -44,6 +59,7 @@ public class Level2NoteNpc : Interactable
     private void OnDisable()
     {
         if (artifacts != null) artifacts.ArtifactCountChanged -= OnClueCollected;
+        if (dialogueBox != null) dialogueBox.Hide();
     }
 
     private void Start() => RefreshClueState();
@@ -70,16 +86,34 @@ public class Level2NoteNpc : Interactable
         if (player != null && !player.enabled) return;
         if (nervousIdle != null && playerObject != null) nervousIdle.FacePlayer(player != null ? player.transform : playerObject.transform);
 
+        conversationPlayer = player != null ? player.transform : playerObject != null ? playerObject.transform : null;
+        if (dialogueBox != null && dialogueBox.AdvancePage()) return;
+        if (pendingPlayerReply != null)
+        {
+            ShowDialogue(playerName, pendingPlayerReply, "[E] Close");
+            pendingPlayerReply = null;
+            closeOnNextInteraction = true;
+            return;
+        }
+        if (closeOnNextInteraction)
+        {
+            dialogueBox.Hide();
+            closeOnNextInteraction = false;
+            return;
+        }
+
         switch (State)
         {
             case StoryState.NotStarted:
                 State = AllCluesCollected ? StoryState.CluesCollected : StoryState.FindingClues;
                 Say(initialDialogue);
+                pendingPlayerReply = "I’ll look for the Notes and bring them back to you.";
                 break;
             case StoryState.FindingClues:
             case StoryState.CluesCollected:
                 if (!AllCluesCollected)
                 {
+                    pendingPlayerReply = "I’ll keep looking.";
                     Say($"Please keep looking... {artifacts.totalArtifacts - artifacts.artifactsCollected} Notes are still missing. Bring them all back to me.");
                     break;
                 }
@@ -107,7 +141,13 @@ public class Level2NoteNpc : Interactable
 
     private void Say(string line)
     {
-        if (notifications != null) notifications.ShowNotification("Frightened woman: " + line, 18f);
+        ShowDialogue(npcName, line, "[E] Continue talking");
+    }
+
+    private void ShowDialogue(string speaker, string line, string hint)
+    {
+        if (dialogueBox == null) dialogueBox = gameObject.AddComponent<DialogueBox>();
+        dialogueBox.Show(speaker, line, hint);
     }
 
     private void UpdateObjective()
@@ -135,6 +175,7 @@ public class Level2NoteNpc : Interactable
             return;
         }
         transitioning = true;
+        if (dialogueBox != null) dialogueBox.Hide();
         // The White Lady is already harmless. Freeze controls during the scene fade.
         Time.timeScale = 0f;
         foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsInactive.Exclude))
