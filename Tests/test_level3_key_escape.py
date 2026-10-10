@@ -83,3 +83,17 @@ class Level3KeyEscapeTests(unittest.TestCase):
                              and field(self.docs[reference(b, 'm_GameObject')][1], 'm_Name') == 'Background')
         image = next(b for k, b in self.docs.values() if k == 114 and reference(b, 'm_GameObject') == background_go)
         self.assertEqual(field(image, 'm_Color'), '{r: 1, g: 1, b: 1, a: 0.2}')
+
+    def test_lose_hides_all_gameplay_canvases_without_hiding_its_own_ui(self):
+        lose = self.docs[reference(self.flow, 'loseController')][1]
+        hidden = re.findall(r'^  - \{fileID: (\d+)\}', lose.split('  gameplayUIToHide:\n')[1], re.M)
+        lose_go = reference(lose, 'loseCanvas')
+        gameplay_canvases = {reference(body, 'm_GameObject') for kind, body in self.docs.values()
+                             if kind == 223 and reference(body, 'm_GameObject') != lose_go}
+        self.assertEqual(set(hidden), gameplay_canvases)
+        self.assertEqual(len(hidden), len(gameplay_canvases))
+        self.assertNotIn(lose_go, hidden)
+        for go in hidden:
+            self.assertEqual(self.docs[go][0], 1)
+            self.assertEqual(field(self.docs[go][1], 'm_IsActive'), '1', 'UI starts visible for gameplay')
+        self.assertGreater(float(field(self.flow, 'caughtLightIntensity')), 0)

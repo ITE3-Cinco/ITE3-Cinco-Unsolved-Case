@@ -309,26 +309,43 @@ public class Level3GameplayTests
     {
         Component flow = Find("Level3Flow");
         Component lose = Find("LoseSceneController");
+        GameObject[] gameplayUI = (GameObject[])Get(lose, "gameplayUIToHide");
+        Assert.That(gameplayUI, Has.Length.EqualTo(6));
+        foreach (GameObject ui in gameplayUI) Assert.That(ui.activeInHierarchy, Is.True);
+        Camera camera = (Camera)Get(flow, "caughtCamera");
+        Assert.That(camera.transform.Find("Caught face spotlight"), Is.Null);
         Call(Find("PlayerAudio"), "Awake");
         Call(flow, "Caught");
         GameObject canvas = (GameObject)Get(lose, "loseCanvas");
-        Assert.That(canvas.activeSelf, Is.True);
+        Assert.That(canvas.activeInHierarchy, Is.True);
+        foreach (GameObject ui in gameplayUI) Assert.That(ui.activeInHierarchy, Is.False, ui.name);
+        Assert.That(((Button)Get(lose, "tryAgainButton")).IsInteractable(), Is.True);
+        Assert.That(((Button)Get(lose, "exitButton")).IsInteractable(), Is.True);
         Assert.That(Time.timeScale, Is.Zero);
         Assert.That(((Behaviour)Get(flow, "player")).enabled, Is.False);
         Assert.That(((Behaviour)Get(flow, "renato")).enabled, Is.False);
         Assert.That(((Button)Get(flow, "pauseButton")).interactable, Is.False);
-        Camera camera = (Camera)Get(flow, "caughtCamera");
         Animator animator = ((Component)Get(flow, "renato")).GetComponentInChildren<Animator>();
         Vector3 face = animator.GetBoneTransform(HumanBodyBones.Head).position;
         Assert.That(Vector3.Distance(camera.transform.position, face), Is.EqualTo(0.65f).Within(0.001f));
         Assert.That(Vector3.Dot(camera.transform.forward, (face - camera.transform.position).normalized), Is.GreaterThan(0.999f));
         Assert.That(camera.fieldOfView, Is.EqualTo(40f));
+        Light faceLight = camera.transform.Find("Caught face spotlight").GetComponent<Light>();
+        Assert.That(faceLight.type, Is.EqualTo(LightType.Spot));
+        Assert.That(faceLight.enabled, Is.True);
+        Assert.That(faceLight.intensity, Is.GreaterThan(0f));
+        Vector3 lightToFace = face - faceLight.transform.position;
+        Assert.That(lightToFace.magnitude, Is.LessThan(faceLight.range));
+        Assert.That(Vector3.Dot(faceLight.transform.forward, lightToFace.normalized), Is.GreaterThan(0.999f));
+        Component player = (Component)Get(flow, "player");
+        Assert.That(((Light)Get(player, "flashlight")).enabled, Is.False);
         Assert.That(canvas.transform.Find("Background").GetComponent<Image>().color.a, Is.EqualTo(0.2f));
         Assert.That(flow.GetType().GetMethod("CollectKey").Invoke(flow, new object[] { Get(flow, "player") }), Is.EqualTo(false));
         canvas.SetActive(false);
         Call(flow, "Caught");
         Call(flow, "Escape");
         Assert.That(canvas.activeSelf, Is.False, "Repeated loss must not reactivate UI.");
+        Assert.That(camera.GetComponentsInChildren<Light>().Count(l => l.name == "Caught face spotlight"), Is.EqualTo(1));
         Assert.That(flow.GetType().GetProperty("Finished").GetValue(flow), Is.EqualTo(true));
     }
 }

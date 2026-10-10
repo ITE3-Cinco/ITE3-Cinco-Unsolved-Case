@@ -21,6 +21,10 @@ public class Level3Flow : MonoBehaviour
     public Camera caughtCamera;
     [Min(0.2f)] public float caughtFaceDistance = 0.65f;
     [Range(20f, 90f)] public float caughtFieldOfView = 40f;
+    [Header("Caught face spotlight")]
+    [Min(0f)] public float caughtLightIntensity = 5f;
+    [Tooltip("Offset from the caught camera, giving the face light a slight side angle.")]
+    public Vector3 caughtLightOffset = new Vector3(-0.25f, 0.15f, 0f);
     [Header("Outcome controls and ending")]
     public PauseManager pauseManager;
     public Button pauseButton;
@@ -91,7 +95,19 @@ public class Level3Flow : MonoBehaviour
         caughtCamera.transform.rotation = Quaternion.LookRotation(face - caughtCamera.transform.position, Vector3.up);
         caughtCamera.fieldOfView = caughtFieldOfView;
         caughtCamera.nearClipPlane = 0.03f;
-        if (player.flashlight != null) player.flashlight.enabled = true;
+        // Replace the broad gameplay flashlight with a short, angled beam on the face.
+        if (player.flashlight != null) player.flashlight.enabled = false;
+        GameObject lightObject = new GameObject("Caught face spotlight", typeof(Light));
+        lightObject.transform.SetParent(caughtCamera.transform, false);
+        lightObject.transform.localPosition = caughtLightOffset;
+        lightObject.transform.rotation = Quaternion.LookRotation(face - lightObject.transform.position, Vector3.up);
+        Light faceLight = lightObject.GetComponent<Light>();
+        faceLight.type = LightType.Spot;
+        faceLight.intensity = caughtLightIntensity;
+        faceLight.range = Mathf.Max(2f, caughtFaceDistance + caughtLightOffset.magnitude + 0.5f);
+        faceLight.spotAngle = 60f;
+        faceLight.innerSpotAngle = 35f;
+        faceLight.shadows = LightShadows.Soft;
     }
 
     public void Escape()
