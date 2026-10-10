@@ -81,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (SceneTransition.IsLoading) return;
         if (Keyboard.current == null || PauseManager.IsGamePaused || !controller.enabled) return;
 
         bool wasGrounded = controller.isGrounded;

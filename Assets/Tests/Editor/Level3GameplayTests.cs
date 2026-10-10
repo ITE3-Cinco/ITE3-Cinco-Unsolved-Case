@@ -122,21 +122,27 @@ public class Level3GameplayTests
         Assert.That(path.status, Is.EqualTo(NavMeshPathStatus.PathComplete), label);
     }
 
-    [Test]
-    public void SolidWallsBlockSightButTriggersDoNot()
+    [TestCase(1)]
+    [TestCase(40)]
+    public void SolidWallsBlockSightButTriggersDoNot(int wallCount)
     {
         Component enemy = Find("RenatoEnemy");
         Transform player = (Transform)Get(enemy, "player");
         enemy.transform.position = new Vector3(1000, 1000, 1000);
         player.position = enemy.transform.position + new Vector3(0, 1.5f, 4);
-        GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        SceneManager.MoveGameObjectToScene(wall, level);
-        wall.transform.position = enemy.transform.position + new Vector3(0, 1.5f, 2);
-        wall.transform.localScale = new Vector3(3, 3, 0.2f);
+        Collider[] walls = new Collider[wallCount];
+        for (int i = 0; i < wallCount; i++)
+        {
+            GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            SceneManager.MoveGameObjectToScene(wall, level);
+            wall.transform.position = enemy.transform.position + new Vector3(0, 1.5f, 1f + i * 0.05f);
+            wall.transform.localScale = new Vector3(3, 3, 0.02f);
+            walls[i] = wall.GetComponent<Collider>();
+        }
         Physics.SyncTransforms();
         MethodInfo sight = enemy.GetType().GetMethod("HasClearSight");
         Assert.That(sight.Invoke(enemy, null), Is.EqualTo(false));
-        wall.GetComponent<Collider>().isTrigger = true;
+        foreach (Collider wall in walls) wall.isTrigger = true;
         Physics.SyncTransforms();
         Assert.That(sight.Invoke(enemy, null), Is.EqualTo(true));
     }

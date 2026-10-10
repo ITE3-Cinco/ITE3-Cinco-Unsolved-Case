@@ -181,7 +181,7 @@ public class MainMenuController : MonoBehaviour
         SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", 8f));
 
         // Load your cutscene
-        SceneManager.LoadScene(gameSceneName);
+        SceneTransition.Load(gameSceneName);
     }
 
 
@@ -194,7 +194,7 @@ public class MainMenuController : MonoBehaviour
         PlayerPrefs.Save();
 
         // Load your Level 1 scene
-        SceneManager.LoadScene("PoliceHQ");
+        SceneTransition.Load("PoliceHQ");
     }
 
 

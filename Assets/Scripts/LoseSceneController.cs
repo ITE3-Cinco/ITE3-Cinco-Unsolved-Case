@@ -99,7 +99,7 @@ public class LoseSceneController : MonoBehaviour
             RespawnPoint.ResetCheckpoint();
 
         Time.timeScale = 1f;
-        SceneManager.LoadScene(retrySceneName);
+        SceneTransition.Load(retrySceneName);
     }
 
     public void Exit()
@@ -113,7 +113,7 @@ public class LoseSceneController : MonoBehaviour
         RestorePlayerControls();
         RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
-        SceneManager.LoadScene(exitSceneName);
+        SceneTransition.Load(exitSceneName);
     }
 
     /// <summary>

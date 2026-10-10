@@ -20,6 +20,8 @@ public class Level3Flow : MonoBehaviour
     public VideoClip endingClip;
     public AudioMixerGroup endingAudioMixerGroup;
     public float fadeDuration = 1.5f;
+    [Min(1f)] public float successMessageDuration = 3f;
+    public const string SuccessMessage = "You escape along with the truth...";
     public bool Finished { get; private set; }
 
     private VideoPlayer endingPlayer;
@@ -83,6 +85,11 @@ public class Level3Flow : MonoBehaviour
         if (canvas.GetComponent<GraphicRaycaster>() == null) canvas.gameObject.AddComponent<GraphicRaycaster>();
         foreach (Canvas other in FindObjectsByType<Canvas>(FindObjectsInactive.Exclude))
             if (other != canvas && !other.transform.IsChildOf(canvas.transform)) other.enabled = false;
+
+        TextMeshProUGUI success = CreateText("Escape success", fade.fadeImage.transform, SuccessMessage);
+        Place(success.rectTransform, new Vector2(0.1f, 0.35f), new Vector2(0.9f, 0.65f));
+        yield return new WaitForSecondsRealtime(Mathf.Max(1f, successMessageDuration));
+        Destroy(success.gameObject);
 
         // The game stays frozen throughout the movie; decoding uses an unscaled clock.
         if (endingClip != null)
@@ -190,7 +197,7 @@ public class Level3Flow : MonoBehaviour
 
     private void ShowEndingFallback()
     {
-        TextMeshProUGUI title = CreateText("Escape ending", fade.fadeImage.transform, "You escaped with the truth...");
+        TextMeshProUGUI title = CreateText("Escape ending", fade.fadeImage.transform, SuccessMessage);
         Place(title.rectTransform, new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.7f));
         GameObject buttonObject = new GameObject("Main Menu", typeof(RectTransform), typeof(Image), typeof(Button));
         buttonObject.transform.SetParent(fade.fadeImage.transform, false);
@@ -232,6 +239,6 @@ public class Level3Flow : MonoBehaviour
     {
         RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
+        SceneTransition.Load("MainMenu");
     }
 }

@@ -20,6 +20,7 @@ public class PauseManager : MonoBehaviour
 
     private void Update()
     {
+        if (SceneTransition.IsLoading) return;
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (IsGamePaused)
@@ -31,6 +32,7 @@ public class PauseManager : MonoBehaviour
 
     public void PauseGame()
     {
+        if (SceneTransition.IsLoading) return;
         IsGamePaused = true;
 
         if (pauseMenuPanel != null)
@@ -66,14 +68,14 @@ public class PauseManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         IsGamePaused = false;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneTransition.Load(SceneManager.GetActiveScene().name);
     }
 
     public void ExitToMainMenu()
     {
         Time.timeScale = 1f;
         IsGamePaused = false;
-        SceneManager.LoadScene("MainMenu");
+        SceneTransition.Load("MainMenu");
     }
 
     private void OnDestroy()

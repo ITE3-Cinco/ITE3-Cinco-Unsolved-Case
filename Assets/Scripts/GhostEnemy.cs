@@ -328,6 +328,9 @@ public class GhostEnemy : MonoBehaviour
     }
 
     /// <summary>Returns true when there is an unobstructed line of sight from the ghost to the player.</summary>
+    private readonly RaycastHit[] sightHits = new RaycastHit[32];
+    private float nextChasePathUpdate;
+
     private bool HasLineOfSight()
     {
         if (playerTransform == null) return false;
@@ -339,9 +342,12 @@ public class GhostEnemy : MonoBehaviour
         Vector3 direction = target - origin;
 
         // The ghost can share Default with walls; filter by hierarchy, not layer.
-        foreach (RaycastHit hit in Physics.RaycastAll(origin, direction.normalized,
-            direction.magnitude, lineOfSightMask, QueryTriggerInteraction.Ignore))
+        int count = Physics.RaycastNonAlloc(origin, direction.normalized, sightHits,
+            direction.magnitude, lineOfSightMask, QueryTriggerInteraction.Ignore);
+        if (count == sightHits.Length) return false;
+        for (int i = 0; i < count; i++)
         {
+            RaycastHit hit = sightHits[i];
             if (hit.transform.IsChildOf(transform) || hit.transform.IsChildOf(playerTransform)) continue;
             return false;
         }
@@ -535,7 +541,11 @@ public class GhostEnemy : MonoBehaviour
         if (navigationReady && navAgent != null && navAgent.isOnNavMesh)
         {
             navAgent.speed = speed;
-            navAgent.SetDestination(playerTransform.position);
+            if (Time.time >= nextChasePathUpdate)
+            {
+                nextChasePathUpdate = Time.time + 0.2f;
+                navAgent.SetDestination(playerTransform.position);
+            }
             return true;
         }
 
