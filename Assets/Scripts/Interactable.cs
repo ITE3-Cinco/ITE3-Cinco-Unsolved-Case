@@ -139,7 +139,11 @@ public class Interactable : MonoBehaviour
             {
                 bool complete = ArtifactManager.Instance != null &&
                     ArtifactManager.Instance.artifactsCollected >= ArtifactManager.Instance.totalArtifacts;
-                NotificationManager.Instance.ShowNotification(complete ? EscapeManager.EscapeObjective : "Acquired an artifact!", 5f);
+                ArtifactManager tracker = ArtifactManager.Instance;
+                string message = tracker != null
+                    ? (complete ? tracker.completedMessage : tracker.collectedMessage)
+                    : "Acquired an artifact!";
+                NotificationManager.Instance.ShowNotification(message, 5f);
             }
         }
 
