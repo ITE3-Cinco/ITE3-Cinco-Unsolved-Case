@@ -21,16 +21,19 @@ public class RespawnPoint : MonoBehaviour
     // Only an explicit Try Again can carry a checkpoint through a scene reload.
     public static bool BeginRun(string scenePath)
     {
-        bool resume = retryRequested && hasReachedCheckpoint && checkpointScenePath == scenePath;
+        bool resume = retryRequested && checkpointScenePath == scenePath;
         retryRequested = false;
+        // Begin collection handling first: ResetCheckpoint also clears session history.
+        CollectionProgress.BeginRun(scenePath, resume);
         if (!resume)
-            ResetCheckpoint();
+            ClearSpawn();
+        checkpointScenePath = scenePath;
         return resume;
     }
 
     public static void PrepareForRetry(string scenePath)
     {
-        retryRequested = hasReachedCheckpoint && checkpointScenePath == scenePath;
+        retryRequested = checkpointScenePath == scenePath;
         if (!retryRequested)
             ResetCheckpoint();
     }
@@ -52,12 +55,13 @@ public class RespawnPoint : MonoBehaviour
         activeCheckpointPosition = GetSpawnPosition();
         activeCheckpointRotation = GetSpawnRotation();
         hasReachedCheckpoint = true;
+        CollectionProgress.Save(gameObject.scene);
         CheckpointSaved?.Invoke(activeCheckpointPosition);
 
         Debug.Log($"<color=green>[Checkpoint Activated]</color> Map checkpoint '{gameObject.name}' is now active. Respawn location: {activeCheckpointPosition}");
 
         if (NotificationManager.Instance != null)
-            NotificationManager.Instance.ShowNotification("Checkpoint updated.", 2.5f);
+            NotificationManager.Instance.ShowNotification($"Checkpoint updated. {CollectionProgress.TotalCollected} items collected.", 2.5f);
     }
 
     private Vector3 GetSpawnPosition()
@@ -75,6 +79,12 @@ public class RespawnPoint : MonoBehaviour
     }
 
     public static void ResetCheckpoint()
+    {
+        CollectionProgress.Reset();
+        ClearSpawn();
+    }
+
+    private static void ClearSpawn()
     {
         activeCheckpointPosition = Vector3.zero;
         activeCheckpointRotation = Quaternion.identity;

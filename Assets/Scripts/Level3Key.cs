@@ -6,8 +6,9 @@ public class Level3Key : Interactable
 {
     public Level3Flow flow;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         // The imported model's root has no mesh. Fit a trigger to its child renderers
         // so the existing interaction ray can hit it without blocking navigation.
         Bounds localBounds = new Bounds();

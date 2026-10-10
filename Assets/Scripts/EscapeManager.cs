@@ -17,7 +17,7 @@ public class EscapeManager : MonoBehaviour
     public Transform player;
     public Collider[] exitWalls;
     [Min(0.1f)] public float exitDistance = 1.8f;
-    public string nextSceneName = "Level2";
+    public string nextSceneName = "Lvl-2";
     public float fadeDuration = 1.5f;
     private bool transitioning;
     private bool reportedMissingScene;
@@ -67,7 +67,7 @@ public class EscapeManager : MonoBehaviour
     public bool TryTransition()
     {
         // Unlocking the objective still requires reaching the exit before transitioning.
-        if (!IsEscapeUnlocked || transitioning || !IsPlayerNearExit() ||
+        if (!IsEscapeUnlocked || transitioning || SceneTransition.IsLoading || !IsPlayerNearExit() ||
             PauseManager.IsGamePaused || Time.timeScale <= 0f) return false;
         if (!Application.CanStreamedLevelBeLoaded(nextSceneName))
         {
@@ -76,6 +76,7 @@ public class EscapeManager : MonoBehaviour
             reportedMissingScene = true;
             return false;
         }
+        CollectionProgress.PrepareForNextLevel(nextSceneName);
         transitioning = true;
         // Freeze gameplay while the unscaled fade runs so the ghost cannot catch the player.
         Time.timeScale = 0f;
