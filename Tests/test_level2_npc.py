@@ -87,10 +87,10 @@ class Level2NpcAssets(unittest.TestCase):
 
     def test_current_environment_ghost_and_notes_unchanged(self):
         # Hashes of serialized documents from the current level-2-merge
-        # 5ef1ec3719f8bb43e3f4a9a5712a70f960857653 base. No imported or reconstructed historical environment.
+        # 5ef1ec3719f8bb43e3f4a9a5712a70f960857653 base. Geometry and quest wiring stay fixed;
+        # RenderSettings are covered by test_level2_atmosphere after intentional darkening.
         expected = {'1': '72d265b7b2a916d26a2cd17e7d7ea22fc44de6a8aa817e91cb32ef478644a190',
          '1186399119': 'cdbfb0d458c983f25a7f5a385d4d8cd8678761c07e02a0f6ac58a9b0e4b63838',
-         '2': '7d6f1b63afb08381b8d5651a9cd16a319a7b38ef565e8becb3d7543743cac3ab',
          '3': '4a8983ae894d61f1925364ad9a576a6b946ea2726a6f6e154e52d28db624a558',
          '4': '8c75158c3eb85863fa14829ba849f7a2e8b87f391e64eeabb1b04361ef8d5d9d',
          '437939276': '1ccc12e32dc5908a59431284dd8a14cbc70d18fb724a1d54ed85cc8a8218f883',
