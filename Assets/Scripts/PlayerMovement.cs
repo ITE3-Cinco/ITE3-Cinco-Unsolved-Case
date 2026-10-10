@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
+[DefaultExecutionOrder(-50)]
 public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
@@ -32,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Stamina State")]
     public float currentStamina;
     private bool isExhausted = false;
+    public bool IsSprinting { get; private set; }
 
     [Header("UI Reference")]
     public Slider staminaSlider;
@@ -84,8 +86,9 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        IsSprinting = false;
         if (SceneTransition.IsLoading) return;
-        if (Keyboard.current == null || PauseManager.IsGamePaused || !controller.enabled) return;
+        if (Keyboard.current == null || PauseManager.IsGamePaused || Time.timeScale <= 0f || !controller.enabled) return;
 
         bool wasGrounded = controller.isGrounded;
         if (wasGrounded && velocity.y < 0)
@@ -156,7 +159,13 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = 0f;
         else if ((flags & CollisionFlags.Below) != 0 && velocity.y < 0f)
             velocity.y = -2f;
+
+        Vector3 horizontalVelocity = controller.velocity;
+        horizontalVelocity.y = 0f;
+        IsSprinting = canSprint && horizontalVelocity.sqrMagnitude > 0.01f;
     }
+
+    private void OnDisable() => IsSprinting = false;
 
     public float GetMovementSpeed(bool sprinting)
     {

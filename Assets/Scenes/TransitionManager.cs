@@ -55,12 +55,17 @@ public class TransitionManager : MonoBehaviour
     [SerializeField] private bool allowSkip = true;
 
     private bool isTransitioning = false;
+    private float playbackDeadline;
 
     private void Awake()
     {
         // Keep the menu ready behind the black overlay.
         if (menuCanvasGroup != null)
+        {
             menuCanvasGroup.alpha = 1f; // Menu is fully visible behind the black fade layer.
+            menuCanvasGroup.interactable = false;
+            menuCanvasGroup.blocksRaycasts = false;
+        }
 
         // Hide the menu video until the transition begins.
         if (menuRawImage != null)
@@ -77,22 +82,30 @@ public class TransitionManager : MonoBehaviour
 
     private void Start()
     {
+        // Prepare this first: a missing/failed splash may start the crossfade immediately.
+        if (menuVideoPlayer != null)
+            menuVideoPlayer.Prepare();
+
         // Set up the splash video player.
         if (splashVideoPlayer != null)
         {
             splashVideoPlayer.loopPointReached += OnSplashVideoEnded;
+            splashVideoPlayer.prepareCompleted += OnSplashPrepared;
+            splashVideoPlayer.errorReceived += OnSplashError;
+            splashVideoPlayer.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
+            playbackDeadline = Time.realtimeSinceStartup + 15f;
             splashVideoPlayer.Prepare();
         }
+        else TriggerTransition();
 
-        // Pre-load the menu video player into memory.
-        if (menuVideoPlayer != null)
-        {
-            menuVideoPlayer.Prepare();
-        }
     }
 
     private void Update()
     {
+        if (SceneTransition.IsLoading) return;
+        if (!isTransitioning && splashVideoPlayer != null && splashVideoPlayer.frame < 0 &&
+            Time.realtimeSinceStartup >= playbackDeadline)
+            TriggerTransition();
         // Skip check for the input system.
         if (allowSkip && !isTransitioning)
         {
@@ -108,6 +121,17 @@ public class TransitionManager : MonoBehaviour
                 TriggerTransition();
             }
         }
+    }
+
+    private void OnSplashPrepared(VideoPlayer player)
+    {
+        if (!isTransitioning) player.Play();
+    }
+
+    private void OnSplashError(VideoPlayer player, string message)
+    {
+        Debug.LogWarning("[TransitionManager] Splash unavailable: " + message);
+        TriggerTransition();
     }
 
     // Callback for when the splash video ends naturally.
@@ -161,11 +185,18 @@ public class TransitionManager : MonoBehaviour
 
         // Turn off the splash screen completely.
         if (splashCanvasGroup != null)
+        {
             splashCanvasGroup.alpha = 0f; // Splash is now fully transparent/invisible.
+            splashCanvasGroup.blocksRaycasts = false;
+            splashCanvasGroup.interactable = false;
+        }
 
         // Turn off the splash video player to free up resources.
         if (splashVideoPlayer != null)
+        {
+            splashVideoPlayer.Stop();
             splashVideoPlayer.gameObject.SetActive(false); // Deactivate the splash video player GameObject.
+        }
 
         // Fade out the black overlay to reveal the menu video.
         timer = 0f;
@@ -189,6 +220,11 @@ public class TransitionManager : MonoBehaviour
             blackScreenCanvasGroup.alpha = 0f; // Black overlay is fully transparent and no longer blocks interaction.
             blackScreenCanvasGroup.gameObject.SetActive(false); // Deactivate the black screen canvas group GameObject to allow interaction with the menu.
         }
+        if (menuCanvasGroup != null)
+        {
+            menuCanvasGroup.interactable = true;
+            menuCanvasGroup.blocksRaycasts = true;
+        }
     }
 
     // Clean up event subscriptions when the object is destroyed to prevent memory leaks.
@@ -199,6 +235,8 @@ public class TransitionManager : MonoBehaviour
         {
             // Remove the event handler to prevent it from being called after the object is destroyed.
             splashVideoPlayer.loopPointReached -= OnSplashVideoEnded;
+            splashVideoPlayer.prepareCompleted -= OnSplashPrepared;
+            splashVideoPlayer.errorReceived -= OnSplashError;
         }
     }
 }

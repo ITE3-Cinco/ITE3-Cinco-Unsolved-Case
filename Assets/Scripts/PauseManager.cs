@@ -15,7 +15,11 @@ public class PauseManager : MonoBehaviour
 
     private void Start()
     {
-        ResumeGame();
+        IsGamePaused = false;
+        SetPauseUI(false);
+        if (!SceneTransition.IsLoading) Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
@@ -32,14 +36,9 @@ public class PauseManager : MonoBehaviour
 
     public void PauseGame()
     {
-        if (SceneTransition.IsLoading) return;
+        if (!isActiveAndEnabled || SceneTransition.IsLoading || Time.timeScale <= 0f) return;
         IsGamePaused = true;
-
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(true);
-
-        if (gameplayPauseButton != null)
-            gameplayPauseButton.SetActive(false);
+        SetPauseUI(true);
 
         Time.timeScale = 0f;
 
@@ -49,13 +48,9 @@ public class PauseManager : MonoBehaviour
 
     public void ResumeGame()
     {
+        if (!isActiveAndEnabled || SceneTransition.IsLoading) return;
         IsGamePaused = false;
-
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(false);
-
-        if (gameplayPauseButton != null)
-            gameplayPauseButton.SetActive(true);
+        SetPauseUI(false);
 
         Time.timeScale = 1f;
 
@@ -64,8 +59,24 @@ public class PauseManager : MonoBehaviour
         Cursor.visible = false;
     }
 
+    private void SetPauseUI(bool paused)
+    {
+        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(paused);
+        if (gameplayPauseButton != null) gameplayPauseButton.SetActive(!paused);
+    }
+
+    public void EndGameplay()
+    {
+        IsGamePaused = false;
+        SetPauseUI(false);
+        if (gameplayPauseButton != null) gameplayPauseButton.SetActive(false);
+        enabled = false;
+    }
+
     public void RestartLevel()
     {
+        if (!isActiveAndEnabled || SceneTransition.IsLoading) return;
+        RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
         IsGamePaused = false;
         SceneTransition.Load(SceneManager.GetActiveScene().name);
@@ -73,6 +84,8 @@ public class PauseManager : MonoBehaviour
 
     public void ExitToMainMenu()
     {
+        if (!isActiveAndEnabled || SceneTransition.IsLoading) return;
+        RespawnPoint.ResetCheckpoint();
         Time.timeScale = 1f;
         IsGamePaused = false;
         SceneTransition.Load("MainMenu");
