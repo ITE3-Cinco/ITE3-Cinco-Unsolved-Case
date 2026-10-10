@@ -22,6 +22,39 @@ class Level3KeyEscapeTests(unittest.TestCase):
         return next(body for kind, body in cls.docs.values()
                     if kind == 114 and field(body, 'm_EditorClassIdentifier') == 'Assembly-CSharp::' + name)
 
+    def test_renato_loops_resolve_to_supplied_audio_assets(self):
+        audio = self.component('RenatoAudio')
+        for clip_field, source_field, filename in [
+            ('whistleClip', 'whistleSource', 'RenatoWhistling.mp3'),
+            ('chaseClip', 'chaseSource', 'ChaseAudio.mp3'),
+        ]:
+            meta = (ROOT / 'Assets/Audio/Renato Audio' / (filename + '.meta')).read_text()
+            guid = re.search(r'^guid: (\w+)', meta, re.M)[1]
+            expected = '{fileID: 8300000, guid: ' + guid + ', type: 3}'
+            self.assertEqual(field(audio, clip_field), expected)
+            kind, source = self.docs[reference(audio, source_field)]
+            self.assertEqual(kind, 82)
+            self.assertEqual(field(source, 'm_Resource'), expected)
+
+    def test_lose_buttons_have_unobstructed_canvas_and_valid_destinations(self):
+        lose = self.docs[reference(self.flow, 'loseController')][1]
+        lose_go = reference(lose, 'loseCanvas')
+        canvas = next(b for k, b in self.docs.values()
+                      if k == 223 and reference(b, 'm_GameObject') == lose_go)
+        self.assertEqual(field(canvas, 'm_OverrideSorting'), '1')
+        for kind, body in self.docs.values():
+            if kind == 223 and reference(body, 'm_GameObject') != lose_go:
+                self.assertGreater(int(field(canvas, 'm_SortingOrder')), int(field(body, 'm_SortingOrder')))
+        for button_field in ['tryAgainButton', 'exitButton']:
+            button = self.docs[reference(lose, button_field)][1]
+            self.assertEqual(field(button, 'm_Interactable'), '1')
+            graphic = self.docs[reference(button, 'm_TargetGraphic')][1]
+            self.assertEqual(field(graphic, 'm_RaycastTarget'), '1')
+        build = (ROOT / 'ProjectSettings/EditorBuildSettings.asset').read_text()
+        for scene_field, expected in [('retrySceneName', 'Level3'), ('exitSceneName', 'MainMenu')]:
+            self.assertEqual(field(lose, scene_field), expected)
+            self.assertIn('enabled: 1\n    path: Assets/Scenes/' + expected + '.unity', build)
+
     def test_key_is_connected_to_interaction_and_flow(self):
         key = self.component('Level3Key')
         key_go = reference(key, 'm_GameObject')

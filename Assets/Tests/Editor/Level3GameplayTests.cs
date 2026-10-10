@@ -318,6 +318,24 @@ public class Level3GameplayTests
     }
 
     [Test]
+    public void CaughtScreenKeepsCursorAvailableAfterFocusReturns()
+    {
+        Call(Find("PlayerAudio"), "Awake");
+        Call(Find("Level3Flow"), "Caught");
+        Component look = Find("MouseLook");
+        look.GetType().GetMethod("OnApplicationFocus", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(look, new object[] { true });
+        Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+        Assert.That(Cursor.visible, Is.True);
+
+        // Recover even if another late callback hid the pointer.
+        Cursor.visible = false;
+        Call(Find("LoseSceneController"), "LateUpdate");
+        Assert.That(Cursor.visible, Is.True);
+        Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+    }
+
+    [Test]
     public void CatchLocksControlsAndPreventsEscapeOrRepeatedLoss()
     {
         Component flow = Find("Level3Flow");

@@ -4650,7 +4650,7 @@ Canvas:
   m_PlaneDistance: 100
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
-  m_OverrideSorting: 0
+  m_OverrideSorting: 1
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
@@ -4658,7 +4658,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!1 &891921558
 GameObject:
@@ -12647,7 +12647,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -7607021986747203805, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 0ee62aa1557ec3e459ab1761e42ec77e, type: 3}
+  m_Resource: {fileID: 8300000, guid: 5154f505a74b2ef459acd0ae741e69c3, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -12744,7 +12744,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: e3c1abd08edb531478324b9ed07faf88, type: 3}
+  m_Resource: {fileID: 8300000, guid: 4646b3f467b111c4e886b3ee486b105e, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -12847,8 +12847,8 @@ MonoBehaviour:
   whistleSource: {fileID: 2200000300}
   chaseSource: {fileID: 2200000301}
   ambienceSource: {fileID: 2136695089}
-  whistleClip: {fileID: 8300000, guid: 0ee62aa1557ec3e459ab1761e42ec77e, type: 3}
-  chaseClip: {fileID: 8300000, guid: e3c1abd08edb531478324b9ed07faf88, type: 3}
+  whistleClip: {fileID: 8300000, guid: 5154f505a74b2ef459acd0ae741e69c3, type: 3}
+  chaseClip: {fileID: 8300000, guid: 4646b3f467b111c4e886b3ee486b105e, type: 3}
   whistleVolume: 0.7
   chaseVolume: 0.65
   fadeDuration: 2
