@@ -13,6 +13,14 @@ public class Level3Flow : MonoBehaviour
     public RenatoEnemy renato;
     public LoseSceneController loseController;
     public BoxCollider mainExit;
+    public ObjectiveItem objective;
+    public bool HasKey { get; private set; }
+    public const string ExitObjective = "Escape through the main door.";
+    [Header("Caught camera")]
+    public Camera caughtCamera;
+    [Min(0.2f)] public float caughtFaceDistance = 0.65f;
+    [Range(20f, 90f)] public float caughtFieldOfView = 40f;
+    [Header("Outcome controls and ending")]
     public PauseManager pauseManager;
     public Button pauseButton;
     public ScreenFadeController fade;
@@ -45,12 +53,46 @@ public class Level3Flow : MonoBehaviour
         Finish();
         PlayerAudio audio = player.GetComponent<PlayerAudio>();
         if (audio != null) audio.PlayCaught();
+        FocusCaughtCamera();
         loseController.ShowLoseScreen();
+    }
+
+    public bool CollectKey(PlayerMovement collector)
+    {
+        if (Finished || HasKey || collector == null || collector != player ||
+            Time.timeScale <= 0f || PauseManager.IsGamePaused) return false;
+        HasKey = true;
+        if (objective != null)
+        {
+            objective.primaryObjective = ExitObjective;
+            objective.UpdateUI();
+        }
+        if (NotificationManager.Instance != null)
+            NotificationManager.Instance.ShowNotification("Key acquired! " + ExitObjective, 4f);
+        return true;
+    }
+
+    private void FocusCaughtCamera()
+    {
+        if (renato == null) return;
+        if (caughtCamera == null) caughtCamera = player.GetComponentInChildren<Camera>();
+        if (caughtCamera == null) return;
+        Animator animator = renato.GetComponentInChildren<Animator>();
+        Transform head = animator != null && animator.isHuman && animator.avatar != null && animator.avatar.isValid
+            ? animator.GetBoneTransform(HumanBodyBones.Head) : null;
+        Vector3 face = head != null ? head.position : renato.transform.position + Vector3.up * 1.6f;
+        // Approach from the front of the model even when Dwight was caught from behind.
+        Vector3 forward = animator != null ? animator.transform.forward : renato.transform.forward;
+        caughtCamera.transform.position = face + forward * Mathf.Max(0.2f, caughtFaceDistance);
+        caughtCamera.transform.rotation = Quaternion.LookRotation(face - caughtCamera.transform.position, Vector3.up);
+        caughtCamera.fieldOfView = caughtFieldOfView;
+        caughtCamera.nearClipPlane = 0.03f;
+        if (player.flashlight != null) player.flashlight.enabled = true;
     }
 
     public void Escape()
     {
-        if (Finished || player == null || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
+        if (Finished || !HasKey || player == null || Time.timeScale <= 0f || PauseManager.IsGamePaused) return;
         Finish();
         StartCoroutine(ShowEnding());
     }

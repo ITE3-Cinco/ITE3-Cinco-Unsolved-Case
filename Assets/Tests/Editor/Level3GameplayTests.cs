@@ -59,7 +59,7 @@ public class Level3GameplayTests
         Assert.That(((IList)Get(inventory, "items"))[0], Is.EqualTo(Get(player, "flashlightItemData")));
         Component objective = Find("ObjectiveItem");
         Assert.That(Get(objective, "objectiveText"), Is.Not.Null);
-        Assert.That(Get(objective, "primaryObjective"), Is.EqualTo("Escape the asylum."));
+        Assert.That(Get(objective, "primaryObjective"), Is.EqualTo("Find the key, then escape through the main door."));
         Component lose = Find("LoseSceneController");
         Assert.That(Get(lose, "retrySceneName"), Is.EqualTo("Level3"));
         Assert.That(Get(lose, "exitSceneName"), Is.EqualTo("MainMenu"));
@@ -112,6 +112,9 @@ public class Level3GameplayTests
         }
         BoxCollider exit = (BoxCollider)Get(Find("Level3Flow"), "mainExit");
         AssertReachable(start.position, new Vector3(exit.bounds.center.x, 0.04f, exit.bounds.center.z), "Main door");
+        Transform key = Find("Level3Key").transform;
+        Assert.That(NavMesh.SamplePosition(key.position, out NavMeshHit keyFloor, 1.5f, NavMesh.AllAreas), Is.True, "Key pickup floor");
+        AssertReachable(start.position, keyFloor.position, "Key pickup");
     }
 
     private static void AssertReachable(Vector3 from, Vector3 to, string label)
@@ -225,6 +228,58 @@ public class Level3GameplayTests
     }
 
     [Test]
+    public void KeyPickupHasARaycastTargetAndUnlocksOnlyForDwight()
+    {
+        Component key = Find("Level3Key");
+        Component flow = Find("Level3Flow");
+        Assert.That(Get(key, "flow"), Is.SameAs(flow));
+        Call(key, "Awake");
+        BoxCollider pickup = key.GetComponent<BoxCollider>();
+        Assert.That(pickup.isTrigger, Is.True);
+        Assert.That(pickup.size.x, Is.GreaterThan(0f));
+        Physics.SyncTransforms();
+        Bounds bounds = pickup.bounds;
+        Assert.That(pickup.Raycast(new Ray(bounds.center + Vector3.up * 2f, Vector3.down), out _, 3f), Is.True);
+        Call(flow, "Escape");
+        Assert.That(flow.GetType().GetProperty("Finished").GetValue(flow), Is.EqualTo(false));
+        Assert.That(Time.timeScale, Is.EqualTo(1f));
+        // The overlap fallback must also leave controls active without the key.
+        Component player = Find("PlayerMovement");
+        player.transform.position = ((BoxCollider)Get(flow, "mainExit")).bounds.center;
+        Physics.SyncTransforms();
+        Call(flow, "LateUpdate");
+        Assert.That(flow.GetType().GetProperty("Finished").GetValue(flow), Is.EqualTo(false));
+        MethodInfo collect = flow.GetType().GetMethod("CollectKey");
+        Assert.That(collect.Invoke(flow, new object[] { null }), Is.EqualTo(false));
+        GameObject stranger = new GameObject("Other player");
+        SceneManager.MoveGameObjectToScene(stranger, level);
+        Component otherPlayer = stranger.AddComponent(Gameplay("PlayerMovement"));
+        Assert.That(collect.Invoke(flow, new object[] { otherPlayer }), Is.EqualTo(false));
+        Time.timeScale = 0f;
+        Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(false));
+        Time.timeScale = 1f;
+        Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(true));
+        Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(false));
+        Assert.That(flow.GetType().GetProperty("HasKey").GetValue(flow), Is.EqualTo(true));
+        Assert.That(Get(Find("ObjectiveItem"), "primaryObjective"), Is.EqualTo("Escape through the main door."));
+    }
+
+    [TestCase(100f, 5f)]
+    [TestCase(45f, 5f)]
+    [TestCase(44.99f, 5.5f)]
+    [TestCase(1f, 5.5f)]
+    public void Level3SprintBoostUsesTheStaminaBoundary(float stamina, float speed)
+    {
+        Component player = Find("PlayerMovement");
+        Set(player, "currentStamina", stamina);
+        MethodInfo movement = player.GetType().GetMethod("GetMovementSpeed");
+        Assert.That(movement.Invoke(player, new object[] { true }), Is.EqualTo(speed));
+        Assert.That(movement.Invoke(player, new object[] { false }), Is.EqualTo(3f));
+        Set(player, "useLowStaminaSprintBoost", false);
+        Assert.That(movement.Invoke(player, new object[] { true }), Is.EqualTo(5f), "Other scenes retain their configured sprint speed.");
+    }
+
+    [Test]
     public void CatchLocksControlsAndPreventsEscapeOrRepeatedLoss()
     {
         Component flow = Find("Level3Flow");
@@ -237,6 +292,14 @@ public class Level3GameplayTests
         Assert.That(((Behaviour)Get(flow, "player")).enabled, Is.False);
         Assert.That(((Behaviour)Get(flow, "renato")).enabled, Is.False);
         Assert.That(((Button)Get(flow, "pauseButton")).interactable, Is.False);
+        Camera camera = (Camera)Get(flow, "caughtCamera");
+        Animator animator = ((Component)Get(flow, "renato")).GetComponentInChildren<Animator>();
+        Vector3 face = animator.GetBoneTransform(HumanBodyBones.Head).position;
+        Assert.That(Vector3.Distance(camera.transform.position, face), Is.EqualTo(0.65f).Within(0.001f));
+        Assert.That(Vector3.Dot(camera.transform.forward, (face - camera.transform.position).normalized), Is.GreaterThan(0.999f));
+        Assert.That(camera.fieldOfView, Is.EqualTo(40f));
+        Assert.That(canvas.transform.Find("Background").GetComponent<Image>().color.a, Is.EqualTo(0.2f));
+        Assert.That(flow.GetType().GetMethod("CollectKey").Invoke(flow, new object[] { Get(flow, "player") }), Is.EqualTo(false));
         canvas.SetActive(false);
         Call(flow, "Caught");
         Call(flow, "Escape");
