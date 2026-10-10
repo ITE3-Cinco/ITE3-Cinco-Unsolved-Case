@@ -12900,7 +12900,7 @@ MonoBehaviour:
   priority: 10
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 0}
+  sharedProfile: {fileID: 11400000, guid: 77d630cf92b2ae940af973ed097fb7fd, type: 2}
 --- !u!114 &2200000403
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12920,6 +12920,7 @@ SceneRoots:
   - {fileID: 664003325}
   - {fileID: 1703976379}
   - {fileID: 1056893394}
+  - {fileID: 2200000401}
   - {fileID: 2136695090}
   - {fileID: 1862841237}
   - {fileID: 801471926}
@@ -12928,4 +12929,3 @@ SceneRoots:
   - {fileID: 1579389038}
   - {fileID: 2200000011}
   - {fileID: 2200000001}
-  - {fileID: 2200000401}
