@@ -276,6 +276,10 @@ PrefabInstance:
       propertyPath: artifactCounterText
       value: 
       objectReference: {fileID: 2077965603}
+    - target: {fileID: 3433380000644894917, guid: cdfe03bdcb153334698d9f2d9c4ee093, type: 3}
+      propertyPath: artifactObjective
+      value:
+      objectReference: {fileID: 8800000000000000100}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -338,7 +342,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1469907442825563582, guid: 84f53a6fad234e14a9bb1297bab3ce7d, type: 3}
+    - {fileID: 2065189694244561470, guid: 84f53a6fad234e14a9bb1297bab3ce7d, type: 3}
+    - {fileID: 2911122709266451846, guid: 84f53a6fad234e14a9bb1297bab3ce7d, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 84f53a6fad234e14a9bb1297bab3ce7d, type: 3}
@@ -1091,6 +1098,140 @@ MonoBehaviour:
   voxelSize: 0.25
   agentRadiusOverride: 0
   agentHeightOverride: 0
+--- !u!114 &8800000000000000100 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2123664855085018190, guid: 6c9161b585636704dbe847a8eb872ab7, type: 3}
+  m_PrefabInstance: {fileID: 867314172}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d84309d3ae9ee64fb019adaedf4d5cc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectiveItem
+--- !u!1001 &8800000000000000110
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_Name
+      value: Note Artifact - North passage
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -89.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 174
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.13052619222005157
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9914448613738104
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 15
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+--- !u!1001 &8800000000000000111
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_Name
+      value: Note Artifact - South passage
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 145
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.21643961393810288
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9762960071199334
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -25
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+--- !u!1001 &8800000000000000112
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_Name
+      value: Note Artifact - East room
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -71
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 174
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.42261826174069944
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9063077870366499
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 50
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 400c42ff1cb449eeb4d11d96009213c4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1102,3 +1243,6 @@ SceneRoots:
   - {fileID: 559275868}
   - {fileID: 437939276}
   - {fileID: 978205674}
+  - {fileID: 8800000000000000110}
+  - {fileID: 8800000000000000111}
+  - {fileID: 8800000000000000112}
