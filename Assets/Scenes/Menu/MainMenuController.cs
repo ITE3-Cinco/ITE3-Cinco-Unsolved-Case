@@ -90,6 +90,11 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
+        if (gameObject.scene.name == "MainMenu" || mainButtonsPanel != null && mainButtonsPanel.scene.name == "MainMenu")
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
         // Load saved preferences from disk (or use default values on first startup)
         float savedMusic = PlayerPrefs.GetFloat("MusicVolume", 8f);         // Slider range: 0–10
         float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 8f);             // Slider range: 0–10
@@ -129,6 +134,11 @@ public class MainMenuController : MonoBehaviour
     {
         // Apply before rendering, including scene loads while timeScale is zero.
         ApplyLoadedSettingsToNewScene();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
 

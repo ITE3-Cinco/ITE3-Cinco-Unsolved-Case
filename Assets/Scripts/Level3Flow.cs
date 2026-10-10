@@ -133,7 +133,7 @@ public class Level3Flow : MonoBehaviour
         if (inventory != null) inventory.enabled = false;
         PlayerRespawn respawn = player.GetComponent<PlayerRespawn>();
         if (respawn != null) respawn.enabled = false;
-        if (pauseManager != null) pauseManager.enabled = false;
+        if (pauseManager != null) pauseManager.EndGameplay();
         if (pauseButton != null) pauseButton.interactable = false;
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;

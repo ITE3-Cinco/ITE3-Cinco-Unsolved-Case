@@ -26,7 +26,7 @@ public class MouseLook : MonoBehaviour
 
     private void Update()
     {
-        if (Mouse.current == null || PauseManager.IsGamePaused || SceneTransition.IsLoading)
+        if (Mouse.current == null || PauseManager.IsGamePaused || SceneTransition.IsLoading || Time.timeScale <= 0f)
             return;
 
         if (lockSensitivity)

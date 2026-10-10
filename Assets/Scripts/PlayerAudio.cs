@@ -24,11 +24,13 @@ public class PlayerAudio : MonoBehaviour
     private AudioSource footstepSource;
     private AudioSource caughtSource;
     private CharacterController controller;
+    private PlayerMovement movement;
     private float stepTimer;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        movement = GetComponent<PlayerMovement>();
 
         AudioSource[] sources = GetComponents<AudioSource>();
 
@@ -61,6 +63,7 @@ public class PlayerAudio : MonoBehaviour
 
     private void ConfigureCaughtSource()
     {
+        caughtSource.outputAudioMixerGroup = footstepSource.outputAudioMixerGroup;
         caughtSource.playOnAwake = false;
         caughtSource.loop = false;
         caughtSource.spatialBlend = 0f;
@@ -70,13 +73,19 @@ public class PlayerAudio : MonoBehaviour
         caughtSource.reverbZoneMix = 1f;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        if (controller == null || Keyboard.current == null)
+        if (controller == null || !controller.enabled || movement == null || !movement.isActiveAndEnabled ||
+            Keyboard.current == null || PauseManager.IsGamePaused || SceneTransition.IsLoading || Time.timeScale <= 0f)
+        {
+            StopFootsteps();
             return;
+        }
 
         bool grounded = controller.isGrounded;
-        bool moving = IsMovementInputHeld();
+        Vector3 horizontalVelocity = controller.velocity;
+        horizontalVelocity.y = 0f;
+        bool moving = IsMovementInputHeld() && horizontalVelocity.sqrMagnitude > 0.01f;
 
         if (!grounded || !moving || footstepClip == null)
         {
@@ -84,8 +93,9 @@ public class PlayerAudio : MonoBehaviour
             return;
         }
 
-        bool running = Keyboard.current.leftShiftKey.isPressed;
+        bool running = movement.IsSprinting;
         float interval = running ? runStepInterval : walkStepInterval;
+        footstepSource.pitch = running ? runFootstepPitch : walkFootstepPitch;
 
         stepTimer -= Time.deltaTime;
 
@@ -121,6 +131,7 @@ public class PlayerAudio : MonoBehaviour
 
     public void PlayCaught()
     {
+        StopFootsteps();
         if (caughtClip != null)
             caughtSource.PlayOneShot(caughtClip, caughtVolume);
         else

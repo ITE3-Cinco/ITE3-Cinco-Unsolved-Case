@@ -63,6 +63,8 @@ public class LoseSceneController : MonoBehaviour
 
     public void ShowLoseScreen()
     {
+        foreach (PauseManager pause in FindObjectsByType<PauseManager>(FindObjectsInactive.Include))
+            if (pause.gameObject.scene == gameObject.scene) pause.EndGameplay();
         // Set before activation: an initially inactive controller can Awake here.
         isShowing = true;
         // If the controller is on the Canvas itself, use that Canvas.
@@ -92,9 +94,10 @@ public class LoseSceneController : MonoBehaviour
 
     public void TryAgain()
     {
-        if (string.IsNullOrWhiteSpace(retrySceneName))
+        if (SceneTransition.IsLoading) return;
+        if (string.IsNullOrWhiteSpace(retrySceneName) || !Application.CanStreamedLevelBeLoaded(retrySceneName))
         {
-            Debug.LogError("[LoseSceneController] Retry scene name is empty.");
+            Debug.LogError("[LoseSceneController] Retry scene is missing from Build Settings: " + retrySceneName);
             return;
         }
 
@@ -110,9 +113,10 @@ public class LoseSceneController : MonoBehaviour
 
     public void Exit()
     {
-        if (string.IsNullOrWhiteSpace(exitSceneName))
+        if (SceneTransition.IsLoading) return;
+        if (string.IsNullOrWhiteSpace(exitSceneName) || !Application.CanStreamedLevelBeLoaded(exitSceneName))
         {
-            Debug.LogError("[LoseSceneController] Exit scene name is empty.");
+            Debug.LogError("[LoseSceneController] Exit scene is missing from Build Settings: " + exitSceneName);
             return;
         }
 

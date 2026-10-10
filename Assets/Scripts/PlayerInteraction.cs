@@ -62,36 +62,42 @@ public class PlayerInteraction : MonoBehaviour
             ? Physics.DefaultRaycastLayers
             : interactableLayer.value;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, layerMask, QueryTriggerInteraction.Collide))
+        Interactable interactable = FindInteractable(ray, layerMask);
+        if (interactable != null)
         {
-            // Allow the collider to be on a child object of the actual
-            // interactable, which is common for detailed map/item models.
-            Interactable interactable = hit.collider.GetComponentInParent<Interactable>();
-
-            if (interactable != null)
+            if (interactionText != null)
             {
-                if (interactionText != null)
-                {
-                    interactionText.text = interactable.promptMessage;
-                    interactionText.gameObject.SetActive(!DialogueBox.IsOpen);
-                }
-
-                if (Keyboard.current.eKey.wasPressedThisFrame)
-                {
-                    interactable.Interact(transform.root.gameObject);
-
-                    if (interactionText != null)
-                        interactionText.gameObject.SetActive(false);
-                }
-
-                return;
+                interactionText.text = interactable.promptMessage;
+                interactionText.gameObject.SetActive(!DialogueBox.IsOpen);
             }
+
+            if (usePressed)
+            {
+                interactable.Interact(transform.root.gameObject);
+                if (interactionText != null)
+                    interactionText.gameObject.SetActive(false);
+            }
+            return;
         }
 
         if (usePressed && agimatReady) agimat.TryUseAgimat();
 
         if (interactionText != null && interactionText.gameObject.activeSelf)
             interactionText.gameObject.SetActive(false);
+    }
+
+    private Interactable FindInteractable(Ray ray, int layerMask)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactDistance, layerMask, QueryTriggerInteraction.Collide);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (RaycastHit hit in hits)
+        {
+            // Trigger volumes must not obscure pickups, but solid walls still do.
+            Interactable item = hit.collider.GetComponentInParent<Interactable>();
+            if (item != null && item.isActiveAndEnabled) return item;
+            if (!hit.collider.isTrigger) return null;
+        }
+        return null;
     }
 
     private void FindMainCamera()

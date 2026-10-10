@@ -138,9 +138,7 @@ public class RenatoEnemy : MonoBehaviour
         if (!seen && State != BehaviourState.Chase && hearingRadius > 0f)
         {
             PlayerMovement pm = playerMovement;
-            bool playerSprinting = pm != null && pm.currentStamina < pm.maxStamina &&
-                                   UnityEngine.InputSystem.Keyboard.current != null &&
-                                   UnityEngine.InputSystem.Keyboard.current.leftShiftKey.isPressed;
+            bool playerSprinting = pm != null && pm.isActiveAndEnabled && pm.IsSprinting;
             if (playerSprinting && offset.magnitude <= hearingRadius)
             {
                 lastSeen = player.position;

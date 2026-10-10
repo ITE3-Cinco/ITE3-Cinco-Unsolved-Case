@@ -18,7 +18,7 @@ public class Inventory : MonoBehaviour
 
     private void Update()
     {
-        if (SceneTransition.IsLoading) return;
+        if (SceneTransition.IsLoading || PauseManager.IsGamePaused || Time.timeScale <= 0f) return;
         // Hotbar Slot Selection (1-5)
 #if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null)
@@ -41,6 +41,7 @@ public class Inventory : MonoBehaviour
 
     public bool AddItem(ItemData item)
     {
+        if (item == null) return false;
         if (items.Count >= maxSlots)
         {
             Debug.Log("Inventory Full!");

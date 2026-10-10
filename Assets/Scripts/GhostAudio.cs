@@ -8,12 +8,21 @@ public class GhostAudio : MonoBehaviour
 
     public static void PlayScare(AudioClip clip, Vector3 position, float volume)
     {
-        if (clip == null)
-        {
-            GhostAudio ghostAudio = FindAnyObjectByType<GhostAudio>();
-            if (ghostAudio != null) clip = ghostAudio.screamClip;
-        }
-        if (clip != null) AudioSource.PlayClipAtPoint(clip, position, volume);
+        GhostAudio ghostAudio = FindAnyObjectByType<GhostAudio>();
+        if (clip == null && ghostAudio != null) clip = ghostAudio.screamClip;
+        if (clip == null) return;
+        // PlayClipAtPoint bypasses the SFX mixer, so mute/volume settings would be ignored.
+        GameObject host = new GameObject("Ghost scare audio", typeof(AudioSource));
+        host.transform.position = position;
+        AudioSource source = host.GetComponent<AudioSource>();
+        source.playOnAwake = false;
+        source.spatialBlend = 1f;
+        source.clip = clip;
+        source.volume = volume;
+        if (ghostAudio != null)
+            source.outputAudioMixerGroup = ghostAudio.GetComponent<AudioSource>().outputAudioMixerGroup;
+        source.Play();
+        Destroy(host, clip.length);
     }
 
     [Header("Humming")]
@@ -29,6 +38,7 @@ public class GhostAudio : MonoBehaviour
     private Transform player;
     private GhostEnemy ghost;
     private float currentVolume = 0f;
+    private bool paused;
 
     private void Awake()
     {
@@ -59,6 +69,17 @@ public class GhostAudio : MonoBehaviour
 
     private void Update()
     {
+        if (PauseManager.IsGamePaused || SceneTransition.IsLoading || Time.timeScale <= 0f)
+        {
+            if (!paused) audioSource.Pause();
+            paused = true;
+            return;
+        }
+        if (paused)
+        {
+            audioSource.UnPause();
+            paused = false;
+        }
         if (player == null)
             FindPlayer();
 

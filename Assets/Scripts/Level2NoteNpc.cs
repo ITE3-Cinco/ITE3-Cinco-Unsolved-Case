@@ -175,6 +175,7 @@ public class Level2NoteNpc : Interactable
             Debug.LogError($"[Level2NoteNpc] Add '{nextSceneName}' to the build scenes.", this);
             return;
         }
+        CollectionProgress.PrepareForNextLevel(nextSceneName);
         transitioning = true;
         if (dialogueBox != null) dialogueBox.Hide();
         // The White Lady is already harmless. Freeze controls during the scene fade.
