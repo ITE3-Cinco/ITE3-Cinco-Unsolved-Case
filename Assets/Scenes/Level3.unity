@@ -11883,6 +11883,7 @@ MonoBehaviour:
   loseController: {fileID: 13603252}
   mainExit: {fileID: 2200000022}
   objective: {fileID: 1769037160}
+  keyItem: {fileID: 11400000, guid: d0283b50f3e94d898a6f8adb286759a1, type: 2}
   caughtCamera: {fileID: 762294954}
   caughtFaceDistance: 0.65
   caughtFieldOfView: 40

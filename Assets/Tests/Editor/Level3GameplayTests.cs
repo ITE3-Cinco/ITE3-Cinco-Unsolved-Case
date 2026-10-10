@@ -258,9 +258,34 @@ public class Level3GameplayTests
         Time.timeScale = 0f;
         Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(false));
         Time.timeScale = 1f;
+        Component inventory = Find("Inventory");
+        IList items = (IList)Get(inventory, "items");
+        object flashlight = items[0];
+        object keyItem = Get(flow, "keyItem");
+        Sprite keyIcon = (Sprite)Get(keyItem, "itemIcon");
+        Assert.That(keyIcon, Is.Not.Null);
+        Assert.That(AssetDatabase.GetAssetPath(keyIcon), Is.EqualTo("Assets/Scenes/Buttons-Icons/key icon.png"));
+        Assert.That(items.Count, Is.EqualTo(1), "The key must not appear before collection or after retry.");
+        int selected = (int)Get(inventory, "selectedIndex");
+        // A rejected inventory addition must not grant escape or remove the pickup.
+        int capacity = (int)Get(inventory, "maxSlots");
+        Set(inventory, "maxSlots", items.Count);
+        Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(false));
+        Assert.That(flow.GetType().GetProperty("HasKey").GetValue(flow), Is.EqualTo(false));
+        Assert.That(key.gameObject.activeSelf, Is.True);
+        Assert.That(Get(Find("ObjectiveItem"), "primaryObjective"), Is.EqualTo("Find the key, then escape through the main door."));
+        Set(inventory, "maxSlots", capacity);
         Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(true));
+        Assert.That(items.Count, Is.EqualTo(2));
+        Assert.That(items[0], Is.SameAs(flashlight));
+        Assert.That(items[1], Is.SameAs(keyItem));
+        Assert.That(Get(inventory, "selectedIndex"), Is.EqualTo(selected));
+        IList icons = (IList)Get(Get(inventory, "hotbarUI"), "slotIcons");
+        Assert.That(((Image)icons[1]).enabled, Is.True);
+        Assert.That(((Image)icons[1]).sprite, Is.SameAs(keyIcon));
         Assert.That(collect.Invoke(flow, new object[] { player }), Is.EqualTo(false));
         Assert.That(flow.GetType().GetProperty("HasKey").GetValue(flow), Is.EqualTo(true));
+        Assert.That(items.Count, Is.EqualTo(2), "Repeated collection must not duplicate the key.");
         Assert.That(Get(Find("ObjectiveItem"), "primaryObjective"), Is.EqualTo("Escape through the main door."));
     }
 
