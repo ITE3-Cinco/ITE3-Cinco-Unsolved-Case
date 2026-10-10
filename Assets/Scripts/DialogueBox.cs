@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,36 +6,62 @@ using UnityEngine.UI;
 /// <summary>A scene-local dialogue panel, created on demand by its conversation owner.</summary>
 public class DialogueBox : MonoBehaviour
 {
+    private static readonly HashSet<DialogueBox> visibleBoxes = new HashSet<DialogueBox>();
+    public static bool IsOpen => visibleBoxes.Count > 0;
+
     private GameObject panel;
     private Canvas canvas;
     private TMP_Text speakerText;
     private TMP_Text dialogueText;
     private TMP_Text hintText;
+    private TMP_FontAsset runtimeFont;
 
-    public void Show(string speaker, string line, string hint)
+    public void Show(string speaker, string line, string hint, Font typewriterFont)
     {
-        if (panel == null) BuildPanel();
+        if (panel == null) BuildPanel(typewriterFont);
         speakerText.text = speaker;
         dialogueText.text = line;
         dialogueText.pageToDisplay = 1;
         hintText.text = hint;
         panel.SetActive(true);
+        UpdateVisibility();
     }
 
     public void SetVisible(bool visible)
     {
         if (canvas != null) canvas.enabled = visible;
+        UpdateVisibility();
     }
 
     public void Hide()
     {
         if (panel != null) panel.SetActive(false);
+        visibleBoxes.Remove(this);
     }
 
     private void OnDisable() => Hide();
 
-    private void BuildPanel()
+    private void UpdateVisibility()
     {
+        if (isActiveAndEnabled && panel != null && panel.activeInHierarchy && canvas.enabled)
+            visibleBoxes.Add(this);
+        else
+            visibleBoxes.Remove(this);
+    }
+
+    private void OnDestroy()
+    {
+        visibleBoxes.Remove(this);
+        if (runtimeFont == null) return;
+        foreach (Texture2D atlas in runtimeFont.atlasTextures)
+            if (atlas != null) Destroy(atlas);
+        if (runtimeFont.material != null) Destroy(runtimeFont.material);
+        Destroy(runtimeFont);
+    }
+
+    private void BuildPanel(Font typewriterFont)
+    {
+        if (typewriterFont != null) runtimeFont = TMP_FontAsset.CreateFontAsset(typewriterFont);
         GameObject overlay = new GameObject("Dialogue Canvas", typeof(Canvas), typeof(CanvasScaler));
         overlay.transform.SetParent(transform, false);
         canvas = overlay.GetComponent<Canvas>();
@@ -51,8 +78,8 @@ public class DialogueBox : MonoBehaviour
         background.color = new Color(0.035f, 0.04f, 0.05f, 0.94f);
         background.raycastTarget = false;
         RectTransform rect = background.rectTransform;
-        rect.anchorMin = new Vector2(0.12f, 0.17f);
-        rect.anchorMax = new Vector2(0.88f, 0.43f);
+        rect.anchorMin = new Vector2(0.18f, 0.17f);
+        rect.anchorMax = new Vector2(0.82f, 0.39f);
         rect.offsetMin = rect.offsetMax = Vector2.zero;
 
         speakerText = CreateText("Speaker", new Vector2(24f, -58f), new Vector2(-24f, -16f));
@@ -87,6 +114,7 @@ public class DialogueBox : MonoBehaviour
         GameObject child = new GameObject(label, typeof(RectTransform), typeof(TextMeshProUGUI));
         child.transform.SetParent(panel.transform, false);
         TMP_Text text = child.GetComponent<TextMeshProUGUI>();
+        if (runtimeFont != null) text.font = runtimeFont;
         text.raycastTarget = false;
         text.richText = false;
         text.color = Color.white;

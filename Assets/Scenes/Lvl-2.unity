@@ -201,6 +201,7 @@ MonoBehaviour:
   notifications: {fileID: 226000011}
   nervousIdle: {fileID: 226000004}
   nextSceneName: Level3
+  dialogueTypewriterFont: {fileID: 12800000, guid: 9ee14ceff7cb4c41aff64583cc5c291a, type: 3}
   onCluesReturned:
     m_PersistentCalls:
       m_Calls: []
