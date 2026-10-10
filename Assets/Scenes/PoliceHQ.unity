@@ -1406,7 +1406,7 @@ MonoBehaviour:
   exitWalls:
   - {fileID: 4349834903599779306}
   exitDistance: 1.8
-  nextSceneName: Level2
+  nextSceneName: Lvl-2
   fadeDuration: 1.5
 --- !u!4 &582277615
 Transform:

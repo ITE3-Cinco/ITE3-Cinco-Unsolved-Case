@@ -21,8 +21,16 @@ public class Interactable : MonoBehaviour
     [Tooltip("Optional: Drag the ObjectiveItem for the flashlight task here. If left empty, the script will find it automatically.")]
     public ObjectiveItem flashlightObjective;
 
-    public void Interact(GameObject playerObject)
+    [Tooltip("Optional Level 2 Note quest. Leave empty for other pickups.")]
+    public Level2NoteQuest noteQuest;
+
+    private bool collected;
+
+    public virtual void Interact(GameObject playerObject)
     {
+        if (collected || playerObject == null) return;
+        if (noteQuest != null && !noteQuest.CanCollect(this)) return;
+
         Debug.Log($"[Interactable] Interact called on '{gameObject.name}'. isArtifact={isArtifact}, isCheckpoint={isCheckpoint}");
 
         // ---------------------------------------------------------------
@@ -84,6 +92,8 @@ public class Interactable : MonoBehaviour
         // ---------------------------------------------------------------
         // 4. ARTIFACT COUNTER (Runs if inventory add succeeded or itemData is null)
         // ---------------------------------------------------------------
+        collected = true;
+
         if (isArtifact)
         {
             if (ArtifactManager.Instance != null)
@@ -134,6 +144,10 @@ public class Interactable : MonoBehaviour
             else if (itemData != null && itemData.isAgimat)
             {
                 NotificationManager.Instance.ShowNotification("Agimat acquired! Press [E] to use when it glows.", 4f);
+            }
+            else if (noteQuest != null)
+            {
+                NotificationManager.Instance.ShowNotification(noteQuest.ProgressMessage, 5f);
             }
             else if (isArtifact)
             {

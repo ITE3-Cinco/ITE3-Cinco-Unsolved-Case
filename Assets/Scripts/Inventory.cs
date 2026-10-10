@@ -7,6 +7,8 @@ public class Inventory : MonoBehaviour
     public int maxSlots = 5;
     public List<ItemData> items = new List<ItemData>();
     public int selectedIndex = 0;
+    [Tooltip("Optional items represented by one hotbar icon. Collection totals are tracked by ArtifactManager.")]
+    public List<ItemData> stackableItems = new List<ItemData>();
 
     [Header("UI Reference")]
     public HotbarUI hotbarUI;
@@ -41,6 +43,9 @@ public class Inventory : MonoBehaviour
 
     public bool AddItem(ItemData item)
     {
+        if (item == null) return false;
+        if (stackableItems.Contains(item) && items.Contains(item)) return true;
+
         if (items.Count >= maxSlots)
         {
             Debug.Log("Inventory Full!");

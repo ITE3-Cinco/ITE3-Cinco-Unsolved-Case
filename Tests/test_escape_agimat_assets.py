@@ -29,7 +29,7 @@ class EscapeAgimatAssetsTests(unittest.TestCase):
         self.assertCountEqual([self.object_name(i) for i in wall_ids],
                              ['ARCH_Wall_Plaster.085'])
         self.assertTrue(all(self.docs[i][0] == 65 for i in wall_ids))
-        self.assertEqual(field(escape, 'nextSceneName'), 'Level2')
+        self.assertEqual(field(escape, 'nextSceneName'), 'Lvl-2')
         self.assertGreater(float(field(escape, 'fadeDuration')), 0)
         self.assertEqual(self.docs[reference(escape, 'player')][0], 4)
 

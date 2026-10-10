@@ -60,6 +60,27 @@ class GameplayLightingTests(unittest.TestCase):
                 self.assertEqual(field(volumes[0], 'm_IsGlobal'), '1')
                 self.assertEqual(field(volumes[0], 'weight'), '1')
                 cameras = [b for k, b in docs.values() if k == 114 and 'm_RenderPostProcessing:' in b]
+                # Level 2 retains its player prefab. Resolve its camera settings and scene overrides.
+                for kind, instance in docs.values():
+                    if kind != 1001:
+                        continue
+                    source = re.search(r'm_SourcePrefab: .*guid: (\w+)', instance)
+                    if source is None:
+                        continue
+                    metas = [p for p in (ROOT / 'Assets/Assets/Prefabs').glob('*.prefab.meta')
+                             if source[1] in p.read_text()]
+                    if not metas:
+                        continue
+                    prefab = metas[0].with_suffix('').read_text()
+                    for key, camera in re.findall(r'--- !u!114 &(\d+)\n(.*?)(?=--- !u!|\Z)', prefab, re.S):
+                        if 'm_RenderPostProcessing:' not in camera:
+                            continue
+                        override = re.search(r'target: \{fileID: ' + key + r',[^\n]+\n'
+                                             r'      propertyPath: m_RenderPostProcessing\n      value: (\d+)', instance)
+                        if override:
+                            camera = re.sub(r'm_RenderPostProcessing: \d+',
+                                            'm_RenderPostProcessing: ' + override[1], camera)
+                        cameras.append(camera)
                 self.assertTrue(cameras)
                 for camera in cameras:
                     self.assertEqual(field(camera, 'm_RenderPostProcessing'), '1')
