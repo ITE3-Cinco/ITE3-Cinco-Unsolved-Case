@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/PoliceHQ.unity
     guid: 440a20b817b12a44db93e50aa6974f6c
   - enabled: 1
+    path: Assets/Scenes/Lvl-2.unity
+    guid: c1236c0fcad6c74488b1c6c0b944e860
+  - enabled: 1
     path: Assets/Scenes/Level3.unity
     guid: ac0f55db1309bfa44a07cbcdf7ea3d9d
   m_configObjects:

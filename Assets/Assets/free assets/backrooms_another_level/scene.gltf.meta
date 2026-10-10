@@ -1,0 +1,52 @@
+fileFormatVersion: 2
+guid: aa1af663a18182e45bdf2fb698e3c43e
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 715df9372183c47e389bb6e19fbc3b52, type: 3}
+  editorImportSettings:
+    generateSecondaryUVSet: 0
+  importSettings:
+    nodeNameMethod: 1
+    animationMethod: 2
+    generateMipMaps: 1
+    texturesReadable: 0
+    defaultMinFilterMode: 9729
+    defaultMagFilterMode: 9729
+    anisotropicFilterLevel: 1
+  instantiationSettings:
+    mask: -1
+    layer: 0
+    skinUpdateWhenOffscreen: 1
+    lightIntensityFactor: 1
+    sceneObjectCreation: 2
+  assetDependencies:
+  - type: 0
+    originalUri: Assets\Assets\free assets\backrooms_another_level\scene.bin
+    assetPath: Assets\Assets\free assets\backrooms_another_level\scene.bin
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\CarpetBake4_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\CarpetBake4_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\ColumnsBaked_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\ColumnsBaked_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\LiftBake_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\LiftBake_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\PlugsBaked_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\PlugsBaked_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\RoofBaked_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\RoofBaked_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\SkirtingsBaked.001_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\SkirtingsBaked.001_baseColor.png
+  - type: 1
+    originalUri: Assets\Assets\free assets\backrooms_another_level\textures\WallsBaked_baseColor.png
+    assetPath: Assets\Assets\free assets\backrooms_another_level\textures\WallsBaked_baseColor.png
+  reportItems: []

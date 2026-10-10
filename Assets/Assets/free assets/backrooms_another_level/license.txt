@@ -1,0 +1,11 @@
+Model Information:
+* title:	Backrooms Another Level
+* source:	https://sketchfab.com/3d-models/backrooms-another-level-429f3c9ea8024f5e9bb78f6649c7bd26
+* author:	Huuxloc (https://sketchfab.com/rjh41)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Backrooms Another Level" (https://sketchfab.com/3d-models/backrooms-another-level-429f3c9ea8024f5e9bb78f6649c7bd26) by Huuxloc (https://sketchfab.com/rjh41) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

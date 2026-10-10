@@ -10,6 +10,9 @@ public class GhostNavigation : MonoBehaviour
     public Transform environmentRoot;
     public int agentTypeID;
 
+    [Tooltip("Add mesh colliders to imported environment meshes that have no solid collider, before building navigation.")]
+    public bool addMissingMeshColliders;
+
     [Tooltip("Voxel size used for the runtime NavMesh bake. Smaller values are more accurate but significantly slower. 0.25 is a good balance for corridor-scale levels.")]
     [Min(0.05f)] public float voxelSize = 0.25f;
 
@@ -26,6 +29,23 @@ public class GhostNavigation : MonoBehaviour
         {
             Debug.LogError("[GhostNavigation] Assign the level environment root.", this);
             return;
+        }
+
+        // glTF environments do not include physics colliders. Their actual mesh
+        // surfaces preserve corridor openings for navigation and catch sight checks.
+        if (addMissingMeshColliders)
+        {
+            foreach (MeshFilter filter in environmentRoot.GetComponentsInChildren<MeshFilter>())
+            {
+                if (filter.sharedMesh == null) continue;
+                bool hasSolidCollider = false;
+                foreach (Collider collider in filter.GetComponents<Collider>())
+                    if (collider.enabled && !collider.isTrigger) hasSolidCollider = true;
+                if (hasSolidCollider) continue;
+                MeshCollider meshCollider = filter.gameObject.AddComponent<MeshCollider>();
+                meshCollider.sharedMesh = filter.sharedMesh;
+            }
+            Physics.SyncTransforms();
         }
 
         List<NavMeshBuildSource> sources = new List<NavMeshBuildSource>();

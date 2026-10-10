@@ -544,7 +544,12 @@ public class GhostEnemy : MonoBehaviour
             if (Time.time >= nextChasePathUpdate)
             {
                 nextChasePathUpdate = Time.time + 0.2f;
-                navAgent.SetDestination(playerTransform.position);
+                // The player's transform can be above the floor or just outside
+                // agent clearance near a wall. Target the nearest walkable point.
+                NavMeshQueryFilter filter = new NavMeshQueryFilter
+                { agentTypeID = navAgent.agentTypeID, areaMask = navAgent.areaMask };
+                if (NavMesh.SamplePosition(playerTransform.position, out NavMeshHit hit, 2f, filter))
+                    navAgent.SetDestination(hit.position);
             }
             return true;
         }

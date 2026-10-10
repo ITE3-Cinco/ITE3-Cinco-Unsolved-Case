@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c62090452df53842bc23cc3e3461a36, type: 3}
   m_Name: Item_Note
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: 
+  itemName: Note Artifact
   itemIcon: {fileID: 754901572, guid: 4021e3497aa95df4db27c71e17c3253d, type: 3}
