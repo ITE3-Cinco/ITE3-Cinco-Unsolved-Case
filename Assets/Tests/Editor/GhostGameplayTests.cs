@@ -91,6 +91,35 @@ public class GhostGameplayTests
         Assert.That(Time.timeScale, Is.EqualTo(protectedByCheckpoint ? 1f : 0f));
     }
 
+    [TestCase(0f)]
+    [TestCase(5f)]
+    [TestCase(10f)]
+    public void BrightnessLoadsSavedPreferenceWithoutMenuOrScaledTime(float saved)
+    {
+        bool hadPreference = PlayerPrefs.HasKey("Brightness");
+        float previous = PlayerPrefs.GetFloat("Brightness", 5f);
+        GameObject go = Create("Standalone brightness volume");
+        Volume volume = go.AddComponent<Volume>();
+        Component brightness = go.AddComponent(Gameplay("SceneBrightness"));
+        try
+        {
+            PlayerPrefs.SetFloat("Brightness", saved);
+            Time.timeScale = 0f;
+            Call(brightness, "OnEnable");
+            Assert.That(volume.profile.TryGet(out ColorAdjustments actual), Is.True);
+            Assert.That(actual.postExposure.value, Is.EqualTo(saved / 10f * 4f - 2f).Within(.0001f));
+            Assert.That(actual.postExposure.overrideState, Is.True);
+            Assert.That(actual.contrast.overrideState, Is.False, "Brightness must not override unrelated grading.");
+            Assert.That(volume.sharedProfile, Is.Null, "A standalone scene needs no authored profile.");
+        }
+        finally
+        {
+            if (hadPreference) PlayerPrefs.SetFloat("Brightness", previous);
+            else PlayerPrefs.DeleteKey("Brightness");
+            UnityEngine.Object.DestroyImmediate(volume.profile);
+        }
+    }
+
     [Test]
     public void BrightnessPreservesAuthoredExposureWithoutAccumulating()
     {

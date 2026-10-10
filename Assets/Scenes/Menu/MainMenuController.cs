@@ -98,17 +98,17 @@ public class MainMenuController : MonoBehaviour
         // THE SLIDERS TO MATCH THE LOADED VALUES PHYSICALLY
         if (musicSlider != null) 
         {
-            musicSlider.value = savedMusic;
+            musicSlider.SetValueWithoutNotify(savedMusic);
         }
 
         if (sfxSlider != null) 
         {
-            sfxSlider.value = savedSFX;
+            sfxSlider.SetValueWithoutNotify(savedSFX);
         }
 
         if (brightnessSlider != null) 
         {
-            brightnessSlider.value = savedBrightness;
+            brightnessSlider.SetValueWithoutNotify(savedBrightness);
         }
 
         // Loaded values to the Mixer and global lighting engine
@@ -127,9 +127,8 @@ public class MainMenuController : MonoBehaviour
     //  This method is called whenever a new scene is loaded, allowing the menu controller to reapply settings and configurations.
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Force a robust background delay callback for cinematic/intro scenes
-        CancelInvoke(nameof(ApplyLoadedSettingsToNewScene));
-        Invoke(nameof(ApplyLoadedSettingsToNewScene), 0.15f);
+        // Apply before rendering, including scene loads while timeScale is zero.
+        ApplyLoadedSettingsToNewScene();
     }
 
 
