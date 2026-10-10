@@ -317,6 +317,21 @@ public class Level3GameplayTests
         Assert.That(movement.Invoke(player, new object[] { true }), Is.EqualTo(5f), "Other scenes retain their configured sprint speed.");
     }
 
+    [TestCase(false, 1f)]
+    [TestCase(true, 0f)]
+    public void RegainingFocusCannotLockTheCursorWhenControlsAreDisabledOrFrozen(bool enabled, float scale)
+    {
+        Behaviour look = (Behaviour)Find("MouseLook");
+        look.enabled = enabled;
+        Time.timeScale = scale;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        look.GetType().GetMethod("OnApplicationFocus", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(look, new object[] { true });
+        Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+        Assert.That(Cursor.visible, Is.True);
+    }
+
     [Test]
     public void CatchLocksControlsAndPreventsEscapeOrRepeatedLoss()
     {

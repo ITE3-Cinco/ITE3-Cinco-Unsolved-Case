@@ -51,7 +51,10 @@ public class MouseLook : MonoBehaviour
 
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (hasFocus && !PauseManager.IsGamePaused)
+        // Focus callbacks can run on disabled behaviours after the player is caught.
+        // Frozen outcome screens and scene transitions must keep UI pointer control.
+        if (hasFocus && isActiveAndEnabled && Time.timeScale > 0f &&
+            !PauseManager.IsGamePaused && !SceneTransition.IsLoading)
             LockCursor();
     }
 

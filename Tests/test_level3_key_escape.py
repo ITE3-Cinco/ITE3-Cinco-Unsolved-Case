@@ -97,3 +97,33 @@ class Level3KeyEscapeTests(unittest.TestCase):
             self.assertEqual(self.docs[go][0], 1)
             self.assertEqual(field(self.docs[go][1], 'm_IsActive'), '1', 'UI starts visible for gameplay')
         self.assertGreater(float(field(self.flow, 'caughtLightIntensity')), 0)
+
+    def test_renato_audio_and_final_ending_reference_current_assets(self):
+        audio = self.component('RenatoAudio')
+        for component, name, path, file_id in (
+            (audio, 'whistleClip', 'Assets/Audio/Renato Audio/RenatoWhistling.mp3', 8300000),
+            (audio, 'chaseClip', 'Assets/Audio/Renato Audio/ChaseAudio.mp3', 8300000),
+            (self.flow, 'endingClip', 'Assets/Assets/ENDING CLIP/final ending.mp4', 32900000),
+        ):
+            guid = re.search(r'^guid: (\w+)', (ROOT / (path + '.meta')).read_text(), re.M)[1]
+            expected = '{fileID: ' + str(file_id) + ', guid: ' + guid + ', type: 3}'
+            self.assertTrue((ROOT / path).is_file(), path)
+            self.assertEqual(field(component, name), expected, path)
+            if component is audio:
+                source = self.docs[reference(audio, name.replace('Clip', 'Source'))][1]
+                self.assertEqual(field(source, 'm_Resource'), expected, path)
+
+    def test_lose_buttons_have_click_targets_and_loadable_destinations(self):
+        lose = self.component('LoseSceneController')
+        builds = (ROOT / 'ProjectSettings/EditorBuildSettings.asset').read_text()
+        for button_name, scene_field in (('tryAgainButton', 'retrySceneName'), ('exitButton', 'exitSceneName')):
+            button = self.docs[reference(lose, button_name)][1]
+            self.assertEqual(field(button, 'm_Enabled'), '1')
+            self.assertEqual(field(button, 'm_Interactable'), '1')
+            graphic = self.docs[reference(button, 'm_TargetGraphic')][1]
+            self.assertEqual(field(graphic, 'm_RaycastTarget'), '1')
+            destination = field(lose, scene_field)
+            self.assertIn('enabled: 1\n    path: Assets/Scenes/' + destination + '.unity', builds)
+        canvas = next(b for k, b in self.docs.values()
+                      if k == 223 and reference(b, 'm_GameObject') == reference(lose, 'loseCanvas'))
+        self.assertEqual(field(canvas, 'm_SortingOrder'), '100')
