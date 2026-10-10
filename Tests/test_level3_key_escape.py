@@ -40,6 +40,25 @@ class Level3KeyEscapeTests(unittest.TestCase):
         objective = self.docs[reference(self.flow, 'objective')][1]
         self.assertEqual(field(objective, 'primaryObjective'), 'Find the key, then escape through the main door.')
 
+    def test_key_inventory_asset_uses_the_supplied_sprite(self):
+        item_path = ROOT / 'Assets/Assets/Inventory/Item_Key.asset'
+        item = item_path.read_text()
+        item_guid = re.search(r'guid: (\w+)', item_path.with_suffix('.asset.meta').read_text())[1]
+        self.assertEqual(field(self.flow, 'keyItem'),
+                         '{fileID: 11400000, guid: ' + item_guid + ', type: 2}')
+        self.assertEqual(field(item, 'm_EditorClassIdentifier'), 'Assembly-CSharp::ItemData')
+        self.assertEqual(field(item, 'isAgimat'), '0')
+        icon_meta = (ROOT / 'Assets/Scenes/Buttons-Icons/key icon.png.meta').read_text()
+        icon_guid = re.search(r'guid: (\w+)', icon_meta)[1]
+        icon_id = re.search(r'      internalID: (\d+)', icon_meta)[1]
+        self.assertEqual(field(item, 'itemIcon'),
+                         '{fileID: ' + icon_id + ', guid: ' + icon_guid + ', type: 3}')
+        inventory = self.component('Inventory')
+        self.assertNotIn(item_guid, inventory, 'The key must not be preloaded at spawn/retry')
+        self.assertGreater(int(field(inventory, 'maxSlots')), 1)
+        hotbar = self.docs[reference(inventory, 'hotbarUI')][1]
+        self.assertIn('slotIcons:', hotbar)
+
     def test_stamina_boost_is_enabled_only_for_level3(self):
         player = self.docs[reference(self.flow, 'player')][1]
         self.assertEqual(field(player, 'useLowStaminaSprintBoost'), '1')

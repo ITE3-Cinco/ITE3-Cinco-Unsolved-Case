@@ -14,6 +14,7 @@ public class Level3Flow : MonoBehaviour
     public LoseSceneController loseController;
     public BoxCollider mainExit;
     public ObjectiveItem objective;
+    public ItemData keyItem;
     public bool HasKey { get; private set; }
     public const string ExitObjective = "Escape through the main door.";
     [Header("Caught camera")]
@@ -61,6 +62,9 @@ public class Level3Flow : MonoBehaviour
     {
         if (Finished || HasKey || collector == null || collector != player ||
             Time.timeScale <= 0f || PauseManager.IsGamePaused) return false;
+        // Commit the escape permission only after the key is visible in inventory.
+        Inventory inventory = collector.GetComponent<Inventory>();
+        if (keyItem == null || inventory == null || !inventory.AddItem(keyItem)) return false;
         HasKey = true;
         if (objective != null)
         {
