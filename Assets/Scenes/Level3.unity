@@ -4658,7 +4658,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!1 &891921558
 GameObject:
@@ -9616,7 +9616,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.5}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -11901,7 +11901,7 @@ MonoBehaviour:
   fade: {fileID: 2200000004}
   endingFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   endingTypewriterFont: {fileID: 12800000, guid: 9ee14ceff7cb4c41aff64583cc5c291a, type: 3}
-  endingClip: {fileID: 32900000, guid: 08bd4e725285e224a9c7c67c16f45216, type: 3}
+  endingClip: {fileID: 32900000, guid: 549e273182d59cc4dba42aedab362552, type: 3}
   endingAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   fadeDuration: 1.5
   successMessageDuration: 3
@@ -12647,7 +12647,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -7607021986747203805, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 0ee62aa1557ec3e459ab1761e42ec77e, type: 3}
+  m_Resource: {fileID: 8300000, guid: 5154f505a74b2ef459acd0ae741e69c3, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -12744,7 +12744,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -6766505812317882655, guid: 2eb9daabe3f8b79439eee5414fdec52c, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: e3c1abd08edb531478324b9ed07faf88, type: 3}
+  m_Resource: {fileID: 8300000, guid: 4646b3f467b111c4e886b3ee486b105e, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0
   m_Pitch: 1
@@ -12847,8 +12847,8 @@ MonoBehaviour:
   whistleSource: {fileID: 2200000300}
   chaseSource: {fileID: 2200000301}
   ambienceSource: {fileID: 2136695089}
-  whistleClip: {fileID: 8300000, guid: 0ee62aa1557ec3e459ab1761e42ec77e, type: 3}
-  chaseClip: {fileID: 8300000, guid: e3c1abd08edb531478324b9ed07faf88, type: 3}
+  whistleClip: {fileID: 8300000, guid: 5154f505a74b2ef459acd0ae741e69c3, type: 3}
+  chaseClip: {fileID: 8300000, guid: 4646b3f467b111c4e886b3ee486b105e, type: 3}
   whistleVolume: 0.7
   chaseVolume: 0.65
   fadeDuration: 2

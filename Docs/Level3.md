@@ -121,3 +121,20 @@ Level 3 alone enables the stamina sprint boost: sprint speed is 5.0 m/s at stami
 Catch freezes controls and Renato, then snaps the existing player camera 0.65 m in front of Renato's Humanoid head, looking toward his face at 40 degrees FOV. A 0.03 m near plane avoids clipping the close view, and an angled spotlight illuminates his face. The existing LoseCanvas Background Image has alpha 0.5 so “CASE: UNSOLVED” is clearer while Renato’s illuminated face remains visible through the overlay; Retry and Exit remain interactive.
 
 Validation: run `python3 -m unittest discover -s Tests -v` and Unity EditMode `Level3GameplayTests`. Added Unity checks cover key raycast geometry, the trigger/overlap gate, collection state, stamina 45/44.99 boundary, reachable key floor, and the caught view. Unity compilation and runtime checks remain outstanding without Unity 6000.5.4f1. In Play Mode, verify the key is visible/reachable at its existing placement, a full key-to-door escape, retry resetting collection, stamina drain/recovery/exhaustion, and Renato's face framing/lighting from front and rear catches. Tune camera distance and opacity visually if needed.
+
+## Audio, ending and lose-button reference repair
+
+The Level 3 scene now references the current `.meta` GUIDs for RenatoWhistling.mp3,
+ChaseAudio.mp3 and ENDING CLIP/final ending.mp4. The previous GUIDs no longer
+resolved, disabling RenatoAudio and triggering the ending fallback. Existing
+walking-only whistling, chase crossfades and ending playback behavior are retained.
+
+The lose canvas renders above the gameplay canvases, and its decorative background
+does not intercept pointer events. MouseLook ignores window-focus cursor-lock requests while
+disabled, frozen or loading, including after a catch.
+Retry/Exit keep gameplay controls disabled until the destination scene initializes.
+
+Regression checks: `python3 -m unittest discover -s Tests -p test_level3_key_escape.py`.
+Unity EditMode coverage in Level3GameplayTests includes audio mixing, imported ending
+and cursor focus; Play Mode must still verify audible playback, both buttons after
+switching window focus, retry into Level3 and exit into MainMenu.
