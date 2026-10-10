@@ -7,26 +7,24 @@ using UnityEngine.Playables;
 public class StationaryNervousIdle : MonoBehaviour
 {
     public Transform environmentRoot;
-    public string characterResource = "Level2NPC/Ch07_nonPBR";
-    public string animationResource = "Level2NPC/Nervously Look Around";
+    [Tooltip("The placed char_npc visual, parented beneath this interaction root.")]
+    public Transform character;
+    public AnimationClip nervousClip;
     public Animator Animator { get; private set; }
     private PlayableGraph graph;
     private AnimationClipPlayable playable;
-    private AnimationClip clip;
     private float animationTime;
 
     private void Start()
     {
-        GameObject model = Resources.Load<GameObject>(characterResource);
-        if (model != null) Animator = Instantiate(model, transform, false).GetComponentInChildren<Animator>();
-        foreach (AnimationClip candidate in Resources.LoadAll<AnimationClip>(animationResource))
-            if (candidate.isHumanMotion && !candidate.name.StartsWith("__preview__"))
-            {
-                clip = candidate;
-                break;
-            }
+        if (character == null || character == transform || !character.IsChildOf(transform))
+        {
+            Debug.LogError("[StationaryNervousIdle] Assign the char_npc child visual.", this);
+            return;
+        }
+        Animator = character.GetComponentInChildren<Animator>();
         if (Animator == null || Animator.avatar == null || !Animator.avatar.isValid ||
-            !Animator.avatar.isHuman || clip == null || clip.length <= 0f)
+            !Animator.avatar.isHuman || nervousClip == null || !nervousClip.isHumanMotion || nervousClip.length <= 0f)
         {
             Debug.LogError("[StationaryNervousIdle] A Humanoid female model and nervous clip are required.", this);
             return;
@@ -35,7 +33,7 @@ public class StationaryNervousIdle : MonoBehaviour
         Animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         graph = PlayableGraph.Create("Stationary nervous idle");
         graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-        playable = AnimationClipPlayable.Create(graph, clip);
+        playable = AnimationClipPlayable.Create(graph, nervousClip);
         playable.SetApplyFootIK(true);
         playable.SetSpeed(0);
         AnimationPlayableOutput.Create(graph, "Nervous idle", Animator).SetSourcePlayable(playable);
@@ -89,7 +87,7 @@ public class StationaryNervousIdle : MonoBehaviour
     private void LateUpdate()
     {
         if (!graph.IsValid() || Time.timeScale <= 0f) return;
-        animationTime = (animationTime + Time.deltaTime) % clip.length;
+        animationTime = (animationTime + Time.deltaTime) % nervousClip.length;
         playable.SetTime(animationTime);
         graph.Evaluate(0f);
     }

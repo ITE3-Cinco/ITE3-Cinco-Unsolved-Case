@@ -60,6 +60,9 @@ public class Level2NpcTests
         Assert.That(Get(npc, "artifacts"), Is.SameAs(artifacts));
         Assert.That(Get(npc, "objective"), Is.SameAs(Find("ObjectiveItem")));
         Assert.That(Get(npc, "notifications"), Is.SameAs(Find("NotificationManager")));
+        MonoScript notificationScript = AssetDatabase.LoadAssetAtPath<MonoScript>("Assets/Scripts/NotificationManager.cs");
+        Assert.That(notificationScript, Is.Not.Null);
+        Assert.That(notificationScript.GetClass(), Is.EqualTo(Script("NotificationManager")));
         Assert.That(Get(Find("PlayerInteraction"), "interactionText"), Is.Not.Null);
         Assert.That(npc.GetComponent<Collider>(), Is.Not.Null);
         Assert.That(npc.GetComponent<NavMeshAgent>(), Is.Null);
@@ -140,14 +143,25 @@ public class Level2NpcTests
     [Test]
     public void ExistingFemaleAvatarAndNervousAnimationImportAsHumanoid()
     {
-        var model = Resources.Load<GameObject>("Level2NPC/Ch07_nonPBR");
+        var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Assets/free assets/char_npc/char_npc.fbx");
         Assert.That(model, Is.Not.Null);
         var animator = model.GetComponentInChildren<Animator>();
         Assert.That(animator, Is.Not.Null);
         Assert.That(animator.avatar.isValid && animator.avatar.isHuman, Is.True);
-        AnimationClip[] clips = Resources.LoadAll<AnimationClip>("Level2NPC/Nervously Look Around");
-        Assert.That(clips.Any(c => c.isHumanMotion && c.length > 0f && !c.name.StartsWith("__preview__")), Is.True);
         Component idle = Find("StationaryNervousIdle");
+        var clip = (AnimationClip)Get(idle, "nervousClip");
+        Assert.That(clip, Is.Not.Null);
+        Assert.That(AssetDatabase.GetAssetPath(clip), Is.EqualTo("Assets/Assets/free assets/char_npc/Nervously Look Around.fbx"));
+        Assert.That(clip.isHumanMotion && clip.isLooping && clip.length > 0f, Is.True);
+        Transform visual = (Transform)Get(idle, "character");
+        Assert.That(visual.parent, Is.EqualTo(npc.transform));
+        Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(visual.gameObject), Is.EqualTo(model));
+        Assert.That(npc.GetComponentsInChildren<Animator>().Length, Is.EqualTo(1));
+        Physics.SyncTransforms();
+        Collider interaction = npc.GetComponent<Collider>();
+        var ray = new Ray(npc.transform.position + Vector3.up * 1.3f + npc.transform.forward * 2f, -npc.transform.forward);
+        Assert.That(interaction.Raycast(ray, out RaycastHit hit, 3f), Is.True);
+        Assert.That(hit.collider.GetComponent(Script("Level2NoteNpc")), Is.SameAs(npc));
         Assert.That(Get(idle, "environmentRoot"), Is.SameAs(Get(Find("GhostNavigation"), "environmentRoot")));
         Vector3 position = npc.transform.position;
         Call(idle, "FacePlayer", Find("PlayerMovement").transform);
@@ -159,17 +173,19 @@ public class Level2NpcTests
         Component navigation = Find("GhostNavigation");
         Call(navigation, "Awake");
         Component idle = Find("StationaryNervousIdle");
+        Animator placedAnimator = ((Transform)Get(idle, "character")).GetComponentInChildren<Animator>();
         Call(idle, "Start");
         Animator animator = (Animator)idle.GetType().GetProperty("Animator").GetValue(idle);
-        Assert.That(animator, Is.Not.Null);
+        Assert.That(animator, Is.SameAs(placedAnimator));
+        Assert.That(npc.GetComponentsInChildren<Animator>().Length, Is.EqualTo(1));
         Assert.That(animator.applyRootMotion, Is.False);
         Assert.That(npc.transform.position.y, Is.EqualTo(-1.74f).Within(0.05f));
         Vector3 fixedPosition = npc.transform.position;
         Transform head = animator.GetBoneTransform(HumanBodyBones.Head);
         Quaternion initialHead = head.localRotation;
         var time = idle.GetType().GetField("animationTime", BindingFlags.Instance | BindingFlags.NonPublic);
-        float length = Resources.LoadAll<AnimationClip>("Level2NPC/Nervously Look Around")
-            .First(c => c.isHumanMotion && !c.name.StartsWith("__preview__")).length;
+        float length = ((AnimationClip)Get(idle, "nervousClip")).length;
+        Vector3 fixedVisualPosition = animator.transform.localPosition;
         bool poseChanged = false;
         for (int i = 1; i <= 12; i++)
         {
@@ -177,6 +193,7 @@ public class Level2NpcTests
             Call(idle, "LateUpdate");
             poseChanged |= Quaternion.Angle(initialHead, head.localRotation) > 0.1f;
             Assert.That(npc.transform.position, Is.EqualTo(fixedPosition));
+            Assert.That(Vector3.Distance(animator.transform.localPosition, fixedVisualPosition), Is.LessThan(0.001f));
             Assert.That((float)time.GetValue(idle), Is.LessThan(length));
         }
         Assert.That(poseChanged, Is.True, "The existing clip must animate the Humanoid, not leave a bind pose.");
