@@ -1865,6 +1865,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 226000012}
     - target: {fileID: 5252281844144999244, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
+      propertyPath: items.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5252281844144999244, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
+      propertyPath: items.Array.data[0]
+      value:
+      objectReference: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
+    - target: {fileID: 5252281844144999244, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
       propertyPath: hotbarUI
       value: 
       objectReference: {fileID: 294407568}
