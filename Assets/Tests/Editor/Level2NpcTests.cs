@@ -124,6 +124,46 @@ public class Level2NpcTests
     // reflection, including callbacks not run automatically in Edit Mode.
     private void Collect(Component note) => Call(artifacts, "CollectArtifact", note);
 
+    // Verify both saved toggle states and ensure changing hotbar slots never leaves an uncontrolled beam.
+    [TestCase(false)]
+    [TestCase(true)]
+    public void FlashlightToggleAndSlotSelectionControlTheOnlyPlayerBeam(bool switchedOn)
+    {
+        // Resolve the real scene player so this test includes the inherited and scene-added lights.
+        Component player = Find("PlayerMovement");
+        // Read the camera Light that F toggles through PlayerMovement.
+        Light flashlight = (Light)Get(player, "flashlight");
+        // Include inactive children so an accidentally enabled inherited Light cannot escape the check.
+        Light[] lights = player.transform.root.GetComponentsInChildren<Light>(true);
+        // Later levels begin with ownership, without requiring another flashlight pickup.
+        Assert.That(Get(player, "hasFlashlight"), Is.EqualTo(true));
+        // Confirm the scene has disabled every player light except the controlled flashlight before startup.
+        Assert.That(lights.Where(light => light.enabled), Is.EquivalentTo(new[] { flashlight }));
+        // Run normal player startup: it turns the controlled flashlight off and caches the inventory.
+        Call(player, "Start");
+        // No inherited beam may remain lit while the carried flashlight is off.
+        Assert.That(lights.Any(light => light.isActiveAndEnabled), Is.False);
+        // Set the same private toggle state that an F-key press updates, without simulating frame input.
+        player.GetType().GetField("isFlashlightOn", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(player, switchedOn);
+        // Locate the player's hotbar inventory to exercise its actual selection callbacks.
+        Component inventory = Find("Inventory");
+        // Selecting slot zero applies the saved toggle state to the starting flashlight.
+        Call(inventory, "SelectSlot", 0);
+        // There must be exactly one active beam when on, and none when off.
+        Assert.That(lights.Count(light => light.isActiveAndEnabled), Is.EqualTo(switchedOn ? 1 : 0));
+        // Slot one is empty at the start of Level Two, so it must hide the flashlight.
+        Call(inventory, "SelectSlot", 1);
+        // Switching away must hide all player beams, including the inherited light.
+        Assert.That(lights.Any(light => light.isActiveAndEnabled), Is.False);
+        // Switch back to the flashlight and preserve its last on/off state.
+        Call(inventory, "SelectSlot", 0);
+        // The controlled Light must recover its saved state rather than automatically turn on.
+        Assert.That(flashlight.enabled, Is.EqualTo(switchedOn));
+        // Check the full light list again so returning to slot zero cannot enable a second beam.
+        Assert.That(lights.Count(light => light.isActiveAndEnabled), Is.EqualTo(switchedOn ? 1 : 0));
+    }
+
     // Check that scene uses existing notes ui and retry without giving npc movement ai.
     [Test]
     public void SceneUsesExistingNotesUiAndRetryWithoutGivingNpcMovementAi()
