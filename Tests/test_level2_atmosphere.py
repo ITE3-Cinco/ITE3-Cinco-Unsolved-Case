@@ -2,7 +2,7 @@
 # How it works: read asset files, follow serialized references and assert the expected wiring.
 # These checks do not launch the game; Unity tests cover runtime behavior.
 
-"""Level Two's lighting and single agimat pickup wiring."""
+"""Level Two's lighting, single flashlight beam and agimat pickup wiring."""
 # Import json for encoding and decoding glTF/GLB JSON metadata.
 import json
 # Import re for reading Unity YAML fields and IDs with regular expressions.
@@ -131,6 +131,48 @@ class Level2AtmosphereTests(unittest.TestCase):
         # Expect serialized field 'm_Intensity' read from self.scene['1948734481'][1] (read from
         # self.scene['1948734481']) by test_collision_assets.field to equal '200'.
         self.assertEqual(field(self.scene['1948734481'][1], 'm_Intensity'), '200')
+
+    # The player starts with one flashlight; its scene light must be the only enabled player beam.
+    def test_player_has_one_controlled_flashlight_beam(self):
+        # Read the overrides on Level Two's shared player prefab instance.
+        instance = self.scene['1487628291'][1]
+        # Map each source component/property pair to its scene value and object reference.
+        overrides = {(target, prop.strip("'")): (value.strip(), ref) for target, prop, value, ref in
+                     re.findall(r'- target: \{fileID: (\d+),[^\n]*\n'
+                                r'      propertyPath: ([^\n]+)\n'
+                                r'      value:([^\n]*)\n'
+                                r'      objectReference: (\{[^\n]+\})', instance)}
+        # Locate PlayerMovement in the source prefab rather than relying on its serialized component ID.
+        movement_id, movement = next((key, body) for key, (kind, body) in self.player.items()
+                                     if kind == 114 and 'Assembly-CSharp::PlayerMovement' in body)
+        # Resolve the Light assigned to PlayerMovement after applying the scene override.
+        light_ref = overrides[(movement_id, 'flashlight')][1]
+        # Extract the scene light ID so we can compare it with all effective player lights below.
+        controlled_id = re.search(r'fileID: (\d+)', light_ref)[1]
+        # Level Two grants ownership before any pickup; a second beam must not act as a free flashlight.
+        self.assertEqual(overrides[(movement_id, 'hasFlashlight')][0], '1')
+        # Ensure the starting hotbar has exactly one entry containing the same flashlight asset as the player.
+        inventory_id = next(key for key, (kind, body) in self.player.items()
+                            if kind == 114 and 'Assembly-CSharp::Inventory' in body)
+        # A one-entry inventory leaves four slots for the three Notes and agimat.
+        self.assertEqual(overrides[(inventory_id, 'items.Array.size')][0], '1')
+        # The carried item and the toggled light must belong to the same flashlight definition.
+        self.assertEqual(overrides[(inventory_id, 'items.Array.data[0]')][1],
+                         field(movement, 'flashlightItemData'))
+        # Gather enabled lights inherited from the player prefab, applying scene component overrides.
+        enabled = [key for key, (kind, body) in self.player.items() if kind == 108 and
+                   overrides.get((key, 'm_Enabled'), (field(body, 'm_Enabled'), None))[0] == '1']
+        # Identify scene-added objects whose parent is a Transform from this player instance.
+        player_parents = {key for key, (kind, body) in self.scene.items() if kind == 4 and
+                          reference(body, 'm_PrefabInstance') == '1487628291'}
+        # Gather their owning GameObject IDs so corridor lights are excluded from the beam check.
+        added_objects = {reference(body, 'm_GameObject') for kind, body in self.scene.values()
+                         if kind == 4 and reference(body, 'm_Father') in player_parents}
+        # Include each enabled scene-added player light in the effective beam list.
+        enabled.extend(key for key, (kind, body) in self.scene.items() if kind == 108 and
+                       reference(body, 'm_GameObject') in added_objects and field(body, 'm_Enabled') == '1')
+        # Before the fix, the inherited light and scene light both appeared here; only the controlled one should.
+        self.assertEqual(enabled, [controlled_id])
 
     # Check that exactly one pickup uses level one defense and fits inventory.
     def test_exactly_one_pickup_uses_level_one_defense_and_fits_inventory(self):

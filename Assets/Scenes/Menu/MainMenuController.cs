@@ -138,9 +138,13 @@ public class MainMenuController : MonoBehaviour
     /// <summary>Load saved slider values, apply the settings and show the main menu panel.</summary>
     private void Start()
     {
+        // A local menu controller or its assigned menu panel identifies the MainMenu scene,
+        // even when the persistent controller itself has moved to DontDestroyOnLoad.
         if (gameObject.scene.name == "MainMenu" || mainButtonsPanel != null && mainButtonsPanel.scene.name == "MainMenu")
         {
+            // Release gameplay mouse capture so the pointer can reach menu buttons.
             Cursor.lockState = CursorLockMode.None;
+            // Show the pointer so the player can see which menu control they are choosing.
             Cursor.visible = true;
         }
         // Load saved preferences from disk (or use default values on first startup)
@@ -208,8 +212,10 @@ public class MainMenuController : MonoBehaviour
         ApplyLoadedSettingsToNewScene();
     }
 
+    /// <summary>Clear the shared reference when its owning controller is destroyed.</summary>
     private void OnDestroy()
     {
+        // A scene-local controller must not clear the reference to a different persistent instance.
         if (Instance == this) Instance = null;
     }
 

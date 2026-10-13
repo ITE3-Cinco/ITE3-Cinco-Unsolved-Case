@@ -151,8 +151,8 @@ public class Level3Flow : MonoBehaviour
     // reference.
     public bool CollectKey(PlayerMovement collector)
     {
-        // If Finished || HasKey || collector == null or collector != player or Unity gameplay clock multiplier (0
-        // freezes gameplay time) is at most 0f or PauseManager.IsGamePaused, run the following block.
+        // Reject the pickup if the level has ended, the key is already owned, the collector is missing
+        // or is not this level's player, or gameplay is frozen/paused. Return false without changing inventory.
         if (Finished || HasKey || collector == null || collector != player ||
             Time.timeScale <= 0f || PauseManager.IsGamePaused) return false;
         // Commit the escape permission only after the key is visible in inventory.

@@ -81,7 +81,8 @@ public class PlayerMovement : MonoBehaviour
     // flashlightItemData: ItemData asset compared with the selected slot to identify the flashlight. Assigned in
     // the scene/prefab Inspector.
     public ItemData flashlightItemData;
-    // hasFlashlight: whether the player owns the flashlight. Updated by PickUpFlashlight.
+    // hasFlashlight: whether the player owns the flashlight. Set in the Inspector for later levels,
+    // by pickup code, or through HasFlashlight when checkpoint inventory is restored.
     public bool hasFlashlight = false;
     // isFlashlightOn: last flashlight toggle state, retained when switching slots. Updated by Start, Update.
     private bool isFlashlightOn = false;
@@ -93,7 +94,8 @@ public class PlayerMovement : MonoBehaviour
         set { hasFlashlight = value; }
     }
 
-    // velocity: stored movement velocity, including vertical gravity/jump speed. Updated by ResetVelocity.
+    // velocity: stored vertical speed. Update applies jumps, gravity and floor/ceiling contact;
+    // ResetVelocity clears it after teleporting. Horizontal movement is calculated separately each frame.
     private Vector3 velocity;
     // inventory: Inventory holding player items and selection. Start retrieves it from the first Inventory
     // component on this GameObject.
