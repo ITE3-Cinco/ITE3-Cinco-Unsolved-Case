@@ -8506,6 +8506,10 @@ PrefabInstance:
       propertyPath: m_Lightmapping
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 8592331704749753494, guid: beef3bcde1610f04aa96275436147bb9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c4f1512c7758a634c92f6983d93bf5cd, type: 2}
     - target: {fileID: 8601886773751821610, guid: beef3bcde1610f04aa96275436147bb9, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -11919,6 +11923,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GhostNavigation
   environmentRoot: {fileID: 2200000040}
   agentTypeID: 0
+  addMissingMeshColliders: 0
   voxelSize: 0.1
   agentRadiusOverride: 0.3
   agentHeightOverride: 1.8
