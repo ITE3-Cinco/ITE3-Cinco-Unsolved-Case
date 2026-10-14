@@ -1798,7 +1798,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GhostAudio
   screamClip: {fileID: 8300000, guid: d3b7b3c659d59354cb3e17ecbe5fa4fa, type: 3}
   hummingClip: {fileID: 8300000, guid: 6a97024043f14394ba08adbb83a24a8c, type: 3}
-  maxVolume: 1
+  maxVolume: 0.37
   maxDistance: 50
   minDistance: 2
   playOnlyWhileChasing: 0
@@ -2031,8 +2031,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 2ae1ec996233f7f40975cd23f9c3be14, type: 2}
     - target: {fileID: 5932633193085550352, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
+      propertyPath: m_Range
+      value: 65.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5932633193085550352, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5932633193085550352, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
+      propertyPath: m_Intensity
+      value: 602.4
       objectReference: {fileID: 0}
     - target: {fileID: 8806425746005209027, guid: 54ee802f3567aa342a97b68d156ed5e6, type: 3}
       propertyPath: m_Name
