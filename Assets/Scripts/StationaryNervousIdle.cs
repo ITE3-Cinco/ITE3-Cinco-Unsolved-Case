@@ -1,183 +1,131 @@
-// Purpose: Animates the frightened NPC in place and turns her toward the player.
-// Use: Attach to the interaction root and assign its child character, nervous clip and environment.
-// How it works: A manually sampled animation graph keeps the clip looping without root-motion movement.
+// Level 2 NPC presentation: loop the woman's nervous idle and turn her toward the speaker.
+// Attach to the interaction root; assign its child character, Humanoid clip and environment.
+// The animation changes her pose. It does not make her walk around.
 
-// UnityEngine supplies GameObjects, components, transforms, time, math and physics used here.
 using UnityEngine;
-// Unity animation APIs supply clip mixers and outputs that send poses to Animators.
 using UnityEngine.Animations;
-// Unity Playables supplies graphs that connect and evaluate animation clips.
 using UnityEngine.Playables;
 
-/// <summary>Plays the existing nervous clip with the same Playables approach as
-/// GhostAnimation/RenatoAnimation. No agent, velocity, patrol or root motion.</summary>
 public class StationaryNervousIdle : MonoBehaviour
 {
-    // environmentRoot: scene environment used to find floor support below the NPC. Assigned in the scene/prefab
-    // Inspector.
+    // Use only the map colliders to find the floor below the NPC.
     public Transform environmentRoot;
-    // character: The placed char_npc visual, parented beneath this interaction root. Assigned in the scene/prefab
-    // Inspector.
+    // The visible character must be a child of the root that owns the interaction collider.
     [Tooltip("The placed char_npc visual, parented beneath this interaction root.")]
     public Transform character;
-    // nervousClip: Humanoid AnimationClip looped without moving the NPC root. Assigned in the scene/prefab
-    // Inspector.
+    // Humanoid idle clip assigned in the Inspector.
     public AnimationClip nervousClip;
-    // Animator can be read by other scripts; only this class can write its backing state.
+    // The model Animator receives the pose produced by the animation graph.
     public Animator Animator { get; private set; }
-    // graph: PlayableGraph connecting clips, mixers and Animator output. Start retrieves it from the result of
-    // PlayableGraph.Create using "Stationary nervous idle".
+    // The graph connects the idle clip to the model; we control its time ourselves.
     private PlayableGraph graph;
-    // playable: animation clip node sampled by the stationary NPC graph. Start retrieves it from the result of
-    // AnimationClipPlayable.Create using graph, nervousClip.
+    // The clip node inside that graph.
     private AnimationClipPlayable playable;
-    // animationTime: elapsed clip sampling time for the stationary nervous loop. Updated by LateUpdate.
+    // Current position within the loop, measured in gameplay seconds.
     private float animationTime;
 
-    /// <summary>Validate the child Humanoid model, build the nervous animation graph and align the feet.</summary>
+    // Validate the model and clip, start the animation, then place the feet on the map floor.
     private void Start()
     {
-        // If character is missing or character equals the Transform on this component GameObject or not (character
-        // belongs to the Transform on this component GameObject Transform hierarchy), run the following block.
+        // Reject a missing or unrelated model so the animation cannot move the wrong object.
         if (character == null || character == transform || !character.IsChildOf(transform))
         {
-            // Report the failed setup or state as a Unity Console error.
             Debug.LogError("[StationaryNervousIdle] Assign the char_npc child visual.", this);
-            // Return now; skip the rest of this method.
             return;
         }
-        // Store the first Animator component on or beneath character in Animator.
         Animator = character.GetComponentInChildren<Animator>();
-        // If Animator == null || Animator.avatar == null || !Animator.avatar.isValid || !Animator.avatar.isHuman
-        // or nervousClip == null or not (nervousClip.isHumanMotion) or nervousClip clip length in seconds is at
-        // most 0, run the following block.
+        // Both the model avatar and clip must support Humanoid animation.
         if (Animator == null || Animator.avatar == null || !Animator.avatar.isValid ||
             !Animator.avatar.isHuman || nervousClip == null || !nervousClip.isHumanMotion || nervousClip.length <= 0f)
         {
-            // Report the failed setup or state as a Unity Console error.
             Debug.LogError("[StationaryNervousIdle] A Humanoid female model and nervous clip are required.", this);
-            // Return now; skip the rest of this method.
             return;
         }
-        // Set Animator.applyRootMotion to false.
+        // Ignore movement stored in the clip so the woman stays at her interaction location.
         Animator.applyRootMotion = false;
-        // Set Animator.cullingMode to AnimatorCullingMode.AlwaysAnimate.
+        // Keep her pose updating even when she is outside the camera view.
         Animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-        // Store the result of PlayableGraph.Create using "Stationary nervous idle" in graph.
+        // Connect the clip to the Animator. LateUpdate supplies time, so automatic playback is disabled.
         graph = PlayableGraph.Create("Stationary nervous idle");
-        // Call graph.SetTimeUpdateMode using DirectorUpdateMode.Manual.
         graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-        // Store the result of AnimationClipPlayable.Create using graph, nervousClip in playable.
         playable = AnimationClipPlayable.Create(graph, nervousClip);
-        // Call playable.SetApplyFootIK using true.
+        // Enable Unity foot adjustment for the Humanoid pose.
         playable.SetApplyFootIK(true);
-        // Stop automatic clip advancement because LateUpdate supplies the animation time manually.
-        // Set playable playback rate to 0 (0 means time is supplied manually).
         playable.SetSpeed(0);
-        // Call AnimationPlayableOutput.Create(graph, "Nervous idle", Animator).SetSourcePlayable using playable.
         AnimationPlayableOutput.Create(graph, "Nervous idle", Animator).SetSourcePlayable(playable);
-        // Start/resume playback on graph.
         graph.Play();
-        // Evaluate the PlayableGraph at clip times already assigned; zero adds no extra automatic animation time.
+        // Apply the sampled pose without adding any automatic animation time.
         graph.Evaluate(0f);
-        // Call StationaryNervousIdle.AlignFeetToFloor; find the environment floor below the NPC and offset the
-        // posed model soles to that height.
+        // Use the first pose to align the model once; avoid changing position on every animation frame.
         AlignFeetToFloor();
     }
 
-    /// <summary>Find the environment floor below the NPC and offset the posed model soles to that height.</summary>
+    // Find the nearest floor below the root, then offset the visible model so its soles touch it.
+    // GhostNavigation creates the map colliders in Awake, before this Start method runs.
     private void AlignFeetToFloor()
     {
-        // GhostNavigation has already created the current environment's colliders
-        // in Awake. Query only that hierarchy so Notes, NPC and player cannot be hit.
-        // If environmentRoot is missing, return now; skip the rest of this method.
         if (environmentRoot == null) return;
-        // Store a new Ray initialized with world position of transform plus the world-up direction (positive Y)
-        // multiplied by 2f, the world-down direction (negative Y) in local ray.
+        // Look down from two units above the NPC; test up to four units along that ray.
         Ray ray = new Ray(transform.position + Vector3.up * 2f, Vector3.down);
-        // Store float.PositiveInfinity in local nearest.
+        // No floor has been found yet. Keep the distance and height of the nearest valid hit.
         float nearest = float.PositiveInfinity;
-        // Store transform.position Y component in local floorY.
         float floorY = transform.position.y;
-        // Process each surface in all Collider components on or beneath environmentRoot.
+        // Check map surfaces only, so the player, Notes and NPC cannot be mistaken for the floor.
         foreach (Collider surface in environmentRoot.GetComponentsInChildren<Collider>())
         {
-            // Skip this loop entry when !surface.enabled || surface.isTrigger or !surface.Raycast(ray, out
-            // RaycastHit hit, 4f) or hit.normal.y is below 0.7f or hit.distance is at least nearest.
+            // Ignore triggers, disabled surfaces, steep faces and hits farther than the best floor hit.
             if (!surface.enabled || surface.isTrigger || !surface.Raycast(ray, out RaycastHit hit, 4f) ||
                 hit.normal.y < 0.7f || hit.distance >= nearest) continue;
-            // Set nearest to hit.distance.
             nearest = hit.distance;
-            // Set floorY to hit.point Y component.
             floorY = hit.point.y;
         }
-        // If the result of float.IsPositiveInfinity using nearest, run the following block.
+        // Without a floor hit, report the setup error and leave the placement unchanged.
         if (float.IsPositiveInfinity(nearest))
         {
-            // Report the failed setup or state as a Unity Console error.
             Debug.LogError("[StationaryNervousIdle] No current Level 2 floor beneath the NPC.", this);
-            // Return now; skip the rest of this method.
             return;
         }
-        // Set transform.position to a Vector3 built from transform.position X component, floorY,
-        // transform.position Z component.
         transform.position = new Vector3(transform.position.x, floorY, transform.position.z);
-        // Sample the posed skinned mesh once; renderer bounds may include unused
-        // animation poses and do not reliably locate the soles of the feet.
-        // Store float.PositiveInfinity in local soleY.
+        // Measure the lowest vertex of the current posed mesh; animation bounds can be misleading.
         float soleY = float.PositiveInfinity;
-        // Store a new Mesh instance in local mesh.
         Mesh mesh = new Mesh();
-        // Process each skin in all SkinnedMeshRenderer components on or beneath Animator.
         foreach (SkinnedMeshRenderer skin in Animator.GetComponentsInChildren<SkinnedMeshRenderer>())
         {
-            // Write skin current skinned pose into mesh mesh for measurement.
+            // Copy the current animated shape into a temporary mesh for measurement.
             skin.BakeMesh(mesh);
-            // Process each vertex in mesh vertices array from its mesh data.
             foreach (Vector3 vertex in mesh.vertices)
-                // Store the smallest of soleY, skin.transform.TransformPoint(vertex) Y component in soleY.
+                // Convert each vertex to world space and keep the lowest height.
                 soleY = Mathf.Min(soleY, skin.transform.TransformPoint(vertex).y);
         }
-        // Schedule mesh for destruction at Unity end-of-frame cleanup.
+        // Release the temporary measurement mesh after use.
         Destroy(mesh);
-        // If not (the result of float.IsPositiveInfinity using soleY), add the world-up direction (positive Y)
-        // multiplied by (floorY minus soleY) to Animator.transform.position and store the updated value there.
+        // Raise or lower the visual model by the gap between its soles and the floor.
         if (!float.IsPositiveInfinity(soleY)) Animator.transform.position += Vector3.up * (floorY - soleY);
     }
 
-    /// <summary>Turn the NPC toward the player on the horizontal plane when a conversation begins.</summary>
-    // player is a Transform argument supplied by Level2NoteNpc.Interact.
+    // Rotate toward the speaker around the vertical axis; keep the NPC position fixed.
     public void FacePlayer(Transform player)
     {
-        // Store world position of player minus world position of transform in local direction.
         Vector3 direction = player.position - transform.position;
-        // Update the vertical Y component direction.y from 0.
+        // Ignore height differences so the woman does not tilt up or down.
         direction.y = 0f;
-        // If squared length of direction (avoids a square root) is above 0.01, store a rotation facing direction
-        // direction in transform.rotation.
+        // Turn only when there is a clear horizontal direction to face.
         if (direction.sqrMagnitude > 0.01f) transform.rotation = Quaternion.LookRotation(direction);
     }
 
-    /// <summary>Advance the looping nervous clip while gameplay time is running.</summary>
+    // Advance the idle using gameplay time; pausing also pauses the animation.
     private void LateUpdate()
     {
-        // If not (graph is a valid initialized Unity handle/object) or Unity gameplay clock multiplier (0 freezes
-        // gameplay time) is at most 0, return now; skip the rest of this method.
         if (!graph.IsValid() || Time.timeScale <= 0f) return;
-        // Recalculate animationTime from (animationTime + Time.deltaTime) % nervousClip.length (calculated from
-        // the values shown).
+        // Wrap back to the beginning when the clip reaches its end.
         animationTime = (animationTime + Time.deltaTime) % nervousClip.length;
-        // Sample playable at animation time animationTime.
         playable.SetTime(animationTime);
-        // Evaluate the PlayableGraph at clip times already assigned; zero adds no extra automatic animation time.
         graph.Evaluate(0f);
     }
 
-    /// <summary>Destroy the animation graph when the NPC is removed.</summary>
+    // Release the animation graph when the NPC or scene is removed.
     private void OnDestroy()
     {
-        // If graph is a valid initialized Unity handle/object, schedule  for destruction at Unity end-of-frame
-        // cleanup.
         if (graph.IsValid()) graph.Destroy();
     }
 }
